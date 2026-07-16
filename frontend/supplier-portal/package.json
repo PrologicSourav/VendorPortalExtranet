@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Web Prol'IFIC Supplier Portal",
   "scripts": {
-    "ng": "npx ng",
-    "start": "npx ng serve --port 4200",
-    "build": "npx ng build",
-    "watch": "npx ng build --watch --configuration development",
-    "test": "npx ng test"
+    "ng": "node ./node_modules/@angular/cli/bin/ng.js",
+    "start": "node ./node_modules/@angular/cli/bin/ng.js serve --port 4200",
+    "build": "node ./node_modules/@angular/cli/bin/ng.js build",
+    "watch": "node ./node_modules/@angular/cli/bin/ng.js build --watch --configuration development",
+    "test": "node ./node_modules/@angular/cli/bin/ng.js test"
   },
   "private": true,
   "dependencies": {
