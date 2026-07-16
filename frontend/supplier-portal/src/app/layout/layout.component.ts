@@ -1,7 +1,13 @@
 import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { RouterOutlet, RouterLink, RouterLinkActive } from "@angular/router";
+import {
+  Router,
+  RouterOutlet,
+  RouterLink,
+  RouterLinkActive,
+} from "@angular/router";
 import { NotificationService } from "../services/notification.service";
+import { AuthService } from "../services/auth.service";
 
 @Component({
   selector: "app-layout",
@@ -105,7 +111,7 @@ import { NotificationService } from "../services/notification.service";
           <span class="nav-icon">🔔</span> Notifications
         </a>
         <div class="nav-divider"></div>
-        <a routerLink="/login" class="nav-item logout">
+        <a (click)="logout()" class="nav-item logout" style="cursor:pointer">
           <span class="nav-icon">🚪</span> Logout
         </a>
       </nav>
@@ -359,5 +365,12 @@ import { NotificationService } from "../services/notification.service";
 })
 export class LayoutComponent {
   notifService = inject(NotificationService);
+  private auth = inject(AuthService);
+  private router = inject(Router);
   sidebarOpen = false;
+
+  logout() {
+    this.auth.logout();
+    this.router.navigate(["/login"]);
+  }
 }

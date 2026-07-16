@@ -1,4 +1,5 @@
 import { Routes } from "@angular/router";
+import { authGuard, loginGuard } from "./guards/auth.guard";
 import { LoginComponent } from "./screens/login/login.component";
 import { DashboardComponent } from "./screens/dashboard/dashboard.component";
 import { CatalogueComponent } from "./screens/catalogue/catalogue.component";
@@ -10,10 +11,11 @@ import { NotificationsComponent } from "./screens/notifications/notifications.co
 import { LayoutComponent } from "./layout/layout.component";
 
 export const routes: Routes = [
-  { path: "login", component: LoginComponent },
+  { path: "login", component: LoginComponent, canActivate: [loginGuard] },
   {
     path: "",
     component: LayoutComponent,
+    canActivate: [authGuard],
     children: [
       { path: "dashboard", component: DashboardComponent },
       { path: "catalogue", component: CatalogueComponent },
