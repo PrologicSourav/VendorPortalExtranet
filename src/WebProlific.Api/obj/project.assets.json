@@ -4531,11 +4531,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Vendor Portal\\src\\WebProlific.Api\\WebProlific.Api.csproj",
+      "projectUniqueName": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Api\\WebProlific.Api.csproj",
       "projectName": "WebProlific.Api",
-      "projectPath": "D:\\Vendor Portal\\src\\WebProlific.Api\\WebProlific.Api.csproj",
+      "projectPath": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Api\\WebProlific.Api.csproj",
       "packagesPath": "C:\\Users\\sourav\\.nuget\\packages\\",
-      "outputPath": "D:\\Vendor Portal\\src\\WebProlific.Api\\obj\\",
+      "outputPath": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -4555,14 +4555,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\Vendor Portal\\src\\WebProlific.Core\\WebProlific.Core.csproj": {
-              "projectPath": "D:\\Vendor Portal\\src\\WebProlific.Core\\WebProlific.Core.csproj"
+            "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Core\\WebProlific.Core.csproj": {
+              "projectPath": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Core\\WebProlific.Core.csproj"
             },
-            "D:\\Vendor Portal\\src\\WebProlific.Infrastructure\\WebProlific.Infrastructure.csproj": {
-              "projectPath": "D:\\Vendor Portal\\src\\WebProlific.Infrastructure\\WebProlific.Infrastructure.csproj"
+            "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Infrastructure\\WebProlific.Infrastructure.csproj": {
+              "projectPath": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Infrastructure\\WebProlific.Infrastructure.csproj"
             },
-            "D:\\Vendor Portal\\src\\WebProlific.Shared\\WebProlific.Shared.csproj": {
-              "projectPath": "D:\\Vendor Portal\\src\\WebProlific.Shared\\WebProlific.Shared.csproj"
+            "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Shared\\WebProlific.Shared.csproj": {
+              "projectPath": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Shared\\WebProlific.Shared.csproj"
             }
           }
         }

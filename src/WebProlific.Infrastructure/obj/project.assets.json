@@ -4105,11 +4105,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Vendor Portal\\src\\WebProlific.Infrastructure\\WebProlific.Infrastructure.csproj",
+      "projectUniqueName": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Infrastructure\\WebProlific.Infrastructure.csproj",
       "projectName": "WebProlific.Infrastructure",
-      "projectPath": "D:\\Vendor Portal\\src\\WebProlific.Infrastructure\\WebProlific.Infrastructure.csproj",
+      "projectPath": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Infrastructure\\WebProlific.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\sourav\\.nuget\\packages\\",
-      "outputPath": "D:\\Vendor Portal\\src\\WebProlific.Infrastructure\\obj\\",
+      "outputPath": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -4129,8 +4129,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\Vendor Portal\\src\\WebProlific.Core\\WebProlific.Core.csproj": {
-              "projectPath": "D:\\Vendor Portal\\src\\WebProlific.Core\\WebProlific.Core.csproj"
+            "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Core\\WebProlific.Core.csproj": {
+              "projectPath": "D:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Core\\WebProlific.Core.csproj"
             }
           }
         }
