@@ -76,8 +76,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
 
-    // Auto-create database from EF model in development
+// ─── Auto-create database & seed (all environments) ─────────
+try
+{
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
@@ -165,6 +168,12 @@ if (app.Environment.IsDevelopment())
         );
         db.SaveChanges();
     }
+}
+catch (Exception ex)
+{
+    // Log but don't crash — database may not be available yet
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Database initialization failed: {Message}", ex.Message);
 }
 
 app.UseHttpsRedirection();
