@@ -78,10 +78,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ─── Swagger (always enabled for API testing) ────────────────
-app.UseSwagger();
-app.UseSwaggerUI();
-
 // ─── Auto-create database if it doesn't exist (safety net) ──
 try
 {
@@ -96,6 +92,8 @@ catch (Exception ex)
 }
 
 // ─── Middleware ──────────────────────────────────────────────
+app.UseSwagger();
+app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors("AllowAngular");
 app.UseAuthentication();
