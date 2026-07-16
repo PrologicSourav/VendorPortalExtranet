@@ -11,6 +11,15 @@ import { NotificationService } from "../services/notification.service";
     <!-- Top Bar -->
     <header class="topbar">
       <div class="topbar-left">
+        <button
+          class="hamburger"
+          (click)="sidebarOpen = !sidebarOpen"
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <span class="logo">Web Prol'IFIC</span>
         <span class="divider">|</span>
         <span class="portal-name">Supplier Portal</span>
@@ -37,32 +46,61 @@ import { NotificationService } from "../services/notification.service";
       </div>
     </header>
 
+    <!-- Mobile sidebar overlay -->
+    <div
+      class="sidebar-overlay"
+      [class.visible]="sidebarOpen"
+      (click)="sidebarOpen = false"
+    ></div>
+
     <div class="shell">
       <!-- Sidebar -->
-      <nav class="sidebar">
-        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+      <nav class="sidebar" [class.open]="sidebarOpen">
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
           <span class="nav-icon">📊</span> Dashboard
         </a>
-        <a routerLink="/catalogue" routerLinkActive="active" class="nav-item">
+        <a
+          routerLink="/catalogue"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
           <span class="nav-icon">📦</span> Catalogue
         </a>
         <a
           routerLink="/purchase-orders"
           routerLinkActive="active"
           class="nav-item"
+          (click)="sidebarOpen = false"
         >
           <span class="nav-icon">📋</span> Purchase Orders
         </a>
-        <a routerLink="/invoices" routerLinkActive="active" class="nav-item">
+        <a
+          routerLink="/invoices"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
           <span class="nav-icon">🧾</span> Invoices
         </a>
-        <a routerLink="/account" routerLinkActive="active" class="nav-item">
+        <a
+          routerLink="/account"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
           <span class="nav-icon">🏦</span> Account
         </a>
         <a
           routerLink="/notifications"
           routerLinkActive="active"
           class="nav-item"
+          (click)="sidebarOpen = false"
         >
           <span class="nav-icon">🔔</span> Notifications
         </a>
@@ -80,6 +118,27 @@ import { NotificationService } from "../services/notification.service";
   `,
   styles: [
     `
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        width: 32px;
+        height: 32px;
+      }
+      .hamburger span {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background: white;
+        border-radius: 2px;
+        transition: all 0.25s ease;
+      }
+
       .topbar {
         display: flex;
         align-items: center;
@@ -90,7 +149,7 @@ import { NotificationService } from "../services/notification.service";
         color: white;
         position: sticky;
         top: 0;
-        z-index: 100;
+        z-index: 200;
         color-scheme: dark;
       }
       .topbar-left {
@@ -176,6 +235,19 @@ import { NotificationService } from "../services/notification.service";
         font-size: 13px;
       }
 
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 299;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .sidebar-overlay.visible {
+        opacity: 1;
+      }
+
       .shell {
         display: flex;
         min-height: calc(100vh - 56px);
@@ -199,16 +271,16 @@ import { NotificationService } from "../services/notification.service";
         text-decoration: none;
         transition: all 0.15s ease;
         border-left: 3px solid transparent;
-        &:hover {
-          background: var(--color-surface-alt);
-          color: var(--color-text);
-        }
-        &.active {
-          color: var(--color-primary);
-          background: #eef2ff;
-          border-left-color: var(--color-primary);
-          font-weight: 600;
-        }
+      }
+      .nav-item:hover {
+        background: var(--color-surface-alt);
+        color: var(--color-text);
+      }
+      .nav-item.active {
+        color: var(--color-primary);
+        background: #eef2ff;
+        border-left-color: var(--color-primary);
+        font-weight: 600;
       }
       .nav-icon {
         font-size: 16px;
@@ -226,10 +298,66 @@ import { NotificationService } from "../services/notification.service";
         flex: 1;
         padding: 24px;
         overflow-y: auto;
+        min-width: 0;
+      }
+
+      @media (max-width: 1024px) {
+        .entity-switcher {
+          display: none;
+        }
+        .user-name {
+          display: none;
+        }
+        .main-content {
+          padding: 20px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .hamburger {
+          display: flex;
+        }
+        .portal-name {
+          display: none;
+        }
+        .divider {
+          display: none;
+        }
+        .topbar-right {
+          gap: 12px;
+        }
+
+        .sidebar-overlay {
+          display: block;
+          pointer-events: none;
+        }
+        .sidebar-overlay.visible {
+          pointer-events: auto;
+        }
+
+        .sidebar {
+          position: fixed;
+          top: 56px;
+          left: 0;
+          bottom: 0;
+          z-index: 300;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+          box-shadow: none;
+          width: 240px;
+        }
+        .sidebar.open {
+          transform: translateX(0);
+          box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+        }
+        .main-content {
+          padding: 16px;
+        }
       }
     `,
   ],
 })
 export class LayoutComponent {
   notifService = inject(NotificationService);
+  sidebarOpen = false;
 }

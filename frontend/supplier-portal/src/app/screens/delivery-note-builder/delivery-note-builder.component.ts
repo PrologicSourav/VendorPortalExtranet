@@ -45,103 +45,105 @@ import { FormsModule } from "@angular/forms";
     <div class="card" style="margin-top: 16px">
       <div class="card-header">Line Items</div>
       <div class="card-body">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Ordered Qty</th>
-              <th>Delivered So Far</th>
-              <th>Qty in This Delivery</th>
-              <th>Batch/Lot #</th>
-              <th>Expiry Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let line of lines; let i = index">
-              <td>{{ line.item }}</td>
-              <td>{{ line.orderedQty }}</td>
-              <td>{{ line.deliveredSoFar }}</td>
-              <td>
-                <input
-                  type="number"
-                  class="form-control inline-input"
-                  [(ngModel)]="lines[i].qtyInDelivery"
-                  [max]="line.orderedQty - line.deliveredSoFar"
-                />
-                <span
-                  *ngIf="
-                    lines[i].qtyInDelivery >
-                    line.orderedQty - line.deliveredSoFar
-                  "
-                  class="field-warning"
-                >
-                  ⚠ Exceeds remaining ({{
-                    line.orderedQty - line.deliveredSoFar
-                  }})
-                </span>
-              </td>
-              <td>
-                <input
-                  class="form-control inline-input"
-                  [(ngModel)]="lines[i].batchLot"
-                  placeholder="Optional"
-                />
-              </td>
-              <td>
-                <input
-                  type="date"
-                  class="form-control inline-input"
-                  [(ngModel)]="lines[i].expiryDate"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top: 16px">
-      <div class="card-header">Supporting Document</div>
-      <div class="card-body">
-        <div class="upload-area">
-          <input
-            type="file"
-            id="fileUpload"
-            (change)="onFileSelect($event)"
-            hidden
-          />
-          <label for="fileUpload" class="upload-label">
-            📎
-            <span *ngIf="!selectedFile"
-              >Click to upload a delivery document</span
-            >
-            <span *ngIf="selectedFile">{{ selectedFile }}</span>
-          </label>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Ordered Qty</th>
+                <th>Delivered So Far</th>
+                <th>Qty in This Delivery</th>
+                <th>Batch/Lot #</th>
+                <th>Expiry Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let line of lines; let i = index">
+                <td>{{ line.item }}</td>
+                <td>{{ line.orderedQty }}</td>
+                <td>{{ line.deliveredSoFar }}</td>
+                <td>
+                  <input
+                    type="number"
+                    class="form-control inline-input"
+                    [(ngModel)]="lines[i].qtyInDelivery"
+                    [max]="line.orderedQty - line.deliveredSoFar"
+                  />
+                  <span
+                    *ngIf="
+                      lines[i].qtyInDelivery >
+                      line.orderedQty - line.deliveredSoFar
+                    "
+                    class="field-warning"
+                  >
+                    ⚠ Exceeds remaining ({{
+                      line.orderedQty - line.deliveredSoFar
+                    }})
+                  </span>
+                </td>
+                <td>
+                  <input
+                    class="form-control inline-input"
+                    [(ngModel)]="lines[i].batchLot"
+                    placeholder="Optional"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="date"
+                    class="form-control inline-input"
+                    [(ngModel)]="lines[i].expiryDate"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
 
-    <div class="info-banner">
-      ℹ️ This delivery note notifies stores of an expected receipt. Goods are
-      formally received via the buyer's GRN.
-    </div>
+      <div class="card" style="margin-top: 16px">
+        <div class="card-header">Supporting Document</div>
+        <div class="card-body">
+          <div class="upload-area">
+            <input
+              type="file"
+              id="fileUpload"
+              (change)="onFileSelect($event)"
+              hidden
+            />
+            <label for="fileUpload" class="upload-label">
+              📎
+              <span *ngIf="!selectedFile"
+                >Click to upload a delivery document</span
+              >
+              <span *ngIf="selectedFile">{{ selectedFile }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
 
-    <div class="form-actions">
-      <button class="btn btn-secondary" routerLink="/purchase-orders">
-        Cancel
-      </button>
-      <button
-        class="btn btn-primary"
-        (click)="submitDn()"
-        [disabled]="!deliveryDate"
-      >
-        Submit Delivery Note
-      </button>
-    </div>
+      <div class="info-banner">
+        ℹ️ This delivery note notifies stores of an expected receipt. Goods are
+        formally received via the buyer's GRN.
+      </div>
 
-    <div *ngIf="submitted" class="success-banner">
-      ✅ Delivery note submitted successfully. The buyer's stores team will see
-      it as a pending receipt.
+      <div class="form-actions">
+        <button class="btn btn-secondary" routerLink="/purchase-orders">
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          (click)="submitDn()"
+          [disabled]="!deliveryDate"
+        >
+          Submit Delivery Note
+        </button>
+      </div>
+
+      <div *ngIf="submitted" class="success-banner">
+        ✅ Delivery note submitted successfully. The buyer's stores team will
+        see it as a pending receipt.
+      </div>
     </div>
   `,
   styles: [
@@ -178,6 +180,9 @@ import { FormsModule } from "@angular/forms";
         width: 140px;
         padding: 6px 8px;
         font-size: 12px;
+      }
+      .table-wrap {
+        overflow-x: auto;
       }
       .field-warning {
         color: var(--color-warning);
@@ -217,6 +222,21 @@ import { FormsModule } from "@angular/forms";
         font-size: 13px;
         color: #166534;
         font-weight: 500;
+      }
+
+      @media (max-width: 768px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .form-actions {
+          flex-direction: column;
+        }
+        .form-actions .btn {
+          width: 100%;
+        }
+        .inline-input {
+          width: 100%;
+        }
       }
     `,
   ],

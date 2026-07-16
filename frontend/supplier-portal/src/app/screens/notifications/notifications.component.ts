@@ -169,6 +169,33 @@ import { NotificationService } from "../../services/notification.service";
         border-radius: 50%;
         flex-shrink: 0;
       }
+
+      @media (max-width: 768px) {
+        .toolbar {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+        }
+        .filter-group {
+          flex-wrap: wrap;
+        }
+        .filter-group select {
+          flex: 1;
+          min-width: 100px;
+          width: auto;
+        }
+        .filter-group input {
+          flex: 1;
+          min-width: 100px;
+          width: auto;
+        }
+        .notif-item {
+          padding: 12px 16px;
+        }
+        .notif-time {
+          display: none;
+        }
+      }
     `,
   ],
 })

@@ -295,6 +295,39 @@ import { FormsModule } from "@angular/forms";
         margin-top: 12px;
         font-style: italic;
       }
+
+      @media (max-width: 768px) {
+        .page-header {
+          flex-direction: column;
+          gap: 12px;
+        }
+        .header-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+        .toolbar {
+          flex-wrap: wrap;
+        }
+        .toolbar .search-input {
+          width: 100%;
+          min-width: 0;
+        }
+        .toolbar .filter-select {
+          flex: 1;
+          min-width: 120px;
+        }
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 480px) {
+        .toolbar {
+          flex-direction: column;
+        }
+        .toolbar .btn {
+          width: 100%;
+        }
+      }
     `,
   ],
 })

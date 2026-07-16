@@ -119,6 +119,11 @@ import { NotificationService } from "../../services/notification.service";
           grid-template-columns: repeat(2, 1fr);
         }
       }
+      @media (max-width: 640px) {
+        .kpi-grid {
+          grid-template-columns: 1fr;
+        }
+      }
 
       .panels {
         display: grid;
@@ -204,6 +209,24 @@ import { NotificationService } from "../../services/notification.service";
         font-size: 11px;
         color: var(--color-text-muted);
         white-space: nowrap;
+      }
+
+      @media (max-width: 640px) {
+        .action-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+        .action-info {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .notif-item {
+          padding: 10px 0;
+        }
+        .notif-time {
+          font-size: 10px;
+        }
       }
     `,
   ],

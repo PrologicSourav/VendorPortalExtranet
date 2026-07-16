@@ -60,32 +60,34 @@ import { CommonModule } from "@angular/common";
       class="card"
       style="border-top: none; border-radius: 0 0 8px 8px"
     >
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Invoice No</th>
-            <th>Date</th>
-            <th>Due Date</th>
-            <th>Amount</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let inv of invoices">
-            <td>
-              <code>{{ inv.number }}</code>
-            </td>
-            <td>{{ inv.date }}</td>
-            <td>{{ inv.dueDate }}</td>
-            <td>₹{{ inv.amount | number }}</td>
-            <td>
-              <span class="badge" [ngClass]="getStatusBadge(inv.status)">{{
-                inv.status
-              }}</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Invoice No</th>
+              <th>Date</th>
+              <th>Due Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let inv of invoices">
+              <td>
+                <code>{{ inv.number }}</code>
+              </td>
+              <td>{{ inv.date }}</td>
+              <td>{{ inv.dueDate }}</td>
+              <td>₹{{ inv.amount | number }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadge(inv.status)">{{
+                  inv.status
+                }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Payments -->
@@ -94,32 +96,36 @@ import { CommonModule } from "@angular/common";
       class="card"
       style="border-top: none; border-radius: 0 0 8px 8px"
     >
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Reference</th>
-            <th>Date</th>
-            <th>Amount</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of payments">
-            <td>
-              <code>{{ p.reference }}</code>
-            </td>
-            <td>{{ p.date }}</td>
-            <td>₹{{ p.amount | number }}</td>
-            <td>
-              <span
-                class="badge"
-                [ngClass]="p.status === 'Paid' ? 'badge-success' : 'badge-info'"
-                >{{ p.status }}</span
-              >
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of payments">
+              <td>
+                <code>{{ p.reference }}</code>
+              </td>
+              <td>{{ p.date }}</td>
+              <td>₹{{ p.amount | number }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [ngClass]="
+                    p.status === 'Paid' ? 'badge-success' : 'badge-info'
+                  "
+                  >{{ p.status }}</span
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Statement -->
@@ -195,11 +201,25 @@ import { CommonModule } from "@angular/common";
         margin-bottom: 16px;
         font-size: 14px;
       }
+      .table-wrap {
+        overflow-x: auto;
+      }
       .statement-footer {
         text-align: right;
         padding-top: 12px;
         font-size: 14px;
         border-top: 1px solid var(--color-border);
+      }
+
+      @media (max-width: 768px) {
+        .kpi-grid {
+          grid-template-columns: 1fr !important;
+        }
+        .statement-header {
+          flex-direction: column;
+          gap: 12px;
+          align-items: flex-start;
+        }
       }
     `,
   ],

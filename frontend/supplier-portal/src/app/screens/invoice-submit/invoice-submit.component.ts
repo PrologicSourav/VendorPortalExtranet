@@ -82,47 +82,50 @@ import { FormsModule } from "@angular/forms";
           <div class="card" style="margin-top: 16px">
             <div class="card-header">Line Items</div>
             <div class="card-body">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Expected Qty</th>
-                    <th>Invoiced Qty</th>
-                    <th>Expected Price</th>
-                    <th>Invoiced Price</th>
-                    <th>Line Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let line of invoiceLines">
-                    <td>{{ line.item }}</td>
-                    <td>{{ line.expectedQty }}</td>
-                    <td>
-                      <input
-                        type="number"
-                        class="form-control inline-input"
-                        [(ngModel)]="line.invoicedQty"
-                        min="0"
-                      />
-                    </td>
-                    <td>₹{{ line.expectedPrice | number: "1.2-2" }}</td>
-                    <td>
-                      <input
-                        type="number"
-                        class="form-control inline-input"
-                        [(ngModel)]="line.invoicedPrice"
-                        min="0"
-                        step="0.01"
-                      />
-                    </td>
-                    <td>
-                      ₹{{
-                        line.invoicedQty * line.invoicedPrice | number: "1.2-2"
-                      }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Expected Qty</th>
+                      <th>Invoiced Qty</th>
+                      <th>Expected Price</th>
+                      <th>Invoiced Price</th>
+                      <th>Line Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let line of invoiceLines">
+                      <td>{{ line.item }}</td>
+                      <td>{{ line.expectedQty }}</td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control inline-input"
+                          [(ngModel)]="line.invoicedQty"
+                          min="0"
+                        />
+                      </td>
+                      <td>₹{{ line.expectedPrice | number: "1.2-2" }}</td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control inline-input"
+                          [(ngModel)]="line.invoicedPrice"
+                          min="0"
+                          step="0.01"
+                        />
+                      </td>
+                      <td>
+                        ₹{{
+                          line.invoicedQty * line.invoicedPrice
+                            | number: "1.2-2"
+                        }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -274,6 +277,9 @@ import { FormsModule } from "@angular/forms";
         padding: 6px 8px;
         font-size: 12px;
       }
+      .table-wrap {
+        overflow-x: auto;
+      }
       .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -338,6 +344,23 @@ import { FormsModule } from "@angular/forms";
       }
       .btn-block {
         width: 100%;
+      }
+
+      @media (max-width: 768px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .invoice-layout {
+          grid-template-columns: 1fr !important;
+        }
+        .inline-input {
+          width: 80px;
+        }
+        .po-select-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
       }
     `,
   ],

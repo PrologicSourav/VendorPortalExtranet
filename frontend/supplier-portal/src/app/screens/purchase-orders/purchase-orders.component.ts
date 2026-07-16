@@ -37,40 +37,42 @@ import { Router, RouterModule } from "@angular/router";
 
     <!-- PO Table -->
     <div class="card">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>PO Number</th>
-            <th>Buying Entity</th>
-            <th>Order Date</th>
-            <th>Required By</th>
-            <th>Lines</th>
-            <th>Value</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            *ngFor="let po of filteredPOs"
-            (click)="openDetail(po)"
-            class="clickable"
-          >
-            <td>
-              <code>{{ po.poNumber }}</code>
-            </td>
-            <td>{{ po.entity }}</td>
-            <td>{{ po.orderDate }}</td>
-            <td>{{ po.requiredBy }}</td>
-            <td>{{ po.lines }}</td>
-            <td>₹{{ po.value | number }}</td>
-            <td>
-              <span class="badge" [ngClass]="getStatusBadge(po.status)">{{
-                po.status
-              }}</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>PO Number</th>
+              <th>Buying Entity</th>
+              <th>Order Date</th>
+              <th>Required By</th>
+              <th>Lines</th>
+              <th>Value</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let po of filteredPOs"
+              (click)="openDetail(po)"
+              class="clickable"
+            >
+              <td>
+                <code>{{ po.poNumber }}</code>
+              </td>
+              <td>{{ po.entity }}</td>
+              <td>{{ po.orderDate }}</td>
+              <td>{{ po.requiredBy }}</td>
+              <td>{{ po.lines }}</td>
+              <td>₹{{ po.value | number }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadge(po.status)">{{
+                  po.status
+                }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div *ngIf="filteredPOs.length === 0" class="empty-state">
         <div class="empty-icon">📋</div>
         <div class="empty-title">No purchase orders found</div>
@@ -270,6 +272,9 @@ import { Router, RouterModule } from "@angular/router";
       .search-input {
         width: 240px;
       }
+      .table-wrap {
+        overflow-x: auto;
+      }
       .clickable {
         cursor: pointer;
       }
@@ -358,6 +363,48 @@ import { Router, RouterModule } from "@angular/router";
         width: 120px;
         padding: 6px 8px;
         font-size: 12px;
+      }
+
+      @media (max-width: 768px) {
+        .filter-bar {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+        }
+        .filter-chips {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          flex-wrap: nowrap;
+          padding-bottom: 4px;
+        }
+        .filter-chips::-webkit-scrollbar {
+          display: none;
+        }
+        .search-input {
+          width: 100% !important;
+        }
+        .drawer {
+          width: 100% !important;
+          max-width: 100vw !important;
+        }
+        .po-meta {
+          grid-template-columns: 1fr !important;
+          gap: 8px;
+        }
+        .action-buttons {
+          flex-wrap: wrap;
+        }
+        .partial-row {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .partial-row span {
+          flex: 1 1 40%;
+        }
+        .inline-input {
+          width: 100%;
+        }
       }
     `,
   ],
