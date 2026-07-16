@@ -71,12 +71,9 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ─── Middleware ──────────────────────────────────────────────
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// ─── Swagger (always enabled for API testing) ────────────────
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // ─── Auto-create database & seed (all environments) ─────────
 try
