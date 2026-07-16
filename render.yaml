@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: vendorportal-api
+    env: dotnet
+    plan: free
+    region: oregon
+    buildCommand: dotnet publish src/WebProlific.Api/WebProlific.Api.csproj -c Release
+    startCommand: dotnet src/WebProlific.Api/bin/Release/net8.0/publish/WebProlific.Api.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:$PORT
+      - key: ConnectionStrings__DefaultConnection
+        value: Server=tcp:127.0.0.1,1433;User ID=sa;Password=YourStrongPassword123!;TrustServerCertificate=True;Initial Catalog=master
