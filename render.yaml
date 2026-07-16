@@ -13,7 +13,7 @@ services:
       - key: ConnectionStrings__DefaultConnection
         value: Server=182.78.194.30\\SQL2017,2017;Database=WebProlific;User Id=opm1;Password=;TrustServerCertificate=True;MultipleActiveResultSets=true
       - key: AllowedOrigins
-        value: https://vendorportal-frontend.onrender.com,http://localhost:4200,http://localhost:4201
+        value: https://vendorportal-frontend-rxwy.onrender.com,https://vendorportal-frontend.onrender.com,http://localhost:4200,http://localhost:4201
 
   - type: static
     name: vendorportal-frontend

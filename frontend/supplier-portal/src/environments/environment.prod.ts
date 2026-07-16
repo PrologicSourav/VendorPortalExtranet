@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: "https://vendorportal-api.onrender.com/api",
+  apiUrl: "https://vendorportalextranet.onrender.com/api",
 };
