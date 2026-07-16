@@ -1,11 +1,10 @@
 services:
   - type: web
     name: vendorportal-api
-    env: dotnet
+    env: docker
+    dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    buildCommand: dotnet publish src/WebProlific.Api/WebProlific.Api.csproj -c Release
-    startCommand: dotnet src/WebProlific.Api/bin/Release/net8.0/publish/WebProlific.Api.dll
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
