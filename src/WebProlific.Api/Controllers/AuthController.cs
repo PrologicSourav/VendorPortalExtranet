@@ -88,7 +88,7 @@ public class AuthController : ControllerBase
         {
             Id = vendorId,
             LegalName = request.CompanyName,
-            Gstin = string.IsNullOrWhiteSpace(request.Gstin) ? string.Empty : request.Gstin,
+            Gstin = string.IsNullOrWhiteSpace(request.Gstin) ? null : request.Gstin,
             KycStatus = Core.Entities.KycStatus.Incomplete,
             Status = Core.Entities.VendorStatus.Active,
             CreatedAt = DateTime.UtcNow,
