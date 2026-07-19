@@ -88,7 +88,7 @@ public class AuthController : ControllerBase
         {
             Id = vendorId,
             LegalName = request.CompanyName,
-            Gstin = request.Gstin ?? "PENDING",
+            Gstin = string.IsNullOrWhiteSpace(request.Gstin) ? null : request.Gstin,
             KycStatus = Core.Entities.KycStatus.Incomplete,
             Status = Core.Entities.VendorStatus.Active,
             CreatedAt = DateTime.UtcNow,
@@ -128,6 +128,8 @@ public class AuthController : ControllerBase
             }
         });
     }
+
+    
 }
 
 public class LoginRequest { public string Email { get; set; } = string.Empty; public string Password { get; set; } = string.Empty; public bool RememberMe { get; set; } }

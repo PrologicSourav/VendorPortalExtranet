@@ -69,7 +69,7 @@ import { AuthService } from "../../services/auth.service";
           <div class="signup-row">
             <span>Don't have an account?</span>
             <a href="javascript:void(0)" class="signup-link" (click)="step = 4"
-              >Request Access</a
+              >Register</a
             >
           </div>
         </div>
@@ -160,9 +160,9 @@ import { AuthService } from "../../services/auth.service";
           </button>
         </div>
 
-        <!-- Step 4: Sign Up / Request Access -->
+        <!-- Step 4: Sign Up / Register
         <div *ngIf="step === 4" class="login-form">
-          <h2>Request Access</h2>
+          <h2>Register</h2>
 
           <div *ngIf="!signupSuccess">
             <p class="otp-hint">

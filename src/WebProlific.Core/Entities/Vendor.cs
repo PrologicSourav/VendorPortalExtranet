@@ -5,7 +5,7 @@ public class Vendor
     public Guid Id { get; set; }
     public string LegalName { get; set; } = string.Empty;
     public string? TradingName { get; set; }
-    public string Gstin { get; set; } = string.Empty;
+    public string? Gstin { get; set; }
     public string? Pan { get; set; }
     public string? Address { get; set; }
     public string? City { get; set; }
