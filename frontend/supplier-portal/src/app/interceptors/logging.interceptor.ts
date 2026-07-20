@@ -32,23 +32,23 @@ export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
             responseSize: typeof (event.body) === 'string' ? event.body.length : undefined
           });
         }
-      }),
-      catchError((error: HttpErrorResponse) => {
-        const endTime = Date.now();
-        const duration = endTime - startTime;
+      }
+    }),
+    catchError((error: HttpErrorResponse) => {
+      const endTime = Date.now();
+      const duration = endTime - startTime;
 
-        // Log error response
-        logger.error('HTTP Response Error', {
-          status: error.status,
-          url: req.urlWithParams,
-          duration: `${duration}ms`,
-          errorMessage: error.message || 'Unknown error'
-        }, error);
+      // Log error response
+      logger.error('HTTP Response Error', {
+        status: error.status,
+        url: req.urlWithParams,
+        duration: `${duration}ms`,
+        errorMessage: error.message || 'Unknown error'
+      }, error);
 
-        return throwError(() => error);
-      })
-    );
-  };
+      return throwError(() => error);
+    })
+  );
 
   function sanitizeHeaders(headers: any): any {
     const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key'];
