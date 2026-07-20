@@ -160,7 +160,7 @@ import { AuthService } from "../../services/auth.service";
           </button>
         </div>
 
-        <!-- Step 4: Sign Up / Register
+        <!-- Step 4: Sign Up / Register -->
         <div *ngIf="step === 4" class="login-form">
           <h2>Register</h2>
 

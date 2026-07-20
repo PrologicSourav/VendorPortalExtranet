@@ -16,7 +16,7 @@ export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
     headers: sanitizeHeaders(req.headers),
     body: sanitizeBody(req.body),
   });
-
+  //systax error fix
   return next(req).pipe(
     tap({
       next: (event) => {
