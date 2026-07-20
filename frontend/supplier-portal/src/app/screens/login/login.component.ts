@@ -448,8 +448,8 @@ export class LoginComponent {
 
     this.api.login(this.email, this.password).subscribe({
       next: (res) => {
-        // Store the user from the API response for use after OTP
-        this._loginResponse = res.user;
+        // Store the full response for use after OTP
+        this._loginResponse = res;
         this.step = 2;
         this.loading = false;
       },
@@ -489,14 +489,19 @@ export class LoginComponent {
     this.api.verifyOtp(this.otp).subscribe({
       next: () => {
         if (this._loginResponse) {
-          this.auth.login({
-            id: this._loginResponse.id,
-            email: this._loginResponse.email,
-            displayName: this._loginResponse.displayName,
-            role: this._loginResponse.role,
-            isInternal: this._loginResponse.isInternal,
-            vendorId: this._loginResponse.vendorId,
-          });
+          const u = this._loginResponse.user;
+          const token = this._loginResponse.token;
+          this.auth.login(
+            {
+              id: u.id,
+              email: u.email,
+              displayName: u.displayName,
+              role: u.role,
+              isInternal: u.isInternal,
+              vendorId: u.vendorId,
+            },
+            token,
+          );
         }
         this.router.navigate(["/dashboard"]);
       },
