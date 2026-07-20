@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WebProlific.Shared")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5cc41fe2192c28ed562fcf7b1e3d0f7aa6d65cc5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ac135c9f9c1f879f130125ba8791d4642417d9cc")]
 [assembly: System.Reflection.AssemblyProductAttribute("WebProlific.Shared")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WebProlific.Shared")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

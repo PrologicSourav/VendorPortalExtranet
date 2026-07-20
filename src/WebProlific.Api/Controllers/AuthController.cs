@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using WebProlific.Api.Services;
 using WebProlific.Core.Entities;
-using WebProlific.Core.Interfaces;
 using WebProlific.Infrastructure.Data;
 
 namespace WebProlific.Api.Controllers;
@@ -11,28 +13,58 @@ namespace WebProlific.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly ITokenService _tokenService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(AppDbContext db) => _db = db;
+    public AuthController(AppDbContext db, ITokenService tokenService, ILogger<AuthController> logger)
+    {
+        _db = db;
+        _tokenService = tokenService;
+        _logger = logger;
+    }
 
+    /// <summary>
+    /// Authenticate with email and password. Returns a JWT token and user profile.
+    /// </summary>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-            return BadRequest(new { error = "Email and password are required" });
+        _logger.LogInformation("Login attempt for email: {Email}", request.Email);
 
-        // Look up real user from database by email
+        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+        {
+            _logger.LogWarning("Login failed: Email or password missing");
+            return BadRequest(new { error = "Email and password are required" });
+        }
+
         var user = await _db.Users.FirstOrDefaultAsync(u =>
             u.Email == request.Email && u.IsActive);
 
         if (user == null)
+        {
+            _logger.LogWarning("Login failed: User not found for email: {Email}", request.Email);
             return Unauthorized(new { error = "Invalid credentials" });
+        }
 
-        // In production: validate password hash here
-        // For now, accept any password for seeded users
+        // Verify password hash
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        {
+            _logger.LogWarning("Login failed: Invalid password for user: {UserId}", user.Id);
+            return Unauthorized(new { error = "Invalid credentials" });
+        }
+
+        // Update last login
+        user.LastLoginAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        // Generate real JWT token
+        var token = _tokenService.GenerateToken(user);
+
+        _logger.LogInformation("User logged in successfully: {UserId} ({Email})", user.Id, user.Email);
 
         return Ok(new
         {
-            token = "mock-jwt-token",
+            token,
             user = new
             {
                 id = user.Id,
@@ -45,42 +77,79 @@ public class AuthController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Verify a 6-digit OTP code (second factor).
+    /// </summary>
     [HttpPost("verify-otp")]
-    public async Task<IActionResult> VerifyOtp([FromBody] OtpRequest request)
+    public IActionResult VerifyOtp([FromBody] OtpRequest request)
     {
-        // Mock: any 6-digit code succeeds
-        if (request.Otp?.Length != 6)
-            return BadRequest(new { error = "Invalid OTP format" });
+        _logger.LogInformation("OTP verification attempt");
 
-        return Ok(new { message = "OTP verified", token = "mock-jwt-token-otp-verified" });
+        if (request.Otp?.Length != 6)
+        {
+            _logger.LogWarning("OTP verification failed: Invalid OTP format");
+            return BadRequest(new { error = "Invalid OTP format" });
+        }
+
+        // For now, any 6-digit code succeeds
+        // In production: validate against actual OTP sent via email/SMS
+        _logger.LogInformation("OTP verified successfully");
+        return Ok(new { message = "OTP verified", token = "otp-verified" });
     }
 
+    /// <summary>
+    /// Request a password reset link. Always returns success to prevent email enumeration.
+    /// </summary>
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
+        _logger.LogInformation("Password reset requested for email: {Email}", request.Email);
+
         if (string.IsNullOrEmpty(request.Email))
+        {
+            _logger.LogWarning("Password reset failed: Email is required");
             return BadRequest(new { error = "Email is required" });
+        }
 
         var user = await _db.Users.FirstOrDefaultAsync(u =>
             u.Email == request.Email && u.IsActive);
 
+        // In production: send actual reset email here
+
         // Always return success to avoid email enumeration
+        _logger.LogInformation("Password reset processed for email: {Email} (user found: {UserExists})", 
+            request.Email, user != null);
         return Ok(new { message = "If an account exists with this email, a reset link has been sent." });
     }
 
+    /// <summary>
+    /// Register a new supplier account (vendor + user).
+    /// </summary>
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
+        _logger.LogInformation("Registration attempt for email: {Email}, company: {CompanyName}", 
+            request.Email, request.CompanyName);
+
         if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.CompanyName))
+        {
+            _logger.LogWarning("Registration failed: Missing required fields (email, password, or company name)");
             return BadRequest(new { error = "Email, password, and company name are required" });
+        }
 
         if (request.Password.Length < 6)
+        {
+            _logger.LogWarning("Registration failed: Password too short for email: {Email}", request.Email);
             return BadRequest(new { error = "Password must be at least 6 characters" });
+        }
 
         // Check if email already exists
         var existing = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (existing != null)
+        {
+            _logger.LogWarning("Registration failed: Email already exists: {Email}", request.Email);
             return Conflict(new { error = "An account with this email already exists" });
+        }
 
         // Create a new vendor
         var vendorId = Guid.NewGuid();
@@ -89,22 +158,25 @@ public class AuthController : ControllerBase
             Id = vendorId,
             LegalName = request.CompanyName,
             Gstin = string.IsNullOrWhiteSpace(request.Gstin) ? null : request.Gstin,
-            KycStatus = Core.Entities.KycStatus.Incomplete,
-            Status = Core.Entities.VendorStatus.Active,
+            KycStatus = KycStatus.Incomplete,
+            Status = VendorStatus.Active,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
         _db.Vendors.Add(vendor);
 
-        // Create the user account
+        // Save the vendor to get the ID in the database
+        await _db.SaveChangesAsync();
+
+        // Create the user account with a hashed password
         var userId = Guid.NewGuid();
         var user = new AppUser
         {
             Id = userId,
             Email = request.Email,
             DisplayName = request.DisplayName ?? request.CompanyName,
-            PasswordHash = request.Password, // In production: hash this
-            Role = Core.Entities.UserRole.SupplierAdmin,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = UserRole.SupplierAdmin,
             VendorId = vendorId,
             IsInternal = false,
             IsActive = true,
@@ -113,6 +185,9 @@ public class AuthController : ControllerBase
         _db.Users.Add(user);
 
         await _db.SaveChangesAsync();
+
+        _logger.LogInformation("User registered successfully: {UserId} ({Email}) for vendor {VendorId}", 
+            userId, request.Email, vendorId);
 
         return Ok(new
         {
@@ -129,7 +204,31 @@ public class AuthController : ControllerBase
         });
     }
 
-    
+    /// <summary>
+    /// Get the currently authenticated user's profile from the JWT token.
+    /// </summary>
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { error = "Invalid token" });
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+        if (user == null)
+            return Unauthorized(new { error = "User not found" });
+
+        return Ok(new
+        {
+            id = user.Id,
+            email = user.Email,
+            displayName = user.DisplayName,
+            role = user.Role.ToString(),
+            vendorId = user.VendorId,
+            isInternal = user.IsInternal
+        });
+    }
 }
 
 public class LoginRequest { public string Email { get; set; } = string.Empty; public string Password { get; set; } = string.Empty; public bool RememberMe { get; set; } }

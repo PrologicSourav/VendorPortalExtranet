@@ -647,4 +647,10 @@ namespace WebProlific.Infrastructure.Migrations
                 b.HasIndex("PoNumber")
                     .IsUnique();
 
-                b.HasIndex("Property
+                b.HasIndex("PropertyId");
+
+                b.ToTable("PurchaseOrders");
+            });
+        }
+    }
+}
