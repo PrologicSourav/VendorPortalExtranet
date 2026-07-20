@@ -2,10 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using WebProlific.Api.Services;
+using WebProlific.Api.Middleware;
 using WebProlific.Core.Interfaces;
 using WebProlific.Infrastructure.Data;
 using WebProlific.Infrastructure.Repositories;
 using FluentValidation.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +22,9 @@ builder.Configuration
 // ─── Database ───────────────────────────────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ─── Services ───────────────────────────────────────────────
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 // ─── Repositories ───────────────────────────────────────────
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
@@ -63,41 +69,69 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ─── CORS ───────────────────────────────────────────────────
-var allowedOrigins = (builder.Configuration["AllowedOrigins"] ?? "http://localhost:4200,http://localhost:4201")
-    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
+        policy.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
 
+// ─── Logging Configuration ────────────────────────────────
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithProperty("Application", "WebProlific.Api")
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 var app = builder.Build();
 
-// ─── Auto-create database if it doesn't exist (safety net) ──
+// ─── Swagger (all environments) ─────────────────────────────
+app.UseSwagger();
+app.UseSwaggerUI();
+
+// ─── Apply migrations and update schema ────────
 try
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    db.Database.Migrate();
+
+    // Upgrade any plaintext passwords to BCrypt hashes (one-time migration)
+    var plaintextUsers = db.Users.Where(u =>
+        u.PasswordHash != null && !u.PasswordHash.StartsWith("$2")).ToList();
+    foreach (var u in plaintextUsers)
+    {
+        u.PasswordHash = BCrypt.Net.BCrypt.HashPassword(u.PasswordHash);
+    }
+    if (plaintextUsers.Count > 0)
+    {
+        await db.SaveChangesAsync();
+        var log = app.Services.GetRequiredService<ILogger<Program>>();
+        log.LogInformation("Upgraded {Count} plaintext passwords to BCrypt hashes", plaintextUsers.Count);
+    }
 }
 catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "Database initialization failed: {Message}", ex.Message);
+    logger.LogError(ex, "Database migration failed");
 }
 
 // ─── Middleware ──────────────────────────────────────────────
-app.UseSwagger();
-app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors("AllowAngular");
+app.UseSerilogRequestLogging();
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.MapControllers();
 
 app.Run();
+

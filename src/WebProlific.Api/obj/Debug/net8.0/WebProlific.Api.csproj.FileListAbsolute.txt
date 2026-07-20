@@ -295,3 +295,16 @@ D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\obj\Debug\net8.0\refin
 D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\obj\Debug\net8.0\WebProlific.Api.pdb
 D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\obj\Debug\net8.0\WebProlific.Api.genruntimeconfig.cache
 D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\obj\Debug\net8.0\ref\WebProlific.Api.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\BCrypt-Net-Next.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.AspNetCore.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Enrichers.ClientInfo.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Enrichers.CorrelationId.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Enrichers.Environment.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Extensions.Hosting.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Extensions.Logging.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Formatting.Compact.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Settings.Configuration.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Sinks.Console.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Sinks.Debug.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Api\bin\Debug\net8.0\Serilog.Sinks.File.dll
