@@ -19,7 +19,8 @@ public class KycRepository : IKycRepository
             query = query.Where(v => v.KycStatus == kycStatus);
 
         if (!string.IsNullOrEmpty(search))
-            query = query.Where(v => v.LegalName.Contains(search) || v.Gstin.Contains(search));
+            query = query.Where(v => v.LegalName.Contains(search) || 
+                (v.Gstin != null && v.Gstin.Contains(search)));
 
         return await query
             .OrderByDescending(v => v.UpdatedAt)
@@ -36,7 +37,7 @@ public class KycRepository : IKycRepository
             query = query.Where(v => v.KycStatus == kycStatus);
 
         if (!string.IsNullOrEmpty(search))
-            query = query.Where(v => v.LegalName.Contains(search) || v.Gstin.Contains(search));
+            query = query.Where(v => v.LegalName.Contains(search) || (v.Gstin != null && v.Gstin.Contains(search)));
 
         return await query.CountAsync();
     }
