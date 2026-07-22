@@ -26,6 +26,7 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Authenticate with email and password. Returns a JWT token and user profile.
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
@@ -80,6 +81,7 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Verify a 6-digit OTP code (second factor).
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("verify-otp")]
     public IActionResult VerifyOtp([FromBody] OtpRequest request)
     {
@@ -100,6 +102,7 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Request a password reset link. Always returns success to prevent email enumeration.
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
@@ -125,6 +128,7 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Register a new supplier account (vendor + user).
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
