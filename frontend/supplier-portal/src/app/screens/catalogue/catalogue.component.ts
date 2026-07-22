@@ -1,25 +1,26 @@
 import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { TranslatePipe } from "@ngx-translate/core";
 
 @Component({
   selector: "app-catalogue",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   template: `
     <div class="page-header">
       <div>
-        <h1>My Catalogue</h1>
-        <p class="page-subtitle">Manage your price list for the buying group</p>
+        <h1>{{ "catalogue.title" | translate }}</h1>
+        <p class="page-subtitle">{{ "catalogue.subtitle" | translate }}</p>
       </div>
       <div class="header-actions">
-        <span class="badge badge-warning">Draft</span>
+        <span class="badge badge-warning">{{ "catalogue.statusDraft" | translate }}</span>
         <button
           class="btn btn-primary"
           [disabled]="lines.length === 0"
-          title="Submit your catalogue for buyer approval"
+          [title]="'catalogue.submitTooltip' | translate"
         >
-          Submit for Approval
+          {{ "catalogue.submitForApproval" | translate }}
         </button>
       </div>
     </div>
@@ -29,16 +30,16 @@ import { FormsModule } from "@angular/forms";
       <input
         type="text"
         class="form-control search-input"
-        placeholder="Search items..."
+        [placeholder]="'catalogue.searchPlaceholder' | translate"
         [(ngModel)]="searchTerm"
       />
       <select class="form-control filter-select" [(ngModel)]="statusFilter">
-        <option value="">All Status</option>
-        <option value="Draft">Draft</option>
-        <option value="Approved">Approved</option>
+        <option value="">{{ "catalogue.allStatus" | translate }}</option>
+        <option value="Draft">{{ "catalogue.statusDraft" | translate }}</option>
+        <option value="Approved">{{ "catalogue.statusApproved" | translate }}</option>
       </select>
       <button class="btn btn-primary" (click)="showAddDialog = true">
-        + Add Line
+        + {{ "catalogue.addLine" | translate }}
       </button>
     </div>
 
@@ -48,16 +49,16 @@ import { FormsModule } from "@angular/forms";
         <table class="data-table" *ngIf="lines.length > 0">
           <thead>
             <tr>
-              <th>Item Code</th>
-              <th>Description</th>
-              <th>Pack / UOM</th>
-              <th>Price</th>
-              <th>Currency</th>
-              <th>Valid From</th>
-              <th>Valid To</th>
-              <th>Tax Class</th>
-              <th>Contract Deviation</th>
-              <th>Actions</th>
+              <th>{{ "catalogue.itemCode" | translate }}</th>
+              <th>{{ "catalogue.description" | translate }}</th>
+              <th>{{ "catalogue.packUom" | translate }}</th>
+              <th>{{ "catalogue.price" | translate }}</th>
+              <th>{{ "catalogue.currency" | translate }}</th>
+              <th>{{ "catalogue.validFrom" | translate }}</th>
+              <th>{{ "catalogue.validTo" | translate }}</th>
+              <th>{{ "catalogue.taxClass" | translate }}</th>
+              <th>{{ "catalogue.contractDeviation" | translate }}</th>
+              <th>{{ "catalogue.actions" | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -76,12 +77,12 @@ import { FormsModule } from "@angular/forms";
                 <span
                   *ngIf="line.deviation && line.deviation > 0"
                   class="badge badge-error"
-                  title="Price deviates from agreed rate contract"
+                  [title]="'catalogue.deviationTooltip' | translate"
                 >
-                  Above contract +{{ line.deviation }}%
+                  {{ "catalogue.aboveContract" | translate: { deviation: line.deviation } }}
                 </span>
                 <span *ngIf="line.deviation === 0" class="badge badge-success"
-                  >On contract</span
+                  >{{ "catalogue.onContract" | translate }}</span
                 >
               </td>
               <td>
@@ -89,14 +90,14 @@ import { FormsModule } from "@angular/forms";
                   class="btn btn-secondary btn-sm"
                   (click)="editLine(line)"
                 >
-                  Edit
+                  {{ "catalogue.edit" | translate }}
                 </button>
                 <button
                   class="btn btn-sm"
                   style="color: var(--color-error)"
                   (click)="deleteLine(line)"
                 >
-                  Delete
+                  {{ "catalogue.delete" | translate }}
                 </button>
               </td>
             </tr>
@@ -106,9 +107,9 @@ import { FormsModule } from "@angular/forms";
 
       <div *ngIf="lines.length === 0" class="empty-state">
         <div class="empty-icon">📦</div>
-        <div class="empty-title">No catalogue lines yet</div>
+        <div class="empty-title">{{ "catalogue.emptyTitle" | translate }}</div>
         <div class="empty-desc">
-          Add your first item to start building your price list.
+          {{ "catalogue.emptyDesc" | translate }}
         </div>
       </div>
     </div>
@@ -122,14 +123,14 @@ import { FormsModule } from "@angular/forms";
       <div class="modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>
-            {{ editingLine ? "Edit Catalogue Line" : "Add Catalogue Line" }}
+            {{ (editingLine ? "catalogue.editLine" : "catalogue.addLine") | translate }}
           </h3>
           <button class="btn btn-sm" (click)="showAddDialog = false">✕</button>
         </div>
         <div class="modal-body">
           <div class="form-grid">
             <div class="form-group">
-              <label>Item Code</label>
+              <label>{{ "catalogue.itemCode" | translate }}</label>
               <input
                 class="form-control"
                 [(ngModel)]="formData.itemCode"
@@ -137,7 +138,7 @@ import { FormsModule } from "@angular/forms";
               />
             </div>
             <div class="form-group">
-              <label>Description</label>
+              <label>{{ "catalogue.description" | translate }}</label>
               <input
                 class="form-control"
                 [(ngModel)]="formData.description"
@@ -145,7 +146,7 @@ import { FormsModule } from "@angular/forms";
               />
             </div>
             <div class="form-group">
-              <label>Pack / UOM</label>
+              <label>{{ "catalogue.packUom" | translate }}</label>
               <input
                 class="form-control"
                 [(ngModel)]="formData.packUom"
@@ -153,7 +154,7 @@ import { FormsModule } from "@angular/forms";
               />
             </div>
             <div class="form-group">
-              <label>Price (₹)</label>
+              <label>{{ "catalogue.priceInr" | translate }}</label>
               <input
                 type="number"
                 class="form-control"
@@ -162,18 +163,18 @@ import { FormsModule } from "@angular/forms";
                 step="0.01"
               />
               <span *ngIf="formData.price <= 0" class="field-error"
-                >Price must be greater than 0</span
+                >{{ "catalogue.priceValidation" | translate }}</span
               >
             </div>
             <div class="form-group">
-              <label>Currency</label>
+              <label>{{ "catalogue.currency" | translate }}</label>
               <select class="form-control" [(ngModel)]="formData.currency">
                 <option value="INR">INR</option>
                 <option value="AED">AED</option>
               </select>
             </div>
             <div class="form-group">
-              <label>Valid From</label>
+              <label>{{ "catalogue.validFrom" | translate }}</label>
               <input
                 type="date"
                 class="form-control"
@@ -181,7 +182,7 @@ import { FormsModule } from "@angular/forms";
               />
             </div>
             <div class="form-group">
-              <label>Valid To</label>
+              <label>{{ "catalogue.validTo" | translate }}</label>
               <input
                 type="date"
                 class="form-control"
@@ -194,11 +195,11 @@ import { FormsModule } from "@angular/forms";
                   formData.validTo < formData.validFrom
                 "
                 class="field-error"
-                >Valid-to must be after valid-from</span
+                >{{ "catalogue.validToValidation" | translate }}</span
               >
             </div>
             <div class="form-group">
-              <label>Tax Class</label>
+              <label>{{ "catalogue.taxClass" | translate }}</label>
               <select class="form-control" [(ngModel)]="formData.taxClass">
                 <option value="GST-5">GST 5%</option>
                 <option value="GST-12">GST 12%</option>
@@ -208,12 +209,12 @@ import { FormsModule } from "@angular/forms";
             </div>
           </div>
           <p class="form-note">
-            Lines are submitted for buyer approval before becoming orderable.
+            {{ "catalogue.formNote" | translate }}
           </p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="showAddDialog = false">
-            Cancel
+            {{ "catalogue.cancel" | translate }}
           </button>
           <button
             class="btn btn-primary"
@@ -222,7 +223,7 @@ import { FormsModule } from "@angular/forms";
               !formData.itemCode || !formData.description || formData.price <= 0
             "
           >
-            {{ editingLine ? "Update" : "Add Line" }}
+            {{ (editingLine ? "catalogue.update" : "catalogue.addLine") | translate }}
           </button>
         </div>
       </div>

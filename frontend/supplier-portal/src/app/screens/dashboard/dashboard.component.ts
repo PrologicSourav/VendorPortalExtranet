@@ -1,40 +1,41 @@
 import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Router } from "@angular/router";
+import { TranslatePipe } from "@ngx-translate/core";
 import { MOCK_DASHBOARD } from "../../services/mock-data";
 import { NotificationService } from "../../services/notification.service";
 
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   template: `
     <div class="page-header">
-      <h1>Dashboard</h1>
+      <h1>{{ "dashboard.title" | translate }}</h1>
       <p class="page-subtitle">
-        Welcome back — here's your procurement overview
+        {{ "dashboard.subtitle" | translate }}
       </p>
     </div>
 
     <!-- KPI Cards -->
     <div class="kpi-grid">
       <div class="kpi-card" style="border-left: 4px solid var(--color-primary)">
-        <div class="kpi-label">POs to Acknowledge</div>
+        <div class="kpi-label">{{ "dashboard.kpi.poToAcknowledge" | translate }}</div>
         <div class="kpi-value">{{ data.poToAcknowledge }}</div>
-        <div class="kpi-sub">Awaiting your action</div>
+        <div class="kpi-sub">{{ "dashboard.kpi.poToAcknowledgeSub" | translate }}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Invoices in Progress</div>
+        <div class="kpi-label">{{ "dashboard.kpi.invoicesInProgress" | translate }}</div>
         <div class="kpi-value">{{ data.invoicesInProgress }}</div>
-        <div class="kpi-sub">Submitted, pending review</div>
+        <div class="kpi-sub">{{ "dashboard.kpi.invoicesInProgressSub" | translate }}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Outstanding Amount</div>
+        <div class="kpi-label">{{ "dashboard.kpi.outstandingAmount" | translate }}</div>
         <div class="kpi-value">₹{{ data.outstandingAmount | number }}</div>
-        <div class="kpi-sub">Across all entities</div>
+        <div class="kpi-sub">{{ "dashboard.kpi.outstandingAmountSub" | translate }}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Next Scheduled Payment</div>
+        <div class="kpi-label">{{ "dashboard.kpi.nextScheduledPayment" | translate }}</div>
         <div class="kpi-value">₹{{ data.nextPayment.amount | number }}</div>
         <div class="kpi-sub">{{ data.nextPayment.date }}</div>
       </div>
@@ -43,7 +44,7 @@ import { NotificationService } from "../../services/notification.service";
     <div class="panels">
       <!-- Action Required -->
       <div class="card panel">
-        <div class="card-header">Action Required</div>
+        <div class="card-header">{{ "dashboard.actionRequired.title" | translate }}</div>
         <div class="card-body">
           <div *ngFor="let po of pendingPOs" class="action-item">
             <div class="action-info">
@@ -56,13 +57,13 @@ import { NotificationService } from "../../services/notification.service";
               class="btn btn-primary"
               (click)="router.navigate(['/purchase-orders'])"
             >
-              Acknowledge
+              {{ "dashboard.actionRequired.acknowledge" | translate }}
             </button>
           </div>
           <div *ngIf="pendingPOs.length === 0" class="empty-state">
-            <div class="empty-title">All caught up!</div>
+            <div class="empty-title">{{ "dashboard.actionRequired.emptyTitle" | translate }}</div>
             <div class="empty-desc">
-              No POs require your attention right now.
+              {{ "dashboard.actionRequired.emptyDesc" | translate }}
             </div>
           </div>
         </div>
@@ -70,7 +71,7 @@ import { NotificationService } from "../../services/notification.service";
 
       <!-- Recent Notifications -->
       <div class="card panel">
-        <div class="card-header">Recent Notifications</div>
+        <div class="card-header">{{ "dashboard.recentNotifications.title" | translate }}</div>
         <div class="card-body">
           <div
             *ngFor="let n of notifications"
@@ -85,8 +86,8 @@ import { NotificationService } from "../../services/notification.service";
             <span class="notif-time">{{ n.time }}</span>
           </div>
           <div *ngIf="notifications.length === 0" class="empty-state">
-            <div class="empty-title">No notifications</div>
-            <div class="empty-desc">You're all caught up.</div>
+            <div class="empty-title">{{ "dashboard.recentNotifications.emptyTitle" | translate }}</div>
+            <div class="empty-desc">{{ "dashboard.recentNotifications.emptyDesc" | translate }}</div>
           </div>
         </div>
       </div>

@@ -1,28 +1,29 @@
 import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { TranslatePipe } from "@ngx-translate/core";
 
 @Component({
   selector: "app-account",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   template: `
     <div class="page-header">
-      <h1>Account & Statement</h1>
-      <p class="page-subtitle">Read-only view of your payable status</p>
+      <h1>{{ "account.title" | translate }}</h1>
+      <p class="page-subtitle">{{ "account.subtitle" | translate }}</p>
     </div>
 
     <!-- KPI Cards -->
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-label">Total Outstanding</div>
+        <div class="kpi-label">{{ "account.totalOutstanding" | translate }}</div>
         <div class="kpi-value">₹1,89,500</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Overdue Amount</div>
+        <div class="kpi-label">{{ "account.overdueAmount" | translate }}</div>
         <div class="kpi-value" style="color: var(--color-error)">₹42,000</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Paid in Last 30 Days</div>
+        <div class="kpi-label">{{ "account.paidLast30Days" | translate }}</div>
         <div class="kpi-value" style="color: var(--color-success)">
           ₹2,15,500
         </div>
@@ -36,21 +37,21 @@ import { CommonModule } from "@angular/common";
         [class.active]="activeTab === 'invoices'"
         (click)="activeTab = 'invoices'"
       >
-        Outstanding Invoices
+        {{ "account.tabOutstandingInvoices" | translate }}
       </div>
       <div
         class="tab"
         [class.active]="activeTab === 'payments'"
         (click)="activeTab = 'payments'"
       >
-        Payments
+        {{ "account.tabPayments" | translate }}
       </div>
       <div
         class="tab"
         [class.active]="activeTab === 'statement'"
         (click)="activeTab = 'statement'"
       >
-        Statement
+        {{ "account.tabStatement" | translate }}
       </div>
     </div>
 
@@ -64,11 +65,11 @@ import { CommonModule } from "@angular/common";
         <table class="data-table">
           <thead>
             <tr>
-              <th>Invoice No</th>
-              <th>Date</th>
-              <th>Due Date</th>
-              <th>Amount</th>
-              <th>Status</th>
+              <th>{{ "account.invoiceNo" | translate }}</th>
+              <th>{{ "account.date" | translate }}</th>
+              <th>{{ "account.dueDate" | translate }}</th>
+              <th>{{ "account.amount" | translate }}</th>
+              <th>{{ "account.status" | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -81,7 +82,7 @@ import { CommonModule } from "@angular/common";
               <td>₹{{ inv.amount | number }}</td>
               <td>
                 <span class="badge" [ngClass]="getStatusBadge(inv.status)">{{
-                  inv.status
+                  getStatusKey(inv.status) | translate
                 }}</span>
               </td>
             </tr>
@@ -100,10 +101,10 @@ import { CommonModule } from "@angular/common";
         <table class="data-table">
           <thead>
             <tr>
-              <th>Reference</th>
-              <th>Date</th>
-              <th>Amount</th>
-              <th>Status</th>
+              <th>{{ "account.reference" | translate }}</th>
+              <th>{{ "account.date" | translate }}</th>
+              <th>{{ "account.amount" | translate }}</th>
+              <th>{{ "account.status" | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -119,7 +120,7 @@ import { CommonModule } from "@angular/common";
                   [ngClass]="
                     p.status === 'Paid' ? 'badge-success' : 'badge-info'
                   "
-                  >{{ p.status }}</span
+                  >{{ getStatusKey(p.status) | translate }}</span
                 >
               </td>
             </tr>
@@ -136,17 +137,21 @@ import { CommonModule } from "@angular/common";
     >
       <div class="card-body">
         <div class="statement-header">
-          <div>Opening Balance: <strong>₹2,31,500</strong></div>
-          <button class="btn btn-secondary">📥 Download PDF</button>
+          <div>
+            {{ "account.openingBalance" | translate }}: <strong>₹2,31,500</strong>
+          </div>
+          <button class="btn btn-secondary">
+            📥 {{ "account.downloadPdf" | translate }}
+          </button>
         </div>
         <table class="data-table">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Debit</th>
-              <th>Credit</th>
-              <th>Balance</th>
+              <th>{{ "account.date" | translate }}</th>
+              <th>{{ "account.description" | translate }}</th>
+              <th>{{ "account.debit" | translate }}</th>
+              <th>{{ "account.credit" | translate }}</th>
+              <th>{{ "account.balance" | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -162,7 +167,7 @@ import { CommonModule } from "@angular/common";
           </tbody>
         </table>
         <div class="statement-footer">
-          Closing Balance: <strong>₹1,89,500</strong>
+          {{ "account.closingBalance" | translate }}: <strong>₹1,89,500</strong>
         </div>
       </div>
     </div>
@@ -356,5 +361,17 @@ export class AccountComponent {
       Blocked: "badge-error",
     };
     return map[status] || "badge-muted";
+  }
+
+  getStatusKey(status: string): string {
+    const map: Record<string, string> = {
+      Submitted: "account.statusSubmitted",
+      "Under review": "account.statusUnderReview",
+      Approved: "account.statusApproved",
+      Blocked: "account.statusBlocked",
+      Paid: "account.statusPaid",
+      Scheduled: "account.statusScheduled",
+    };
+    return map[status] || status;
   }
 }

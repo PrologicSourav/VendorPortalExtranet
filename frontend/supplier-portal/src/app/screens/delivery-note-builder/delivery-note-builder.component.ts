@@ -2,28 +2,31 @@ import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { FormsModule } from "@angular/forms";
+import { TranslatePipe } from "@ngx-translate/core";
 
 @Component({
   selector: "app-delivery-note-builder",
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslatePipe],
   template: `
     <div class="page-header">
       <div>
         <a class="back-link" routerLink="/purchase-orders"
-          >← Back to Purchase Orders</a
+          >← {{ "deliveryNote.backToPurchaseOrders" | translate }}</a
         >
-        <h1>Create Delivery Note</h1>
-        <p class="page-subtitle">Against PO {{ poNumber }} · Sofitel Delhi</p>
+        <h1>{{ "deliveryNote.title" | translate }}</h1>
+        <p class="page-subtitle">
+          {{ "deliveryNote.againstPo" | translate: { poNumber } }} · Sofitel Delhi
+        </p>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header">Delivery Details</div>
+      <div class="card-header">{{ "deliveryNote.deliveryDetails" | translate }}</div>
       <div class="card-body">
         <div class="form-grid">
           <div class="form-group">
-            <label>Expected Delivery Date</label>
+            <label>{{ "deliveryNote.expectedDeliveryDate" | translate }}</label>
             <input
               type="date"
               class="form-control"
@@ -31,10 +34,10 @@ import { FormsModule } from "@angular/forms";
             />
           </div>
           <div class="form-group">
-            <label>Time Window</label>
+            <label>{{ "deliveryNote.timeWindow" | translate }}</label>
             <div class="time-window">
               <input type="time" class="form-control" [(ngModel)]="timeStart" />
-              <span>to</span>
+              <span>{{ "deliveryNote.to" | translate }}</span>
               <input type="time" class="form-control" [(ngModel)]="timeEnd" />
             </div>
           </div>
@@ -43,18 +46,18 @@ import { FormsModule } from "@angular/forms";
     </div>
 
     <div class="card" style="margin-top: 16px">
-      <div class="card-header">Line Items</div>
+      <div class="card-header">{{ "deliveryNote.lineItems" | translate }}</div>
       <div class="card-body">
         <div class="table-wrap">
           <table class="data-table">
             <thead>
               <tr>
-                <th>Item</th>
-                <th>Ordered Qty</th>
-                <th>Delivered So Far</th>
-                <th>Qty in This Delivery</th>
-                <th>Batch/Lot #</th>
-                <th>Expiry Date</th>
+                <th>{{ "deliveryNote.item" | translate }}</th>
+                <th>{{ "deliveryNote.orderedQty" | translate }}</th>
+                <th>{{ "deliveryNote.deliveredSoFar" | translate }}</th>
+                <th>{{ "deliveryNote.qtyInThisDelivery" | translate }}</th>
+                <th>{{ "deliveryNote.batchLot" | translate }}</th>
+                <th>{{ "deliveryNote.expiryDate" | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -76,16 +79,18 @@ import { FormsModule } from "@angular/forms";
                     "
                     class="field-warning"
                   >
-                    ⚠ Exceeds remaining ({{
-                      line.orderedQty - line.deliveredSoFar
-                    }})
+                    ⚠
+                    {{
+                      "deliveryNote.exceedsRemaining"
+                        | translate: { remaining: line.orderedQty - line.deliveredSoFar }
+                    }}
                   </span>
                 </td>
                 <td>
                   <input
                     class="form-control inline-input"
                     [(ngModel)]="lines[i].batchLot"
-                    placeholder="Optional"
+                    [placeholder]="'deliveryNote.optional' | translate"
                   />
                 </td>
                 <td>
@@ -102,7 +107,7 @@ import { FormsModule } from "@angular/forms";
       </div>
 
       <div class="card" style="margin-top: 16px">
-        <div class="card-header">Supporting Document</div>
+        <div class="card-header">{{ "deliveryNote.supportingDocument" | translate }}</div>
         <div class="card-body">
           <div class="upload-area">
             <input
@@ -113,9 +118,9 @@ import { FormsModule } from "@angular/forms";
             />
             <label for="fileUpload" class="upload-label">
               📎
-              <span *ngIf="!selectedFile"
-                >Click to upload a delivery document</span
-              >
+              <span *ngIf="!selectedFile">{{
+                "deliveryNote.clickToUpload" | translate
+              }}</span>
               <span *ngIf="selectedFile">{{ selectedFile }}</span>
             </label>
           </div>
@@ -123,26 +128,24 @@ import { FormsModule } from "@angular/forms";
       </div>
 
       <div class="info-banner">
-        ℹ️ This delivery note notifies stores of an expected receipt. Goods are
-        formally received via the buyer's GRN.
+        ℹ️ {{ "deliveryNote.infoBanner" | translate }}
       </div>
 
       <div class="form-actions">
         <button class="btn btn-secondary" routerLink="/purchase-orders">
-          Cancel
+          {{ "deliveryNote.cancel" | translate }}
         </button>
         <button
           class="btn btn-primary"
           (click)="submitDn()"
           [disabled]="!deliveryDate"
         >
-          Submit Delivery Note
+          {{ "deliveryNote.submit" | translate }}
         </button>
       </div>
 
       <div *ngIf="submitted" class="success-banner">
-        ✅ Delivery note submitted successfully. The buyer's stores team will
-        see it as a pending receipt.
+        ✅ {{ "deliveryNote.successBanner" | translate }}
       </div>
     </div>
   `,

@@ -1,35 +1,36 @@
 import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { TranslatePipe } from "@ngx-translate/core";
 import { NotificationService } from "../../services/notification.service";
 
 @Component({
   selector: "app-notifications",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   template: `
     <div class="page-header">
-      <h1>Notifications</h1>
-      <p class="page-subtitle">Stay updated on your procurement activities</p>
+      <h1>{{ "notifications.title" | translate }}</h1>
+      <p class="page-subtitle">{{ "notifications.subtitle" | translate }}</p>
     </div>
 
     <!-- Controls -->
     <div class="toolbar">
       <button class="btn btn-secondary" (click)="markAllRead()">
-        ✓ Mark all as read
+        ✓ {{ "notifications.markAllRead" | translate }}
       </button>
       <div class="filter-group">
         <select class="form-control" [(ngModel)]="typeFilter">
-          <option value="">All Types</option>
-          <option value="po">New PO</option>
-          <option value="rejected">Rejected</option>
-          <option value="payment">Payment</option>
-          <option value="catalogue">Catalogue</option>
+          <option value="">{{ "notifications.filterAllTypes" | translate }}</option>
+          <option value="po">{{ "notifications.filterNewPo" | translate }}</option>
+          <option value="rejected">{{ "notifications.filterRejected" | translate }}</option>
+          <option value="payment">{{ "notifications.filterPayment" | translate }}</option>
+          <option value="catalogue">{{ "notifications.filterCatalogue" | translate }}</option>
         </select>
         <input
           type="text"
           class="form-control"
-          placeholder="Search..."
+          [placeholder]="'notifications.searchPlaceholder' | translate"
           [(ngModel)]="searchTerm"
         />
       </div>
@@ -38,7 +39,7 @@ import { NotificationService } from "../../services/notification.service";
     <!-- Notifications List -->
     <div class="card">
       <div *ngFor="let group of groupedNotifications" class="notif-group">
-        <div class="group-header">{{ group.label }}</div>
+        <div class="group-header">{{ group.label | translate }}</div>
         <div
           *ngFor="let n of group.items"
           class="notif-item"
@@ -60,8 +61,8 @@ import { NotificationService } from "../../services/notification.service";
 
       <div *ngIf="filteredNotifications.length === 0" class="empty-state">
         <div class="empty-icon">🔔</div>
-        <div class="empty-title">No notifications</div>
-        <div class="empty-desc">You're all caught up.</div>
+        <div class="empty-title">{{ "notifications.emptyTitle" | translate }}</div>
+        <div class="empty-desc">{{ "notifications.emptyDesc" | translate }}</div>
       </div>
     </div>
   `,
@@ -228,13 +229,13 @@ export class NotificationsComponent {
   get groupedNotifications() {
     return [
       {
-        label: "Today",
+        label: "notifications.groupToday",
         items: this.filteredNotifications.filter((n) =>
           n.time.includes("hour"),
         ),
       },
       {
-        label: "Earlier",
+        label: "notifications.groupEarlier",
         items: this.filteredNotifications.filter(
           (n) => !n.time.includes("hour"),
         ),

@@ -1,22 +1,23 @@
 import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { TranslatePipe } from "@ngx-translate/core";
 
 @Component({
   selector: "app-invoice-submit",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   template: `
     <div class="page-header">
-      <h1>Submit Invoice</h1>
+      <h1>{{ "invoiceSubmit.title" | translate }}</h1>
       <p class="page-subtitle">
-        Submit an invoice against a delivered purchase order
+        {{ "invoiceSubmit.subtitle" | translate }}
       </p>
     </div>
 
     <!-- Step 1: Select PO/GRN -->
     <div *ngIf="step === 1" class="card">
-      <div class="card-header">Select PO to Invoice Against</div>
+      <div class="card-header">{{ "invoiceSubmit.selectPo" | translate }}</div>
       <div class="card-body">
         <div class="po-select-list">
           <div
@@ -28,7 +29,9 @@ import { FormsModule } from "@angular/forms";
             <div class="po-info">
               <span class="po-number">{{ po.poNumber }}</span>
               <span class="po-entity">{{ po.entity }} · {{ po.property }}</span>
-              <span class="po-date">Delivered: {{ po.deliveryDate }}</span>
+              <span class="po-date">{{
+                "invoiceSubmit.delivered" | translate: { date: po.deliveryDate }
+              }}</span>
             </div>
             <span class="po-value">₹{{ po.value | number }}</span>
           </div>
@@ -39,7 +42,7 @@ import { FormsModule } from "@angular/forms";
           (click)="step = 2"
           style="margin-top: 16px"
         >
-          Continue
+          {{ "invoiceSubmit.continue" | translate }}
         </button>
       </div>
     </div>
@@ -49,11 +52,11 @@ import { FormsModule } from "@angular/forms";
       <div class="invoice-layout">
         <div class="invoice-main">
           <div class="card">
-            <div class="card-header">Invoice Details</div>
+            <div class="card-header">{{ "invoiceSubmit.invoiceDetails" | translate }}</div>
             <div class="card-body">
               <div class="form-grid">
                 <div class="form-group">
-                  <label>Invoice Number</label>
+                  <label>{{ "invoiceSubmit.invoiceNumber" | translate }}</label>
                   <input
                     class="form-control"
                     [(ngModel)]="invoiceNumber"
@@ -61,7 +64,7 @@ import { FormsModule } from "@angular/forms";
                   />
                 </div>
                 <div class="form-group">
-                  <label>Invoice Date</label>
+                  <label>{{ "invoiceSubmit.invoiceDate" | translate }}</label>
                   <input
                     type="date"
                     class="form-control"
@@ -69,7 +72,7 @@ import { FormsModule } from "@angular/forms";
                   />
                 </div>
                 <div class="form-group">
-                  <label>Currency</label>
+                  <label>{{ "invoiceSubmit.currency" | translate }}</label>
                   <select class="form-control" [(ngModel)]="currency">
                     <option value="INR">INR (₹)</option>
                     <option value="AED">AED (د.إ)</option>
@@ -80,18 +83,18 @@ import { FormsModule } from "@angular/forms";
           </div>
 
           <div class="card" style="margin-top: 16px">
-            <div class="card-header">Line Items</div>
+            <div class="card-header">{{ "invoiceSubmit.lineItems" | translate }}</div>
             <div class="card-body">
               <div class="table-wrap">
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Item</th>
-                      <th>Expected Qty</th>
-                      <th>Invoiced Qty</th>
-                      <th>Expected Price</th>
-                      <th>Invoiced Price</th>
-                      <th>Line Total</th>
+                      <th>{{ "invoiceSubmit.item" | translate }}</th>
+                      <th>{{ "invoiceSubmit.expectedQty" | translate }}</th>
+                      <th>{{ "invoiceSubmit.invoicedQty" | translate }}</th>
+                      <th>{{ "invoiceSubmit.expectedPrice" | translate }}</th>
+                      <th>{{ "invoiceSubmit.invoicedPrice" | translate }}</th>
+                      <th>{{ "invoiceSubmit.lineTotal" | translate }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -130,7 +133,7 @@ import { FormsModule } from "@angular/forms";
           </div>
 
           <div class="card" style="margin-top: 16px">
-            <div class="card-header">Invoice PDF Upload</div>
+            <div class="card-header">{{ "invoiceSubmit.pdfUpload" | translate }}</div>
             <div class="card-body">
               <input
                 type="file"
@@ -139,7 +142,7 @@ import { FormsModule } from "@angular/forms";
                 (change)="onFileSelect($event)"
               />
               <label for="invoiceUpload" class="upload-label">
-                📎 {{ selectedFile || "Click to upload invoice PDF" }}
+                📎 {{ selectedFile || ("invoiceSubmit.clickToUpload" | translate) }}
               </label>
             </div>
           </div>
@@ -152,12 +155,12 @@ import { FormsModule } from "@angular/forms";
               class="card-header"
               [ngClass]="isMatched ? 'match-header-ok' : 'match-header-warn'"
             >
-              {{ isMatched ? "✅ Matched" : "⚠️ Mismatch" }}
+              {{ isMatched ? ("✅ " + ("invoiceSubmit.matched" | translate)) : ("⚠️ " + ("invoiceSubmit.mismatch" | translate)) }}
             </div>
             <div class="card-body">
               <div *ngIf="isMatched" class="match-status match-ok">
                 <p>
-                  All invoiced values match the expected amounts from PO + GRN.
+                  {{ "invoiceSubmit.matchedMessage" | translate }}
                 </p>
               </div>
               <div *ngIf="!isMatched" class="match-status match-err">
@@ -165,26 +168,25 @@ import { FormsModule } from "@angular/forms";
                   *ngFor="let reason of mismatchReasons"
                   class="match-reason"
                 >
-                  ❌ {{ reason }}
+                  ❌ {{ reason.key | translate: reason.params }}
                 </div>
               </div>
               <div class="match-summary">
                 <div class="match-row">
-                  <span>Subtotal</span>
+                  <span>{{ "invoiceSubmit.subtotal" | translate }}</span>
                   <span>₹{{ subtotal | number: "1.2-2" }}</span>
                 </div>
                 <div class="match-row">
-                  <span>Tax (18%)</span>
+                  <span>{{ "invoiceSubmit.tax" | translate }}</span>
                   <span>₹{{ tax | number: "1.2-2" }}</span>
                 </div>
                 <div class="match-row total">
-                  <span>Total</span>
+                  <span>{{ "invoiceSubmit.total" | translate }}</span>
                   <span>₹{{ total | number: "1.2-2" }}</span>
                 </div>
               </div>
               <div class="match-note">
-                ℹ️ Invoices that do not match are held and reviewed by Accounts
-                Payable before posting — they are not posted automatically.
+                ℹ️ {{ "invoiceSubmit.matchNote" | translate }}
               </div>
               <button
                 class="btn btn-primary btn-block"
@@ -192,7 +194,7 @@ import { FormsModule } from "@angular/forms";
                 (click)="submitInvoice()"
               >
                 {{
-                  isMatched ? "Submit Invoice" : "Submit (AP Review Required)"
+                  (isMatched ? "invoiceSubmit.submitInvoice" : "invoiceSubmit.submitApReview") | translate
                 }}
               </button>
             </div>
@@ -201,7 +203,7 @@ import { FormsModule } from "@angular/forms";
       </div>
 
       <div *ngIf="submitted" class="toast toast-success">
-        Invoice submitted successfully
+        {{ "invoiceSubmit.submittedToast" | translate }}
       </div>
     </div>
   `,
@@ -445,15 +447,22 @@ export class InvoiceSubmitComponent {
     return this.subtotal + this.tax;
   }
 
-  get mismatchReasons(): string[] {
-    const reasons: string[] = [];
+  get mismatchReasons(): { key: string; params: Record<string, unknown> }[] {
+    const reasons: { key: string; params: Record<string, unknown> }[] = [];
     for (const line of this.invoiceLines) {
       if (line.invoicedQty > line.expectedQty)
-        reasons.push(`Qty exceeds received for ${line.item}`);
+        reasons.push({
+          key: "invoiceSubmit.mismatchQtyExceeds",
+          params: { item: line.item },
+        });
       if (line.invoicedPrice > line.expectedPrice)
-        reasons.push(
-          `Unit price higher than PO for ${line.item} by ₹${line.invoicedPrice - line.expectedPrice}`,
-        );
+        reasons.push({
+          key: "invoiceSubmit.mismatchPriceHigher",
+          params: {
+            item: line.item,
+            diff: line.invoicedPrice - line.expectedPrice,
+          },
+        });
     }
     return reasons;
   }

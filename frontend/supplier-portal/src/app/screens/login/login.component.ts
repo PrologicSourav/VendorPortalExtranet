@@ -5,13 +5,15 @@ import { FormsModule } from "@angular/forms";
 import { TranslatePipe } from "@ngx-translate/core";
 import { ApiService } from "../../services/api.service";
 import { AuthService } from "../../services/auth.service";
+import { LanguageSelectorComponent } from "../../components/language-selector/language-selector.component";
 
 @Component({
   selector: "app-login",
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe, LanguageSelectorComponent],
   template: `
     <div class="login-page">
+      <language-selector class="login-lang-selector"></language-selector>
       <div class="login-card">
         <div class="brand">
           <div class="brand-icon">WP</div>
@@ -309,6 +311,7 @@ import { AuthService } from "../../services/auth.service";
   styles: [
     `
       .login-page {
+        position: relative;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
@@ -321,6 +324,11 @@ import { AuthService } from "../../services/auth.service";
           #2c3e6b 100%
         );
         padding: 20px;
+      }
+      .login-lang-selector {
+        position: absolute;
+        top: 16px;
+        inset-inline-end: 16px;
       }
       .login-card {
         background: white;

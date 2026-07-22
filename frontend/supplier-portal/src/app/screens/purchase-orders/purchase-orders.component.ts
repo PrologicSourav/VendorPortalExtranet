@@ -2,16 +2,17 @@ import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router, RouterModule } from "@angular/router";
+import { TranslatePipe } from "@ngx-translate/core";
 
 @Component({
   selector: "app-purchase-orders",
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslatePipe],
   template: `
     <div class="page-header">
-      <h1>Purchase Orders</h1>
+      <h1>{{ "purchaseOrders.title" | translate }}</h1>
       <p class="page-subtitle">
-        View and respond to purchase orders from your buying entities
+        {{ "purchaseOrders.subtitle" | translate }}
       </p>
     </div>
 
@@ -24,13 +25,13 @@ import { Router, RouterModule } from "@angular/router";
           [class.active]="statusFilter === f.value"
           (click)="statusFilter = f.value"
         >
-          {{ f.label }}
+          {{ f.label | translate }}
         </button>
       </div>
       <input
         type="text"
         class="form-control search-input"
-        placeholder="Search POs..."
+        [placeholder]="'purchaseOrders.searchPlaceholder' | translate"
         [(ngModel)]="searchTerm"
       />
     </div>
@@ -41,13 +42,13 @@ import { Router, RouterModule } from "@angular/router";
         <table class="data-table">
           <thead>
             <tr>
-              <th>PO Number</th>
-              <th>Buying Entity</th>
-              <th>Order Date</th>
-              <th>Required By</th>
-              <th>Lines</th>
-              <th>Value</th>
-              <th>Status</th>
+              <th>{{ "purchaseOrders.poNumber" | translate }}</th>
+              <th>{{ "purchaseOrders.buyingEntity" | translate }}</th>
+              <th>{{ "purchaseOrders.orderDate" | translate }}</th>
+              <th>{{ "purchaseOrders.requiredBy" | translate }}</th>
+              <th>{{ "purchaseOrders.lines" | translate }}</th>
+              <th>{{ "purchaseOrders.value" | translate }}</th>
+              <th>{{ "purchaseOrders.status" | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -66,7 +67,7 @@ import { Router, RouterModule } from "@angular/router";
               <td>₹{{ po.value | number }}</td>
               <td>
                 <span class="badge" [ngClass]="getStatusBadge(po.status)">{{
-                  po.status
+                  getStatusKey(po.status) | translate
                 }}</span>
               </td>
             </tr>
@@ -75,7 +76,7 @@ import { Router, RouterModule } from "@angular/router";
       </div>
       <div *ngIf="filteredPOs.length === 0" class="empty-state">
         <div class="empty-icon">📋</div>
-        <div class="empty-title">No purchase orders found</div>
+        <div class="empty-title">{{ "purchaseOrders.emptyTitle" | translate }}</div>
       </div>
     </div>
 
@@ -88,29 +89,29 @@ import { Router, RouterModule } from "@angular/router";
             <p>{{ selectedPO.entity }} · {{ selectedPO.property }}</p>
           </div>
           <span class="badge" [ngClass]="getStatusBadge(selectedPO.status)">{{
-            selectedPO.status
+            getStatusKey(selectedPO.status) | translate
           }}</span>
           <button class="btn btn-sm" (click)="selectedPO = null">✕</button>
         </div>
 
         <div class="drawer-body">
           <div class="po-meta">
-            <div><strong>Order Date:</strong> {{ selectedPO.orderDate }}</div>
-            <div><strong>Required By:</strong> {{ selectedPO.requiredBy }}</div>
+            <div><strong>{{ "purchaseOrders.orderDate" | translate }}:</strong> {{ selectedPO.orderDate }}</div>
+            <div><strong>{{ "purchaseOrders.requiredBy" | translate }}:</strong> {{ selectedPO.requiredBy }}</div>
             <div>
-              <strong>Total Value:</strong> ₹{{ selectedPO.value | number }}
+              <strong>{{ "purchaseOrders.totalValue" | translate }}:</strong> ₹{{ selectedPO.value | number }}
             </div>
           </div>
 
-          <h3>Line Items</h3>
+          <h3>{{ "purchaseOrders.lineItems" | translate }}</h3>
           <table class="data-table">
             <thead>
               <tr>
-                <th>Item</th>
-                <th>Qty</th>
-                <th>UOM</th>
-                <th>Unit Price</th>
-                <th>Line Total</th>
+                <th>{{ "purchaseOrders.item" | translate }}</th>
+                <th>{{ "purchaseOrders.qty" | translate }}</th>
+                <th>{{ "purchaseOrders.uom" | translate }}</th>
+                <th>{{ "purchaseOrders.unitPrice" | translate }}</th>
+                <th>{{ "purchaseOrders.lineTotal" | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -126,23 +127,23 @@ import { Router, RouterModule } from "@angular/router";
 
           <!-- Actions -->
           <div *ngIf="selectedPO.status === 'New'" class="action-zone">
-            <h3>Actions</h3>
+            <h3>{{ "purchaseOrders.actions" | translate }}</h3>
             <div class="action-buttons">
               <button class="btn btn-primary" (click)="acknowledgePo()">
-                Acknowledge in Full
+                {{ "purchaseOrders.acknowledgeInFull" | translate }}
               </button>
               <button
                 class="btn btn-secondary"
                 (click)="showPartialDialog = true"
               >
-                Partially Accept
+                {{ "purchaseOrders.partiallyAccept" | translate }}
               </button>
               <button
                 class="btn"
                 style="color: var(--color-error)"
                 (click)="showUnableDialog = true"
               >
-                Unable to Supply
+                {{ "purchaseOrders.unableToSupply" | translate }}
               </button>
             </div>
           </div>
@@ -152,19 +153,19 @@ import { Router, RouterModule } from "@angular/router";
               class="btn btn-primary"
               routerLink="/purchase-orders/{{ selectedPO.id }}/delivery-note"
             >
-              Raise Delivery Note
+              {{ "purchaseOrders.raiseDeliveryNote" | translate }}
             </button>
           </div>
 
           <!-- Partial Accept Dialog -->
           <div *ngIf="showPartialDialog" class="inline-dialog">
-            <h4>Partial Acceptance</h4>
+            <h4>{{ "purchaseOrders.partialAcceptance" | translate }}</h4>
             <div
               *ngFor="let line of selectedPO.lineItems; let i = index"
               class="partial-row"
             >
               <span>{{ line.item }}</span>
-              <span>Ordered: {{ line.qty }}</span>
+              <span>{{ "purchaseOrders.ordered" | translate: { qty: line.qty } }}</span>
               <input
                 type="number"
                 class="form-control inline-input"
@@ -173,32 +174,32 @@ import { Router, RouterModule } from "@angular/router";
               />
               <input
                 class="form-control inline-input"
-                placeholder="Reason (if short)"
+                [placeholder]="'purchaseOrders.reasonIfShort' | translate"
                 [(ngModel)]="acceptReasons[i]"
               />
             </div>
             <div class="action-buttons">
               <button class="btn btn-primary" (click)="confirmPartial()">
-                Confirm
+                {{ "purchaseOrders.confirm" | translate }}
               </button>
               <button
                 class="btn btn-secondary"
                 (click)="showPartialDialog = false"
               >
-                Cancel
+                {{ "purchaseOrders.cancel" | translate }}
               </button>
             </div>
           </div>
 
           <!-- Unable to Supply Dialog -->
           <div *ngIf="showUnableDialog" class="inline-dialog">
-            <h4>Unable to Supply</h4>
+            <h4>{{ "purchaseOrders.unableToSupply" | translate }}</h4>
             <div class="form-group">
-              <label>Reason</label>
+              <label>{{ "purchaseOrders.reason" | translate }}</label>
               <textarea
                 class="form-control"
                 [(ngModel)]="unableReason"
-                placeholder="Please provide a reason..."
+                [placeholder]="'purchaseOrders.reasonPlaceholder' | translate"
               ></textarea>
             </div>
             <div class="action-buttons">
@@ -207,13 +208,13 @@ import { Router, RouterModule } from "@angular/router";
                 style="background: var(--color-error); color: white"
                 (click)="confirmUnable()"
               >
-                Confirm
+                {{ "purchaseOrders.confirm" | translate }}
               </button>
               <button
                 class="btn btn-secondary"
                 (click)="showUnableDialog = false"
               >
-                Cancel
+                {{ "purchaseOrders.cancel" | translate }}
               </button>
             </div>
           </div>
@@ -221,7 +222,7 @@ import { Router, RouterModule } from "@angular/router";
 
         <!-- Toast -->
         <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
-          {{ toast.message }}
+          {{ toast.message | translate }}
         </div>
       </div>
     </div>
@@ -428,10 +429,10 @@ export class PurchaseOrdersComponent {
   toast: any = null;
 
   filters = [
-    { label: "All", value: "" },
-    { label: "New", value: "New" },
-    { label: "Acknowledged", value: "Acknowledged" },
-    { label: "Delivered", value: "Delivered" },
+    { label: "purchaseOrders.filterAll", value: "" },
+    { label: "purchaseOrders.filterNew", value: "New" },
+    { label: "purchaseOrders.filterAcknowledged", value: "Acknowledged" },
+    { label: "purchaseOrders.filterDelivered", value: "Delivered" },
   ];
 
   pos = [
@@ -537,6 +538,17 @@ export class PurchaseOrdersComponent {
     return map[status] || "badge-muted";
   }
 
+  getStatusKey(status: string): string {
+    const map: Record<string, string> = {
+      New: "purchaseOrders.statusNew",
+      Acknowledged: "purchaseOrders.statusAcknowledged",
+      Delivered: "purchaseOrders.statusDelivered",
+      "Partially accepted": "purchaseOrders.statusPartiallyAccepted",
+      "Unable to supply": "purchaseOrders.statusUnableToSupply",
+    };
+    return map[status] || status;
+  }
+
   openDetail(po: any) {
     this.selectedPO = po;
     this.acceptedQtys = po.lineItems.map((l: any) => l.qty);
@@ -545,20 +557,20 @@ export class PurchaseOrdersComponent {
 
   acknowledgePo() {
     this.selectedPO.status = "Acknowledged";
-    this.showToast("success", "PO acknowledged successfully");
+    this.showToast("success", "purchaseOrders.toastAcknowledged");
     setTimeout(() => (this.selectedPO = null), 1500);
   }
 
   confirmPartial() {
     this.selectedPO.status = "Partially accepted";
     this.showPartialDialog = false;
-    this.showToast("success", "Partial acceptance confirmed");
+    this.showToast("success", "purchaseOrders.toastPartialConfirmed");
   }
 
   confirmUnable() {
     this.selectedPO.status = "Unable to supply";
     this.showUnableDialog = false;
-    this.showToast("success", "Unable to supply recorded");
+    this.showToast("success", "purchaseOrders.toastUnableRecorded");
   }
 
   showToast(type: string, message: string) {

@@ -10,7 +10,7 @@ import { catchError, of } from "rxjs";
     <div class="currency-selector">
       <select [value]="selectedCurrency()" (change)="onChange($event)">
         @for (cur of currencies; track cur.code) {
-          <option [value]="cur.code">{{ cur.code }} - {{ cur.name }}</option>
+          <option [value]="cur.code" [title]="cur.name">{{ cur.code }}</option>
         }
       </select>
     </div>

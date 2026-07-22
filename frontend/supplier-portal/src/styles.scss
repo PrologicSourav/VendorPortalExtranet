@@ -177,7 +177,7 @@ a:hover {
   th {
     background: var(--color-surface-alt);
     font-weight: 600;
-    text-align: left;
+    text-align: start;
     padding: 10px 12px;
     border-bottom: 2px solid var(--color-border);
     position: sticky;
@@ -297,7 +297,7 @@ textarea.form-control {
 .toast {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  inset-inline-end: 24px;
   padding: 12px 20px;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
@@ -305,6 +305,10 @@ textarea.form-control {
   font-weight: 500;
   z-index: 9999;
   animation: slideIn 0.3s ease;
+}
+
+[dir="rtl"] .toast {
+  animation: slideInRtl 0.3s ease;
 }
 
 .toast-success {
@@ -319,6 +323,17 @@ textarea.form-control {
 @keyframes slideIn {
   from {
     transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRtl {
+  from {
+    transform: translateX(-100%);
     opacity: 0;
   }
   to {
@@ -509,3 +524,11 @@ textarea.form-control {
     width: 100% !important;
   }
 }
+
+// ═══ RTL Support ═════════════════════════════════════════════════════
+// `dir` is set on <html> at runtime by AppComponent based on the active
+// language. `direction: rtl` cascades automatically — flexbox rows and
+// text alignment reverse on their own. Prefer logical properties
+// (margin-inline-start/end, inset-inline-start/end, text-align: start/end)
+// over left/right/margin-left/etc. so components flip automatically
+// instead of needing a [dir="rtl"] override for every rule.
