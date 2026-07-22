@@ -79,13 +79,13 @@ public class LocalizationMiddleware
         if (!string.IsNullOrWhiteSpace(acceptLang))
         {
             var firstLang = acceptLang.Split(',')[0].Trim();
-            if (IsSupported(firstLang))
-                return firstLang;
+            if (TryNormalize(firstLang, out var normalized))
+                return normalized;
         }
 
         // Priority 2: Cookie preference
-        if (context.Request.Cookies.TryGetValue("wp_lang", out var cookieLang) && IsSupported(cookieLang))
-            return cookieLang;
+        if (context.Request.Cookies.TryGetValue("wp_lang", out var cookieLang) && TryNormalize(cookieLang, out var cookieNormalized))
+            return cookieNormalized;
 
         // Priority 3: Database user preference (for authenticated users)
         if (context.User.Identity?.IsAuthenticated == true)
@@ -96,25 +96,30 @@ public class LocalizationMiddleware
             var userLang = db.Users.Where(u => u.Id == userId)
                 .Select(u => u.LanguageCode)
                 .FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(userLang) && IsSupported(userLang))
-                return userLang;
+            if (!string.IsNullOrWhiteSpace(userLang) && TryNormalize(userLang, out var userNormalized))
+                return userNormalized;
         }
 
         // Priority 4: Browser default
-        var browserLang = CultureInfo.CurrentCulture.Name;
-        if (IsSupported(browserLang))
-            return browserLang;
+        if (TryNormalize(CultureInfo.CurrentCulture.Name, out var browserNormalized))
+            return browserNormalized;
 
         // Fallback to English
         return "en";
     }
 
-    private bool IsSupported(string culture)
+    /// <summary>
+    /// Returns true and the normalized (known-safe) language code if the candidate's
+    /// language prefix is supported. Never returns the raw client-supplied string —
+    /// that string may be malformed in ways CultureInfo rejects even when its prefix looks valid.
+    /// </summary>
+    private bool TryNormalize(string? culture, out string normalized)
     {
-        // Extract language code (e.g., "en-US" -> "en")
-        var lang = culture.Split('-')[0];
+        var lang = (culture ?? string.Empty).Split('-')[0];
         var supported = new[] { "en", "ar", "vi", "th" };
-        return supported.Contains(lang);
+        var match = supported.FirstOrDefault(s => string.Equals(s, lang, StringComparison.OrdinalIgnoreCase));
+        normalized = match ?? "en";
+        return match != null;
     }
 
     private Guid GetUserId(HttpContext context)
