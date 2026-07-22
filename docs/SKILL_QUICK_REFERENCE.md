@@ -51,31 +51,32 @@ The complete [`SKILL.md`](./SKILL.md) is organized into 13 major sections:
 - **7.6:** Responsive breakpoints (320px → 1920px+, mobile-first, grid patterns)
 - **7.7:** Summary table (what goes where)
 
-#### **8. Testing Strategy** (Lines 2001-2050)
+#### **8. Testing Strategy** (Lines 2148-2201)
 - Unit tests (80%+ coverage, GSTIN/PAN validation, invoice matching, de-dup logic)
 - Integration tests (isolation, KYC gate, maker-checker, responsive layout)
 - E2E tests (full supplier journey)
 
-#### **9. Requirement Traceability Matrix** (Lines 2051-2100)
+#### **9. Requirement Traceability Matrix** (Lines 2202-2207)
 - All 26 requirements (VP-01–12, KYC-01–08, ITM-01–06)
 - Mapped to module, feature, workstream, implementation notes
 
-#### **10. Development Priorities & Timeline** (Lines 2101-2150)
+#### **10. Development Priorities & Timeline** (Lines 2208-2237)
 - Must/Should/Could prioritization
 - Milestones M1–M6 (Q4 2026 target)
 
-#### **11. Common Gotchas & Anti-Patterns** (Lines 2151-2250)
-- 8 CRITICAL anti-patterns to avoid
+#### **11. Common Gotchas & Anti-Patterns** (Lines 2238-2295)
+- 13 CRITICAL anti-patterns to avoid (8 original + 5 added in v1.1 from the Jul 22 hardening pass — hardcoded secret fallbacks, swallowed startup failures, duplicate root shells, `[value]`-bound selects, flag-emoji language pickers)
 - Mobile-first anti-patterns
 - Memory leak anti-patterns
 
-#### **12. How to Use This SKILL.md** (Lines 2251-2300)
+#### **12. How to Use This SKILL.md** (Lines 2296-2326)
 - Before coding: 6-step checklist
 - During code review: 8-question checklist
 - During QA: 3-focus areas
 
-#### **13. Document Control** (Lines 2301-2327)
+#### **13. Document Control** (Lines 2327-2371)
 - Version history
+- **§13.1: Jul 22 2026 engineering hardening notes** — what was fixed in the backend/frontend and what's deliberately still open
 - Update process
 
 ---
@@ -247,11 +248,11 @@ A: See SKILL.md §5.4 (validation rules) + §8.1 (test examples).
 
 ### 📈 Version Info
 
-- **Version:** 1.0 (Complete)
+- **Version:** 1.1
 - **Date:** 22 July 2026
-- **Lines:** 2,327
-- **Size:** 78 KB
-- **Status:** ✅ FINAL & COMPLETE
+- **Lines:** 2,371
+- **Size:** 84 KB
+- **Status:** ✅ CURRENT — see §13.1 for the latest engineering hardening notes
 
 ---
 

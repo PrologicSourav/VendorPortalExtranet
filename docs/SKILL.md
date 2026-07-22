@@ -4,7 +4,7 @@ description: "Comprehensive development skill for the Web Prol'IFIC Phase B proj
 license: "Proprietary - Commercial-in-confidence (Internal engineering document)"
 project_id: "WebProlIFIC-PhaseB"
 target_delivery: "Q4 2026"
-version: "1.0 (Complete)"
+version: "1.1"
 document_date: "26 June 2026"
 last_updated: "22 July 2026"
 ---
@@ -2271,6 +2271,26 @@ Complete map of every Phase B requirement to its implementation. See Section 9 o
 - **Anti-pattern:** `this.service.getData().subscribe(data => { this.data = data; })`
 - **Correct:** `.pipe(takeUntil(this.destroy$)).subscribe(...)`
 
+🚫 **Hardcoded secrets with a "safe" fallback**
+- **Anti-pattern:** `builder.Configuration["Jwt:Key"] ?? "DevSecretKey_ChangeInProduction_32Chars!"` — the fallback ships to production the moment someone forgets to set the real env var, and it's sitting in git history either way.
+- **Correct:** Fail fast — throw at startup if a required secret is missing. Never give a production secret a working default.
+
+🚫 **Swallowing startup failures in one broad try/catch**
+- **Anti-pattern:** Wrapping `db.Database.Migrate()` together with unrelated cleanup logic in a single try/catch that only logs — the app "starts" and looks healthy while running against a broken/out-of-date schema.
+- **Correct:** Let infrastructure-critical startup steps (migrations) crash the process on failure. Only wrap genuinely non-critical steps (e.g. a one-time data cleanup) in their own try/catch.
+
+🚫 **Duplicate root shells rendering the same chrome**
+- **Anti-pattern:** Both the app's root component and a routed layout component render their own topbar/nav — every screen ends up with two stacked headers, two of every selector.
+- **Correct:** Exactly one component owns the app chrome. The root component should be a thin `<router-outlet>` shell with no layout markup of its own.
+
+🚫 **`[value]` binding on a native `<select>` for state that changes externally**
+- **Anti-pattern:** `<select [value]="currentLanguage" (change)="...">` — works on first render, then silently desyncs the next time the bound value changes from outside a user click (e.g. restored from `localStorage` on app init), because native `<select>` elements don't reliably re-select the matching `<option>` outside Angular's own form directives.
+- **Correct:** Use `[ngModel]`/`formControl` so `SelectControlValueAccessor` handles re-sync correctly. (Found live: `dir="rtl"` and `lang="ar"` were correctly restored on reload, but the language `<select>` itself still showed "English" until switched to `ngModel`.)
+
+🚫 **Flag emoji as a language switcher**
+- **Anti-pattern:** Mapping a language code to a national flag, e.g. Arabic → 🇸🇦.
+- **Correct:** Flag emoji are built from ISO country codes, not language codes — many languages (English, Arabic, Spanish...) have no single "home" country, so the mapping is arbitrary and can look wrong to users from other countries speaking the same language. Prefer the language's own name or a plain code (EN/AR/VI/TH).
+
 ---
 
 ## 12. How to Use This SKILL.md
@@ -2310,6 +2330,30 @@ Complete map of every Phase B requirement to its implementation. See Section 9 o
 |---|---|---|---|
 | 0.1 (Draft) | 26 Jun 2026 | Initial creation from Functional Spec §§5.1–5.3, 6 | — |
 | 1.0 (Complete) | 22 Jul 2026 | Integrated Angular component structure (§7), responsive design requirements, unit test examples, merged with Component Structure Addendum | ✅ FINAL |
+| 1.1 | 22 Jul 2026 | Documented an engineering hardening pass against the running codebase (not a spec change — spec requirements unchanged). See notes below. Added 5 new entries to §11 Common Gotchas. | ✅ |
+
+### 13.1 Engineering notes — 22 Jul 2026 hardening pass
+
+A security/code-quality review of `WebProlific.Api`/`Infrastructure` and a UX audit of `supplier-portal` surfaced gaps against this spec's own requirements (§5 Security, §6 Workflow, §7 Component Structure). Fixed, in order:
+
+**Backend (`WebProlific.Api`) — closes gaps against §5 Security:**
+- Removed hardcoded JWT signing key and DB connection string from `appsettings.json`/`render.yaml`/code fallbacks; both now fail fast at startup if unset (§5's auth requirements assumed a real secret existed — it didn't).
+- Added a global `FallbackPolicy` requiring authentication — previously only `AuthController.GetCurrentUser` carried `[Authorize]`; every other controller (Vendors, Catalogues, PurchaseOrders, Invoices, KYC, MakerChecker, Dedup, Notifications, Configuration) was fully anonymous.
+- Fixed IDOR across all 10 controllers — endpoints trusted a client-supplied `vendorId`/`userId` with no ownership check. This is the exact "Ignore entity scope" anti-pattern already listed in §11; the fix follows the pattern already prescribed there (`CanAccessVendor` helper + `[Authorize(Policy = "InternalOnly")]` for governance-only actions).
+- Gated Swagger to Development only; scoped CORS to configured origins instead of `AllowAnyOrigin`.
+- Split the startup migration/cleanup try-catch so migration failures fail fast instead of being silently logged and ignored (was masking a real schema-drift issue, confirmed in logs).
+- `CurrencyConversionService` no longer fabricates a 1:1 exchange rate when a real rate is unavailable — returns `null` (no display value) instead of a wrong number.
+- `LocalizationMiddleware` no longer 500s on a malformed `Accept-Language` header.
+- Untracked `node_modules`/`bin`/`obj`/logs from git; added `.gitignore` (none existed).
+- Deliberately **not done**: real OTP/MFA (currently a UI-only step with no backend enforcement — flagged, not fixed, pending a product decision on whether to build real delivery infra or remove the step), the empty `WebProlific.Shared/DTOs` layer, Vendor cascade-delete FK risk, `AppUser.Email` unique index, and the `OFFSET/FETCH` pagination bug affecting all paginated list endpoints (SQL Server compatibility-level issue, tracked separately).
+
+**Frontend (`supplier-portal`) — closes gaps against §7 Component Structure and completes i18n:**
+- Fixed a structural bug causing duplicate topbars/language/currency selectors on every authenticated screen (both `AppComponent` and `LayoutComponent` rendered full chrome).
+- Language preference now actually persists across reloads (was written to `localStorage`, never read back) and drives `dir`/`lang` on `<html>` for real RTL support (previous implementation was a no-op CSS class).
+- Full translation coverage: previously only the login screen used the translate pipe; all 7 screens are now translated across all 4 languages already declared in the selector (en/ar/vi/th), with verified key parity (230 keys × 4 languages, zero gaps).
+- Added logical-property RTL rules to `styles.scss` per this doc's own "no hardcoded left/right in SCSS" requirement (§7.4); two pre-existing hardcoded instances fixed.
+
+**Known convention gap, not resolved:** §7.4 prescribes a mobile-first SCSS architecture with a shared `$breakpoints` map and `@include breakpoint()` mixin from `src/app/styles/variables.scss`. The actual codebase uses desktop-first inline component styles with raw `@media (max-width: …)` queries, and no shared mixin file exists. Retrofitting every existing component to the prescribed architecture is a separate, larger migration and was out of scope for this pass — new/touched code in this pass followed the spec's breakpoint *values* (320/480/768/1024/1440) but not its file structure.
 
 **To update this document:**
 - Create a pull request in the project repository (`/SKILL.md`).
