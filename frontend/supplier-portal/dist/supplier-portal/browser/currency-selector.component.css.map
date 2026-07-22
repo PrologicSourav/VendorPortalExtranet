@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["currency-selector.component.ts"],
-  "sourcesContent": ["\n      .currency-selector {\n        display: flex;\n        align-items: center;\n      }\n      select {\n        padding: 6px 10px;\n        border-radius: 4px;\n        border: 1px solid #ccc;\n      }\n    "],
-  "mappings": ";AACM,CAAA;AACE,WAAA;AACA,eAAA;;AAEF;AACE,WAAA,IAAA;AACA,iBAAA;AACA,UAAA,IAAA,MAAA;;",
-  "names": []
-}

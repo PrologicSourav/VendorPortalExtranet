@@ -1,0 +1,20 @@
+# .NET build artifacts
+[Bb]in/
+[Oo]bj/
+*.user
+.vs/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+
+# Runtime logs
+src/WebProlific.Api/Logs/
+*.log
+
+# Env / secrets
+.env
+.env.*
+*.pfx

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["app.component.ts"],
-  "sourcesContent": ["\n      :host {\n        display: block;\n      }\n\n      .app-shell.rtl {\n        direction: rtl;\n      }\n\n      .topbar {\n        display: flex;\n        align-items: center;\n        justify-content: space-between;\n        padding: 0 20px;\n        height: 56px;\n        background: var(--color-primary);\n        color: white;\n        position: sticky;\n        top: 0;\n        z-index: 200;\n      }\n      .topbar-left {\n        display: flex;\n        align-items: center;\n        gap: 12px;\n      }\n      .logo {\n        font-weight: 700;\n        font-size: 16px;\n      }\n      .divider {\n        opacity: 0.3;\n      }\n      .portal-name {\n        font-size: 13px;\n        opacity: 0.8;\n      }\n\n      .main-content {\n        padding: 24px;\n      }\n    "],
-  "mappings": ";AACM;AACE,WAAA;;AAGF,CAAA,SAAA,CAAA;AACE,aAAA;;AAGF,CAAA;AACE,WAAA;AACA,eAAA;AACA,mBAAA;AACA,WAAA,EAAA;AACA,UAAA;AACA,cAAA,IAAA;AACA,SAAA;AACA,YAAA;AACA,OAAA;AACA,WAAA;;AAEF,CAAA;AACE,WAAA;AACA,eAAA;AACA,OAAA;;AAEF,CAAA;AACE,eAAA;AACA,aAAA;;AAEF,CAAA;AACE,WAAA;;AAEF,CAAA;AACE,aAAA;AACA,WAAA;;AAGF,CAAA;AACE,WAAA;;",
-  "names": []
-}

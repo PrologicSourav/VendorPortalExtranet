@@ -28,7 +28,9 @@ public class TokenService : ITokenService
     {
         _logger.LogInformation("Generating JWT token for user: {UserId} ({Email})", user.Id, user.Email);
 
-        var jwtKey = _config["Jwt:Key"] ?? "DevSecretKey_ChangeInProduction_32Chars!";
+        var jwtKey = _config["Jwt:Key"];
+        if (string.IsNullOrWhiteSpace(jwtKey))
+            throw new InvalidOperationException("Jwt:Key is not configured. Set it via the Jwt__Key environment variable.");
         var issuer = _config["Jwt:Issuer"] ?? "WebProlific";
         var audience = _config["Jwt:Audience"] ?? "WebProlific";
         var expiryMinutes = int.TryParse(_config["Jwt:ExpiryMinutes"], out var minutes) ? minutes : 480;

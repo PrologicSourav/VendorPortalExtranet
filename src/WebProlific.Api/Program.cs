@@ -20,8 +20,11 @@ builder.Configuration
     .AddEnvironmentVariables();
 
 // ─── Database ───────────────────────────────────────────────
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("ConnectionStrings:DefaultConnection is not configured. Set it via the ConnectionStrings__DefaultConnection environment variable.");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
 // ─── Services ───────────────────────────────────────────────
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -44,7 +47,9 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IRateContractRepository, RateContractRepository>();
 
 // ─── JWT Auth ───────────────────────────────────────────────
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "DevSecretKey_ChangeInProduction_32Chars!";
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey))
+    throw new InvalidOperationException("Jwt:Key is not configured. Set it via the Jwt__Key environment variable.");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

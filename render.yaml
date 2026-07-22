@@ -11,11 +11,11 @@ services:
       - key: ASPNETCORE_URLS
         value: http://0.0.0.0:$PORT
       - key: ConnectionStrings__DefaultConnection
-        value: Server=182.78.194.30\\SQL2017,2017;Database=WebProlific;User Id=opm1;Password=;TrustServerCertificate=True;MultipleActiveResultSets=true
+        sync: false # set manually in Render dashboard — do not commit real value here
       - key: AllowedOrigins
         value: https://vendorportal-frontend-rxwy.onrender.com,https://vendorportal-frontend.onrender.com,http://localhost:4200,http://localhost:4201
       - key: Jwt__Key
-        value: DevSecretKey_ChangeInProduction_32Chars!
+        sync: false # set manually in Render dashboard — do not commit real value here
       - key: Jwt__Issuer
         value: WebProlific
       - key: Jwt__Audience
