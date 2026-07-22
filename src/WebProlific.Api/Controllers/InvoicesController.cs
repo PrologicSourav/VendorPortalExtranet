@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
+using WebProlific.Infrastructure.Data;
+using WebProlific.Api.Services;
+using System.Security.Claims;
 
 namespace WebProlific.Api.Controllers;
 
@@ -9,22 +12,75 @@ namespace WebProlific.Api.Controllers;
 public class InvoicesController : ControllerBase
 {
     private readonly IInvoiceRepository _invRepo;
+    private readonly AppDbContext _db;
+    private readonly ICurrencyConversionService _currencyConverter;
 
-    public InvoicesController(IInvoiceRepository invRepo) => _invRepo = invRepo;
+    public InvoicesController(IInvoiceRepository invRepo, AppDbContext db, ICurrencyConversionService currencyConverter)
+    {
+        _invRepo = invRepo;
+        _db = db;
+        _currencyConverter = currencyConverter;
+    }
 
     [HttpGet("vendor/{vendorId:guid}")]
     public async Task<IActionResult> GetByVendor(Guid vendorId, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var invoices = await _invRepo.GetByVendorAsync(vendorId, status, page, pageSize);
+        var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
         var total = await _invRepo.GetVendorInvoiceCountAsync(vendorId, status);
-        return Ok(new { items = invoices, total, page, pageSize });
+        var items = new List<object>();
+        foreach (var inv in invoices)
+        {
+            var displayTotal = await _currencyConverter.ConvertAsync(inv.TotalAmount, inv.Currency, preferredCurrency);
+            items.Add(new
+            {
+                inv.Id,
+                inv.InvoiceNumber,
+                inv.VendorId,
+                inv.PurchaseOrderId,
+                inv.InvoiceDate,
+                TransactionCurrencyCode = inv.Currency,
+                inv.SubTotal,
+                inv.TaxAmount,
+                TotalAmount = inv.TotalAmount,
+                inv.Status,
+                inv.MatchStatus,
+                inv.MismatchReasons,
+                inv.InvoicePdfUrl,
+                inv.CreatedAt,
+                DisplayTotal = displayTotal,
+                DisplayCurrencyCode = preferredCurrency
+            });
+        }
+        return Ok(new { items, total, page, pageSize });
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var invoice = await _invRepo.GetByIdAsync(id);
-        return invoice is null ? NotFound() : Ok(invoice);
+        if (invoice is null) return NotFound();
+        var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
+        var displayTotal = await _currencyConverter.ConvertAsync(invoice.TotalAmount, invoice.Currency, preferredCurrency);
+        return Ok(new
+        {
+            invoice.Id,
+            invoice.InvoiceNumber,
+            invoice.VendorId,
+            invoice.PurchaseOrderId,
+            invoice.InvoiceDate,
+            TransactionCurrencyCode = invoice.Currency,
+            invoice.SubTotal,
+            invoice.TaxAmount,
+            TotalAmount = invoice.TotalAmount,
+            invoice.Status,
+            invoice.MatchStatus,
+            invoice.MismatchReasons,
+            invoice.InvoicePdfUrl,
+            invoice.CreatedAt,
+            DisplayTotal = displayTotal,
+            DisplayCurrencyCode = preferredCurrency
+        });
     }
 
     [HttpPost]

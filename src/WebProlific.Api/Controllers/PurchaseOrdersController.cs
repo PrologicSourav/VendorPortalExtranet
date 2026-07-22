@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
+using WebProlific.Infrastructure.Data;
+using WebProlific.Api.Services;
+using System.Security.Claims;
 
 namespace WebProlific.Api.Controllers;
 
@@ -9,22 +12,74 @@ namespace WebProlific.Api.Controllers;
 public class PurchaseOrdersController : ControllerBase
 {
     private readonly IPurchaseOrderRepository _poRepo;
+    private readonly AppDbContext _db;
+    private readonly ICurrencyConversionService _currencyConverter;
 
-    public PurchaseOrdersController(IPurchaseOrderRepository poRepo) => _poRepo = poRepo;
+    public PurchaseOrdersController(IPurchaseOrderRepository poRepo, AppDbContext db, ICurrencyConversionService currencyConverter)
+    {
+        _poRepo = poRepo;
+        _db = db;
+        _currencyConverter = currencyConverter;
+    }
 
     [HttpGet("vendor/{vendorId:guid}")]
     public async Task<IActionResult> GetByVendor(Guid vendorId, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var pos = await _poRepo.GetByVendorAsync(vendorId, status, page, pageSize);
+        // Resolve user's preferred currency (set by middleware)
+        var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
         var total = await _poRepo.GetVendorPoCountAsync(vendorId, status);
-        return Ok(new { items = pos, total, page, pageSize });
+        var items = new List<object>();
+        foreach (var po in pos)
+        {
+            var displayValue = await _currencyConverter.ConvertAsync(po.TotalValue, po.Currency, preferredCurrency);
+            items.Add(new
+            {
+                po.Id,
+                po.PoNumber,
+                po.VendorId,
+                po.BuyingEntityId,
+                po.PropertyId,
+                po.OrderDate,
+                po.RequiredByDate,
+                TotalValue = po.TotalValue,
+                TransactionCurrencyCode = po.Currency,
+                po.Status,
+                po.AcknowledgmentReason,
+                po.CreatedAt,
+                po.UpdatedAt,
+                DisplayValue = displayValue,
+                DisplayCurrencyCode = preferredCurrency
+            });
+        }
+        return Ok(new { items, total, page, pageSize });
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var po = await _poRepo.GetByIdAsync(id);
-        return po is null ? NotFound() : Ok(po);
+        if (po is null) return NotFound();
+        var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
+        var displayValue = await _currencyConverter.ConvertAsync(po.TotalValue, po.Currency, preferredCurrency);
+        return Ok(new
+        {
+            po.Id,
+            po.PoNumber,
+            po.VendorId,
+            po.BuyingEntityId,
+            po.PropertyId,
+            po.OrderDate,
+            po.RequiredByDate,
+            TotalValue = po.TotalValue,
+            TransactionCurrencyCode = po.Currency,
+            po.Status,
+            po.AcknowledgmentReason,
+            po.CreatedAt,
+            po.UpdatedAt,
+            DisplayValue = displayValue,
+            DisplayCurrencyCode = preferredCurrency
+        });
     }
 
     [HttpPost]
@@ -43,7 +98,6 @@ public class PurchaseOrdersController : ControllerBase
     {
         var po = await _poRepo.GetByIdAsync(id);
         if (po is null) return NotFound();
-
         po.Status = PoStatus.Acknowledged;
         po.UpdatedAt = DateTime.UtcNow;
         var updated = await _poRepo.UpdateAsync(po);
@@ -55,10 +109,8 @@ public class PurchaseOrdersController : ControllerBase
     {
         var po = await _poRepo.GetByIdAsync(id);
         if (po is null) return NotFound();
-
         po.Status = PoStatus.PartiallyAccepted;
         po.UpdatedAt = DateTime.UtcNow;
-        // In real app: update line items with accepted quantities
         var updated = await _poRepo.UpdateAsync(po);
         return Ok(updated);
     }
@@ -68,7 +120,6 @@ public class PurchaseOrdersController : ControllerBase
     {
         var po = await _poRepo.GetByIdAsync(id);
         if (po is null) return NotFound();
-
         po.Status = PoStatus.UnableToSupply;
         po.AcknowledgmentReason = request.Reason;
         po.UpdatedAt = DateTime.UtcNow;

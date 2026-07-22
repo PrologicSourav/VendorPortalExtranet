@@ -1,0 +1,31 @@
+/* Arabic translations */
+{
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "subtitle": "مرحبًا بك — إليك نظرة عامة على المشتريات"
+  },
+  "login": {
+    "title": "تسجيل الدخول إلى بوابة الموردين",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "rememberMe": "تذكرني",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "signIn": "تسجيل الدخول",
+    "register": "تسجيل"
+  },
+  "app": {
+    "title": "Web Prol'IFIC — Supplier Portal",
+    "portal": "بوابة الموردين",
+    "entity": "الكيان:"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "catalogue": "الفهرس",
+    "purchaseOrders": "طلبات الشراء",
+    "invoices": "الفواتير",
+    "account": "الحساب",
+    "notifications": "الإشعارات",
+    "logout": "تسجيل الخروج"
+  }
+  // ... more keys for other screens
+}

@@ -12,4 +12,7 @@ public class AppUser
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }
+    // New properties for internationalisation
+    public string LanguageCode { get; set; } = "en"; // ISO language code, default English
+    public string PreferredCurrencyCode { get; set; } = "INR"; // ISO currency code, default INR
 }

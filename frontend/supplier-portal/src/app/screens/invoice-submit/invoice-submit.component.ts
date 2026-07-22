@@ -362,6 +362,27 @@ import { FormsModule } from "@angular/forms";
           gap: 8px;
         }
       }
+
+      @media (max-width: 640px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .invoice-layout {
+          grid-template-columns: 1fr !important;
+        }
+        .inline-input {
+          width: 100% !important;
+        }
+        .po-select-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .match-panel .card {
+          position: static;
+          top: auto;
+        }
+      }
     `,
   ],
 })

@@ -2,13 +2,14 @@ import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Router } from "@angular/router";
 import { FormsModule } from "@angular/forms";
+import { TranslatePipe } from "@ngx-translate/core";
 import { ApiService } from "../../services/api.service";
 import { AuthService } from "../../services/auth.service";
 
 @Component({
   selector: "app-login",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   template: `
     <div class="login-page">
       <div class="login-card">
@@ -19,242 +20,286 @@ import { AuthService } from "../../services/auth.service";
         </div>
 
         <!-- Step 1: Credentials -->
-        <div *ngIf="step === 1" class="login-form">
-          <h2>Sign in to Supplier Portal</h2>
-
-          <div class="form-group">
-            <label>Email address</label>
-            <input
-              type="email"
-              class="form-control"
-              [(ngModel)]="email"
-              placeholder="you@company.com"
-              [class.error]="showError"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              class="form-control"
-              [(ngModel)]="password"
-              placeholder="••••••••"
-              [class.error]="showError"
-              (keyup.enter)="handleLogin()"
-            />
-          </div>
-
-          <div *ngIf="showError" class="error-msg">
-            Invalid credentials. Please try again.
-          </div>
-
-          <div class="form-row">
-            <label class="checkbox-label">
-              <input type="checkbox" [(ngModel)]="rememberMe" /> Remember me
-            </label>
-            <a href="javascript:void(0)" class="forgot-link" (click)="step = 3"
-              >Forgot password?</a
-            >
-          </div>
-
-          <button
-            class="btn btn-primary btn-block"
-            (click)="handleLogin()"
-            [disabled]="loading"
-          >
-            {{ loading ? "Signing in..." : "Sign in" }}
-          </button>
-
-          <div class="signup-row">
-            <span>Don't have an account?</span>
-            <a href="javascript:void(0)" class="signup-link" (click)="step = 4"
-              >Register</a
-            >
-          </div>
-        </div>
-
-        <!-- Step 2: MFA OTP -->
-        <div *ngIf="step === 2" class="login-form">
-          <h2>Two-Factor Authentication</h2>
-          <p class="otp-hint">Enter the 6-digit code sent to your email</p>
-
-          <div class="otp-inputs">
-            <input
-              *ngFor="let i of [0, 1, 2, 3, 4, 5]; let idx = index"
-              type="text"
-              maxlength="1"
-              class="otp-input"
-              [id]="'otp-' + idx"
-              (input)="onOtpInput($event, idx)"
-              (keydown)="onOtpKeydown($event, idx)"
-            />
-          </div>
-
-          <button
-            class="btn btn-primary btn-block"
-            (click)="handleOtp()"
-            [disabled]="loading || otp.length !== 6"
-          >
-            {{ loading ? "Verifying..." : "Verify OTP" }}
-          </button>
-
-          <button
-            class="btn btn-secondary btn-block"
-            (click)="step = 1"
-            style="margin-top: 8px"
-          >
-            Back to login
-          </button>
-        </div>
-
-        <!-- Step 3: Forgot Password -->
-        <div *ngIf="step === 3" class="login-form">
-          <h2>Reset Password</h2>
-
-          <div *ngIf="!resetSent">
-            <p class="otp-hint">
-              Enter your email and we'll send you a link to reset your password.
-            </p>
+        @if (step === 1) {
+          <div class="login-form">
+            <h2>{{ "login.title" | translate }}</h2>
 
             <div class="form-group">
-              <label>Email address</label>
+              <label>{{ "login.email" | translate }}</label>
               <input
                 type="email"
                 class="form-control"
-                [(ngModel)]="resetEmail"
-                placeholder="you@company.com"
-              />
-            </div>
-
-            <div *ngIf="showError" class="error-msg">
-              {{ errorMsg || "Something went wrong. Please try again." }}
-            </div>
-
-            <button
-              class="btn btn-primary btn-block"
-              (click)="handleForgotPassword()"
-              [disabled]="loading || !resetEmail"
-            >
-              {{ loading ? "Sending..." : "Send Reset Link" }}
-            </button>
-          </div>
-
-          <div *ngIf="resetSent" class="reset-success">
-            <div class="success-icon">✉️</div>
-            <p class="success-msg">
-              If an account exists with that email, a password reset link has
-              been sent.
-            </p>
-            <p class="success-hint">
-              Please check your inbox and follow the instructions.
-            </p>
-          </div>
-
-          <button
-            class="btn btn-secondary btn-block"
-            (click)="step = 1"
-            style="margin-top: 8px"
-          >
-            Back to login
-          </button>
-        </div>
-
-        <!-- Step 4: Sign Up / Register -->
-        <div *ngIf="step === 4" class="login-form">
-          <h2>Register</h2>
-
-          <div *ngIf="!signupSuccess">
-            <p class="otp-hint">
-              Create a supplier portal account to get started.
-            </p>
-
-            <div class="form-group">
-              <label>Company Name</label>
-              <input
-                type="text"
-                class="form-control"
-                [(ngModel)]="signupCompany"
-                placeholder="Your company name"
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Contact Name</label>
-              <input
-                type="text"
-                class="form-control"
-                [(ngModel)]="signupName"
-                placeholder="Your full name"
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Email address</label>
-              <input
-                type="email"
-                class="form-control"
-                [(ngModel)]="signupEmail"
+                [(ngModel)]="email"
                 placeholder="you@company.com"
                 [class.error]="showError"
               />
             </div>
 
             <div class="form-group">
-              <label>Password</label>
+              <label>{{ "login.password" | translate }}</label>
               <input
                 type="password"
                 class="form-control"
-                [(ngModel)]="signupPassword"
-                placeholder="Min. 6 characters"
+                [(ngModel)]="password"
+                placeholder="••••••••"
                 [class.error]="showError"
+                (keyup.enter)="handleLogin()"
               />
             </div>
 
-            <div class="form-group">
-              <label>GSTIN (optional)</label>
-              <input
-                type="text"
-                class="form-control"
-                [(ngModel)]="signupGstin"
-                placeholder="22AAAAA0000A1Z5"
-                maxlength="15"
-              />
-            </div>
+            @if (showError) {
+              <div class="error-msg">
+                {{ "login.invalidCredentials" | translate }}
+              </div>
+            }
 
-            <div *ngIf="showError" class="error-msg">
-              {{ errorMsg || "Registration failed. Please try again." }}
+            <div class="form-row">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="rememberMe" />
+                {{ "login.rememberMe" | translate }}
+              </label>
+              <a
+                href="javascript:void(0)"
+                class="forgot-link"
+                (click)="step = 3"
+                >{{ "login.forgotPassword" | translate }}</a
+              >
             </div>
 
             <button
               class="btn btn-primary btn-block"
-              (click)="handleSignup()"
+              (click)="handleLogin()"
               [disabled]="loading"
             >
-              {{ loading ? "Creating account..." : "Create Account" }}
+              {{
+                loading
+                  ? ("login.signingIn" | translate)
+                  : ("login.signIn" | translate)
+              }}
+            </button>
+
+            <div class="signup-row">
+              <span>{{ "login.noAccount" | translate }}</span>
+              <a
+                href="javascript:void(0)"
+                class="signup-link"
+                (click)="step = 4"
+                >{{ "login.register" | translate }}</a
+              >
+            </div>
+          </div>
+        }
+
+        <!-- Step 2: MFA OTP -->
+        @if (step === 2) {
+          <div class="login-form">
+            <h2>{{ "login.mfaTitle" | translate }}</h2>
+            <p class="otp-hint">{{ "login.mfaHint" | translate }}</p>
+
+            <div class="otp-inputs">
+              @for (i of [0, 1, 2, 3, 4, 5]; track i; let idx = $index) {
+                <input
+                  type="text"
+                  maxlength="1"
+                  class="otp-input"
+                  [id]="'otp-' + idx"
+                  (input)="onOtpInput($event, idx)"
+                  (keydown)="onOtpKeydown($event, idx)"
+                />
+              }
+            </div>
+
+            <button
+              class="btn btn-primary btn-block"
+              (click)="handleOtp()"
+              [disabled]="loading || otp.length !== 6"
+            >
+              {{
+                loading
+                  ? ("login.verifying" | translate)
+                  : ("login.verifyOtp" | translate)
+              }}
+            </button>
+
+            <button
+              class="btn btn-secondary btn-block"
+              (click)="step = 1"
+              style="margin-top: 8px"
+            >
+              {{ "login.backToLogin" | translate }}
             </button>
           </div>
+        }
 
-          <div *ngIf="signupSuccess" class="reset-success">
-            <div class="success-icon">✅</div>
-            <p class="success-msg">Account created successfully!</p>
-            <p class="success-hint">
-              You can now sign in with your email and password.
-            </p>
+        <!-- Step 3: Forgot Password -->
+        @if (step === 3) {
+          <div class="login-form">
+            <h2>{{ "login.resetPassword" | translate }}</h2>
+
+            @if (!resetSent) {
+              <div>
+                <p class="otp-hint">{{ "login.resetHint" | translate }}</p>
+
+                <div class="form-group">
+                  <label>{{ "login.email" | translate }}</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    [(ngModel)]="resetEmail"
+                    placeholder="you@company.com"
+                  />
+                </div>
+
+                @if (showError) {
+                  <div class="error-msg">
+                    {{ errorMsg || ("login.somethingWentWrong" | translate) }}
+                  </div>
+                }
+
+                <button
+                  class="btn btn-primary btn-block"
+                  (click)="handleForgotPassword()"
+                  [disabled]="loading || !resetEmail"
+                >
+                  {{
+                    loading
+                      ? ("login.sending" | translate)
+                      : ("login.sendResetLink" | translate)
+                  }}
+                </button>
+              </div>
+            }
+
+            @if (resetSent) {
+              <div class="reset-success">
+                <div class="success-icon">✉️</div>
+                <p class="success-msg">
+                  {{ "login.resetSentMsg" | translate }}
+                </p>
+                <p class="success-hint">
+                  {{ "login.resetSentHint" | translate }}
+                </p>
+              </div>
+            }
+
+            <button
+              class="btn btn-secondary btn-block"
+              (click)="step = 1"
+              style="margin-top: 8px"
+            >
+              {{ "login.backToLogin" | translate }}
+            </button>
           </div>
+        }
 
-          <button
-            class="btn btn-secondary btn-block"
-            (click)="step = 1"
-            style="margin-top: 8px"
-          >
-            Back to login
-          </button>
-        </div>
+        <!-- Step 4: Sign Up / Register -->
+        @if (step === 4) {
+          <div class="login-form">
+            <h2>{{ "login.registerTitle" | translate }}</h2>
+
+            @if (!signupSuccess) {
+              <div>
+                <p class="otp-hint">{{ "login.registerHint" | translate }}</p>
+
+                <div class="form-group">
+                  <label>{{ "login.companyName" | translate }}</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="signupCompany"
+                    [placeholder]="'login.companyNamePlaceholder' | translate"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>{{ "login.contactName" | translate }}</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="signupName"
+                    [placeholder]="'login.contactNamePlaceholder' | translate"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>{{ "login.email" | translate }}</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    [(ngModel)]="signupEmail"
+                    placeholder="you@company.com"
+                    [class.error]="showError"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>{{ "login.password" | translate }}</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    [(ngModel)]="signupPassword"
+                    [placeholder]="'login.passwordPlaceholder' | translate"
+                    [class.error]="showError"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>{{ "login.gstin" | translate }}</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="signupGstin"
+                    placeholder="22AAAAA0000A1Z5"
+                    maxlength="15"
+                  />
+                </div>
+
+                @if (showError) {
+                  <div class="error-msg">
+                    {{ errorMsg || ("login.registrationFailed" | translate) }}
+                  </div>
+                }
+
+                <button
+                  class="btn btn-primary btn-block"
+                  (click)="handleSignup()"
+                  [disabled]="loading"
+                >
+                  {{
+                    loading
+                      ? ("login.creatingAccount" | translate)
+                      : ("login.createAccount" | translate)
+                  }}
+                </button>
+              </div>
+            }
+
+            @if (signupSuccess) {
+              <div class="reset-success">
+                <div class="success-icon">✅</div>
+                <p class="success-msg">
+                  {{ "login.accountCreated" | translate }}
+                </p>
+                <p class="success-hint">
+                  {{ "login.accountCreatedHint" | translate }}
+                </p>
+              </div>
+            }
+
+            <button
+              class="btn btn-secondary btn-block"
+              (click)="step = 1"
+              style="margin-top: 8px"
+            >
+              {{ "login.backToLogin" | translate }}
+            </button>
+          </div>
+        }
 
         <div class="login-footer">
-          Supplier access portal. For Web Prol'IFIC internal staff, use the
-          <a href="#">staff console</a>.
+          {{ "login.footer" | translate }}
+          <a href="#">{{ "login.staffConsole" | translate }}</a
+          >.
         </div>
       </div>
 
@@ -409,6 +454,58 @@ import { AuthService } from "../../services/auth.service";
         margin-top: 20px;
         font-size: 12px;
         color: rgba(255, 255, 255, 0.5);
+      }
+
+      @media (max-width: 768px) {
+        .login-card {
+          padding: 28px 24px;
+          max-width: 100%;
+          margin: 0 10px;
+          width: calc(100% - 20px);
+        }
+        .login-page {
+          padding: 12px;
+          justify-content: flex-start;
+          padding-top: 60px;
+        }
+        .brand {
+          margin-bottom: 24px;
+        }
+        .brand h1 {
+          font-size: 18px;
+        }
+        .brand-icon {
+          width: 48px;
+          height: 48px;
+          font-size: 16px;
+        }
+        .otp-inputs {
+          gap: 6px;
+        }
+        .otp-input {
+          width: 38px;
+          height: 46px;
+          font-size: 18px;
+        }
+        .form-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .login-card {
+          padding: 20px 16px;
+        }
+        .otp-input {
+          width: 32px;
+          height: 40px;
+          font-size: 16px;
+        }
+        .otp-inputs {
+          gap: 4px;
+        }
       }
     `,
   ],

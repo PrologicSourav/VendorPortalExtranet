@@ -1,0 +1,31 @@
+/* Vietnamese translations */
+{
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "subtitle": "Chào mừng bạn — đây là tổng quan về mua hàng"
+  },
+  "login": {
+    "title": "Đăng nhập vào Cổng thông tin nhà cung cấp",
+    "email": "Địa chỉ email",
+    "password": "Mật khẩu",
+    "rememberMe": "Nhớ tôi",
+    "forgotPassword": "Quên mật khẩu?",
+    "signIn": "Đăng nhập",
+    "register": "Đăng ký"
+  },
+  "app": {
+    "title": "Web Prol'IFIC — Supplier Portal",
+    "portal": "Cổng thông tin nhà cung cấp",
+    "entity": "Thực thể:"
+  },
+  "nav": {
+    "dashboard": "Bảng điều khiển",
+    "catalogue": "Danh mục",
+    "purchaseOrders": "Đơn đặt hàng",
+    "invoices": "Hóa đơn",
+    "account": "Tài khoản",
+    "notifications": "Thông báo",
+    "logout": "Đăng xuất"
+  }
+  // ... more keys for other screens
+}

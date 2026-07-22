@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Vendor Portal\\src\\WebProlific.Shared\\WebProlific.Shared.csproj": {}
+    "d:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Shared\\WebProlific.Shared.csproj": {}
   },
   "projects": {
-    "D:\\Vendor Portal\\src\\WebProlific.Shared\\WebProlific.Shared.csproj": {
+    "d:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Shared\\WebProlific.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Vendor Portal\\src\\WebProlific.Shared\\WebProlific.Shared.csproj",
+        "projectUniqueName": "d:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Shared\\WebProlific.Shared.csproj",
         "projectName": "WebProlific.Shared",
-        "projectPath": "D:\\Vendor Portal\\src\\WebProlific.Shared\\WebProlific.Shared.csproj",
+        "projectPath": "d:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Shared\\WebProlific.Shared.csproj",
         "packagesPath": "C:\\Users\\sourav\\.nuget\\packages\\",
-        "outputPath": "D:\\Vendor Portal\\src\\WebProlific.Shared\\obj\\",
+        "outputPath": "d:\\Vendor Portal\\VendorPortalExtranet\\src\\WebProlific.Shared\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"

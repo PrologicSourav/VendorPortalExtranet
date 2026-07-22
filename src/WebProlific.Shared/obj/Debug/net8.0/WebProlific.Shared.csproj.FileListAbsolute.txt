@@ -9,3 +9,15 @@ D:\Vendor Portal\src\WebProlific.Shared\obj\Debug\net8.0\WebProlific.Shared.dll
 D:\Vendor Portal\src\WebProlific.Shared\obj\Debug\net8.0\refint\WebProlific.Shared.dll
 D:\Vendor Portal\src\WebProlific.Shared\obj\Debug\net8.0\WebProlific.Shared.pdb
 D:\Vendor Portal\src\WebProlific.Shared\obj\Debug\net8.0\ref\WebProlific.Shared.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\bin\Debug\net8.0\WebProlific.Shared.deps.json
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\bin\Debug\net8.0\WebProlific.Shared.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\bin\Debug\net8.0\WebProlific.Shared.pdb
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\obj\Debug\net8.0\WebProlific.Shared.GeneratedMSBuildEditorConfig.editorconfig
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\obj\Debug\net8.0\WebProlific.Shared.AssemblyInfoInputs.cache
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\obj\Debug\net8.0\WebProlific.Shared.AssemblyInfo.cs
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\obj\Debug\net8.0\WebProlific.Shared.csproj.CoreCompileInputs.cache
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\obj\Debug\net8.0\WebProlific.Shared.sourcelink.json
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\obj\Debug\net8.0\WebProlific.Shared.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\obj\Debug\net8.0\refint\WebProlific.Shared.dll
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\obj\Debug\net8.0\WebProlific.Shared.pdb
+D:\Vendor Portal\VendorPortalExtranet\src\WebProlific.Shared\obj\Debug\net8.0\ref\WebProlific.Shared.dll

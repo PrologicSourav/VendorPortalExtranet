@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "Web Prol'IFIC — Supplier Portal",
+    "portal": "Cổng thông tin nhà cung cấp",
+    "entity": "Thực thể:"
+  },
+  "nav": {
+    "dashboard": "Bảng điều khiển",
+    "catalogue": "Danh mục",
+    "purchaseOrders": "Đơn đặt hàng",
+    "invoices": "Hóa đơn",
+    "account": "Tài khoản",
+    "notifications": "Thông báo",
+    "logout": "Đăng xuất"
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "subtitle": "Chào mừng bạn — đây là tổng quan về mua hàng"
+  },
+  "login": {
+    "title": "Đăng nhập vào Cổng thông tin nhà cung cấp",
+    "email": "Địa chỉ email",
+    "password": "Mật khẩu",
+    "rememberMe": "Nhớ tôi",
+    "forgotPassword": "Quên mật khẩu?",
+    "signIn": "Đăng nhập",
+    "register": "Đăng ký",
+    "invalidCredentials": "Thông tin đăng nhập không hợp lệ. Vui lòng thử lại.",
+    "signingIn": "Đang đăng nhập...",
+    "noAccount": "Chưa có tài khoản?",
+    "mfaTitle": "Xác thực hai yếu tố",
+    "mfaHint": "Nhập mã 6 chữ số được gửi đến email của bạn",
+    "verifying": "Đang xác minh...",
+    "verifyOtp": "Xác minh OTP",
+    "backToLogin": "Quay lại đăng nhập",
+    "resetPassword": "Đặt lại mật khẩu",
+    "resetHint": "Nhập email của bạn và chúng tôi sẽ gửi liên kết đặt lại mật khẩu.",
+    "somethingWentWrong": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "sending": "Đang gửi...",
+    "sendResetLink": "Gửi liên kết đặt lại",
+    "resetSentMsg": "Nếu tài khoản tồn tại với email đó, liên kết đặt lại mật khẩu đã được gửi.",
+    "resetSentHint": "Vui lòng kiểm tra hộp thư đến và làm theo hướng dẫn.",
+    "registerTitle": "Đăng ký",
+    "registerHint": "Tạo tài khoản cổng thông tin nhà cung cấp để bắt đầu.",
+    "companyName": "Tên công ty",
+    "companyNamePlaceholder": "Tên công ty của bạn",
+    "contactName": "Tên liên hệ",
+    "contactNamePlaceholder": "Họ và tên của bạn",
+    "passwordPlaceholder": "Tối thiểu 6 ký tự",
+    "gstin": "GSTIN (tùy chọn)",
+    "registrationFailed": "Đăng ký thất bại. Vui lòng thử lại.",
+    "creatingAccount": "Đang tạo tài khoản...",
+    "createAccount": "Tạo tài khoản",
+    "accountCreated": "Tài khoản được tạo thành công!",
+    "accountCreatedHint": "Bạn có thể đăng nhập bằng email và mật khẩu của mình.",
+    "footer": "Cổng truy cập nhà cung cấp. Dành cho nhân viên nội bộ Web Prol'IFIC, sử dụng",
+    "staffConsole": "bảng điều khiển nhân viên"
+  }
+}

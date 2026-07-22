@@ -6,13 +6,24 @@ import {
   RouterLink,
   RouterLinkActive,
 } from "@angular/router";
+import { TranslatePipe } from "@ngx-translate/core";
 import { NotificationService } from "../services/notification.service";
 import { AuthService } from "../services/auth.service";
+import { LanguageSelectorComponent } from "../components/language-selector/language-selector.component";
+import { CurrencySelectorComponent } from "../components/currency-selector/currency-selector.component";
 
 @Component({
   selector: "app-layout",
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    TranslatePipe,
+    LanguageSelectorComponent,
+    CurrencySelectorComponent,
+  ],
   template: `
     <!-- Top Bar -->
     <header class="topbar">
@@ -26,13 +37,15 @@ import { AuthService } from "../services/auth.service";
           <span></span>
           <span></span>
         </button>
-        <span class="logo">Web Prol'IFIC</span>
+        <span class="logo">{{ "app.title" | translate }}</span>
         <span class="divider">|</span>
-        <span class="portal-name">Supplier Portal</span>
+        <span class="portal-name">{{ "app.portal" | translate }}</span>
+        <language-selector></language-selector>
+        <currency-selector></currency-selector>
       </div>
       <div class="topbar-right">
         <div class="entity-switcher">
-          <span class="entity-label">Entity:</span>
+          <span class="entity-label">{{ "app.entity" | translate }}:</span>
           <select class="entity-select">
             <option>Accor — North India</option>
             <option>Accor — South India</option>
@@ -41,9 +54,9 @@ import { AuthService } from "../services/auth.service";
         </div>
         <a routerLink="/notifications" class="notif-bell">
           🔔
-          <span class="notif-count" *ngIf="notifService.unreadCount() > 0">{{
-            notifService.unreadCount()
-          }}</span>
+          @if (notifService.unreadCount() > 0) {
+            <span class="notif-count">{{ notifService.unreadCount() }}</span>
+          }
         </a>
         <div class="user-menu">
           <span class="user-avatar">MF</span>
@@ -68,7 +81,7 @@ import { AuthService } from "../services/auth.service";
           class="nav-item"
           (click)="sidebarOpen = false"
         >
-          <span class="nav-icon">📊</span> Dashboard
+          <span class="nav-icon">📊</span> {{ "nav.dashboard" | translate }}
         </a>
         <a
           routerLink="/catalogue"
@@ -76,7 +89,7 @@ import { AuthService } from "../services/auth.service";
           class="nav-item"
           (click)="sidebarOpen = false"
         >
-          <span class="nav-icon">📦</span> Catalogue
+          <span class="nav-icon">📦</span> {{ "nav.catalogue" | translate }}
         </a>
         <a
           routerLink="/purchase-orders"
@@ -84,7 +97,8 @@ import { AuthService } from "../services/auth.service";
           class="nav-item"
           (click)="sidebarOpen = false"
         >
-          <span class="nav-icon">📋</span> Purchase Orders
+          <span class="nav-icon">📋</span>
+          {{ "nav.purchaseOrders" | translate }}
         </a>
         <a
           routerLink="/invoices"
@@ -92,7 +106,7 @@ import { AuthService } from "../services/auth.service";
           class="nav-item"
           (click)="sidebarOpen = false"
         >
-          <span class="nav-icon">🧾</span> Invoices
+          <span class="nav-icon">🧾</span> {{ "nav.invoices" | translate }}
         </a>
         <a
           routerLink="/account"
@@ -100,7 +114,7 @@ import { AuthService } from "../services/auth.service";
           class="nav-item"
           (click)="sidebarOpen = false"
         >
-          <span class="nav-icon">🏦</span> Account
+          <span class="nav-icon">🏦</span> {{ "nav.account" | translate }}
         </a>
         <a
           routerLink="/notifications"
@@ -108,11 +122,11 @@ import { AuthService } from "../services/auth.service";
           class="nav-item"
           (click)="sidebarOpen = false"
         >
-          <span class="nav-icon">🔔</span> Notifications
+          <span class="nav-icon">🔔</span> {{ "nav.notifications" | translate }}
         </a>
         <div class="nav-divider"></div>
         <a (click)="logout()" class="nav-item logout" style="cursor:pointer">
-          <span class="nav-icon">🚪</span> Logout
+          <span class="nav-icon">🚪</span> {{ "nav.logout" | translate }}
         </a>
       </nav>
 
@@ -332,6 +346,12 @@ import { AuthService } from "../services/auth.service";
         .topbar-right {
           gap: 12px;
         }
+        .topbar {
+          padding: 0 12px;
+        }
+        .topbar-left {
+          gap: 8px;
+        }
 
         .sidebar-overlay {
           display: block;
@@ -358,6 +378,26 @@ import { AuthService } from "../services/auth.service";
         }
         .main-content {
           padding: 16px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .topbar {
+          padding: 0 8px;
+        }
+        .logo {
+          font-size: 14px;
+        }
+        .topbar-left {
+          gap: 6px;
+        }
+        .topbar-right {
+          gap: 8px;
+        }
+        .user-avatar {
+          width: 28px;
+          height: 28px;
+          font-size: 11px;
         }
       }
     `,

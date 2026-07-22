@@ -153,6 +153,7 @@ import { NotificationService } from "../../services/notification.service";
         display: flex;
         align-items: center;
         gap: 16px;
+        flex-wrap: wrap;
       }
       .po-number {
         font-weight: 600;
@@ -169,6 +170,17 @@ import { NotificationService } from "../../services/notification.service";
       .po-date {
         font-size: 11px;
         color: var(--color-text-muted);
+      }
+
+      @media (max-width: 640px) {
+        .action-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .action-info {
+          gap: 8px;
+        }
       }
 
       .notif-item {

@@ -25,6 +25,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // ─── Services ───────────────────────────────────────────────
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ICurrencyConversionService, CurrencyConversionService>();
+builder.Services.AddHttpClient(); // For external exchange rate API
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 // ─── Repositories ───────────────────────────────────────────
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
@@ -95,6 +98,9 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+// ─── Global Exception Middleware ───────────────────────────────────
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
 // ─── Apply migrations and update schema ────────
 try
 {
@@ -130,7 +136,10 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// ─── Localization Middleware ──────────────────────────────
+app.UseMiddleware<LocalizationMiddleware>();
+
 app.MapControllers();
 
 app.Run();

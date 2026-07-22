@@ -37,6 +37,9 @@ public class AppDbContext : DbContext
     public DbSet<RateContract> RateContracts => Set<RateContract>();
     public DbSet<RateContractLine> RateContractLines => Set<RateContractLine>();
     public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<UserPreference> UserPreferences => Set<UserPreference>();
+    public DbSet<Currency> Currencies => Set<Currency>();
+    public DbSet<ExchangeRate> ExchangeRates => Set<ExchangeRate>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -183,13 +186,6 @@ public class AppDbContext : DbContext
             _logger.LogDebug("Configured RateContractLine entity relationships");
         });
 
-        // VendorUser
-        modelBuilder.Entity<VendorUser>(e =>
-        {
-            e.HasOne(vu => vu.Vendor).WithMany(v => v.Users).HasForeignKey(vu => vu.VendorId);
-            _logger.LogDebug("Configured VendorUser entity relationship");
-        });
         
-        _logger.LogInformation("Database model configuration completed");
     }
 }

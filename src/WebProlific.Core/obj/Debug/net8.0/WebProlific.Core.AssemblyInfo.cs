@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WebProlific.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+632edaa719a3054a0274572c1170ffb5b1065272")]
 [assembly: System.Reflection.AssemblyProductAttribute("WebProlific.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WebProlific.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

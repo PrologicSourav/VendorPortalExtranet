@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "Web Prol'IFIC — Supplier Portal",
+    "portal": "พอร์ทัลซัพพลายเออร์",
+    "entity": "นิติบุคคล:"
+  },
+  "nav": {
+    "dashboard": "แดชบอร์ด",
+    "catalogue": "แคตตาล็อก",
+    "purchaseOrders": "ใบสั่งซื้อ",
+    "invoices": "ใบแจ้งหนี้",
+    "account": "บัญชี",
+    "notifications": "การแจ้งเตือน",
+    "logout": "ออกจากระบบ"
+  },
+  "dashboard": {
+    "title": "แดชบอร์ด",
+    "subtitle": "ยินดีต้อนรับ — นี่คือภาพรวมการจัดซื้อของคุณ"
+  },
+  "login": {
+    "title": "เข้าสู่ระบบพอร์ทัลซัพพลายเออร์",
+    "email": "ที่อยู่อีเมล",
+    "password": "รหัสผ่าน",
+    "rememberMe": "จดจำฉัน",
+    "forgotPassword": "ลืมรหัสผ่าน?",
+    "signIn": "เข้าสู่ระบบ",
+    "register": "ลงทะเบียน",
+    "invalidCredentials": "ข้อมูลรับรองไม่ถูกต้อง โปรดลองอีกครั้ง",
+    "signingIn": "กำลังเข้าสู่ระบบ...",
+    "noAccount": "ยังไม่มีบัญชี?",
+    "mfaTitle": "การยืนยันตัวตนสองขั้นตอน",
+    "mfaHint": "ป้อนรหัส 6 หลักที่ส่งไปยังอีเมลของคุณ",
+    "verifying": "กำลังตรวจสอบ...",
+    "verifyOtp": "ยืนยัน OTP",
+    "backToLogin": "กลับไปที่การเข้าสู่ระบบ",
+    "resetPassword": "รีเซ็ตรหัสผ่าน",
+    "resetHint": "ป้อนอีเมลของคุณแล้วเราจะส่งลิงก์รีเซ็ตรหัสผ่านให้คุณ",
+    "somethingWentWrong": "เกิดข้อผิดพลาด โปรดลองอีกครั้ง",
+    "sending": "กำลังส่ง...",
+    "sendResetLink": "ส่งลิงก์รีเซ็ต",
+    "resetSentMsg": "หากมีบัญชีที่ใช้อีเมลนั้น ลิงก์รีเซ็ตรหัสผ่านได้ถูกส่งไปแล้ว",
+    "resetSentHint": "โปรดตรวจสอบกล่องจดหมายของคุณและทำตามคำแนะนำ",
+    "registerTitle": "ลงทะเบียน",
+    "registerHint": "สร้างบัญชีพอร์ทัลซัพพลายเออร์เพื่อเริ่มต้น",
+    "companyName": "ชื่อบริษัท",
+    "companyNamePlaceholder": "ชื่อบริษัทของคุณ",
+    "contactName": "ชื่อผู้ติดต่อ",
+    "contactNamePlaceholder": "ชื่อเต็มของคุณ",
+    "passwordPlaceholder": "อย่างน้อย 6 ตัวอักษร",
+    "gstin": "GSTIN (ไม่บังคับ)",
+    "registrationFailed": "การลงทะเบียนล้มเหลว โปรดลองอีกครั้ง",
+    "creatingAccount": "กำลังสร้างบัญชี...",
+    "createAccount": "สร้างบัญชี",
+    "accountCreated": "สร้างบัญชีสำเร็จ!",
+    "accountCreatedHint": "ตอนนี้คุณสามารถเข้าสู่ระบบด้วยอีเมลและรหัสผ่านของคุณ",
+    "footer": "พอร์ทัลการเข้าถึงซัพพลายเออร์ สำหรับพนักงานภายในของ Web Prol'IFIC โปรดใช้",
+    "staffConsole": "คอนโซลพนักงาน"
+  }
+}

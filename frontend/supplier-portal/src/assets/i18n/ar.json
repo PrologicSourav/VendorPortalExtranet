@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "Web Prol'IFIC — Supplier Portal",
+    "portal": "بوابة الموردين",
+    "entity": "الكيان:"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "catalogue": "الفهرس",
+    "purchaseOrders": "طلبات الشراء",
+    "invoices": "الفواتير",
+    "account": "الحساب",
+    "notifications": "الإشعارات",
+    "logout": "تسجيل الخروج"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "subtitle": "مرحبًا بك — إليك نظرة عامة على المشتريات"
+  },
+  "login": {
+    "title": "تسجيل الدخول إلى بوابة الموردين",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "rememberMe": "تذكرني",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "signIn": "تسجيل الدخول",
+    "register": "تسجيل",
+    "invalidCredentials": "بيانات الاعتماد غير صحيحة. حاول مرة أخرى.",
+    "signingIn": "جارٍ تسجيل الدخول...",
+    "noAccount": "ليس لديك حساب؟",
+    "mfaTitle": "التحقق بخطوتين",
+    "mfaHint": "أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني",
+    "verifying": "جارٍ التحقق...",
+    "verifyOtp": "التحقق من الرمز",
+    "backToLogin": "العودة إلى تسجيل الدخول",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "resetHint": "أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.",
+    "somethingWentWrong": "حدث خطأ ما. حاول مرة أخرى.",
+    "sending": "جارٍ الإرسال...",
+    "sendResetLink": "إرسال رابط إعادة التعيين",
+    "resetSentMsg": "إذا كان هناك حساب بهذا البريد الإلكتروني، فقد تم إرسال رابط إعادة تعيين كلمة المرور.",
+    "resetSentHint": "يرجى التحقق من صندوق الوارد الخاص بك واتباع التعليمات.",
+    "registerTitle": "تسجيل",
+    "registerHint": "أنشئ حساب بوابة الموردين للبدء.",
+    "companyName": "اسم الشركة",
+    "companyNamePlaceholder": "اسم شركتك",
+    "contactName": "اسم جهة الاتصال",
+    "contactNamePlaceholder": "اسمك الكامل",
+    "passwordPlaceholder": "6 أحرف على الأقل",
+    "gstin": "الرقم الضريبي (اختياري)",
+    "registrationFailed": "فشل التسجيل. حاول مرة أخرى.",
+    "creatingAccount": "جارٍ إنشاء الحساب...",
+    "createAccount": "إنشاء حساب",
+    "accountCreated": "تم إنشاء الحساب بنجاح!",
+    "accountCreatedHint": "يمكنك الآن تسجيل الدخول باستخدام بريدك الإلكتروني وكلمة المرور.",
+    "footer": "بوابة وصول الموردين. لموظفي Web Prol'IFIC الداخليين، استخدم",
+    "staffConsole": "وحدة تحكم الموظفين"
+  }
+}

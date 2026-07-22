@@ -406,6 +406,13 @@ import { Router, RouterModule } from "@angular/router";
           width: 100%;
         }
       }
+
+      @media (max-width: 640px) {
+        .chip {
+          padding: 4px 10px;
+          font-size: 11px;
+        }
+      }
     `,
   ],
 })

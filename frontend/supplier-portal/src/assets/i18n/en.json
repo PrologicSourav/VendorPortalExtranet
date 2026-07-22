@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "Web Prol'IFIC — Supplier Portal",
+    "portal": "Supplier Portal",
+    "entity": "Entity:"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "catalogue": "Catalogue",
+    "purchaseOrders": "Purchase Orders",
+    "invoices": "Invoices",
+    "account": "Account",
+    "notifications": "Notifications",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Welcome back — here's your procurement overview"
+  },
+  "login": {
+    "title": "Sign in to Supplier Portal",
+    "email": "Email address",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign in",
+    "register": "Register",
+    "invalidCredentials": "Invalid credentials. Please try again.",
+    "signingIn": "Signing in...",
+    "noAccount": "Don't have an account?",
+    "mfaTitle": "Two-Factor Authentication",
+    "mfaHint": "Enter the 6-digit code sent to your email",
+    "verifying": "Verifying...",
+    "verifyOtp": "Verify OTP",
+    "backToLogin": "Back to login",
+    "resetPassword": "Reset Password",
+    "resetHint": "Enter your email and we'll send you a link to reset your password.",
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "sending": "Sending...",
+    "sendResetLink": "Send Reset Link",
+    "resetSentMsg": "If an account exists with that email, a password reset link has been sent.",
+    "resetSentHint": "Please check your inbox and follow the instructions.",
+    "registerTitle": "Register",
+    "registerHint": "Create a supplier portal account to get started.",
+    "companyName": "Company Name",
+    "companyNamePlaceholder": "Your company name",
+    "contactName": "Contact Name",
+    "contactNamePlaceholder": "Your full name",
+    "passwordPlaceholder": "Min. 6 characters",
+    "gstin": "GSTIN (optional)",
+    "registrationFailed": "Registration failed. Please try again.",
+    "creatingAccount": "Creating account...",
+    "createAccount": "Create Account",
+    "accountCreated": "Account created successfully!",
+    "accountCreatedHint": "You can now sign in with your email and password.",
+    "footer": "Supplier access portal. For Web Prol'IFIC internal staff, use the",
+    "staffConsole": "staff console"
+  }
+}

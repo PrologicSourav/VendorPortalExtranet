@@ -304,9 +304,11 @@ import { FormsModule } from "@angular/forms";
         .header-actions {
           width: 100%;
           justify-content: flex-start;
+          gap: 8px;
         }
         .toolbar {
           flex-wrap: wrap;
+          gap: 8px;
         }
         .toolbar .search-input {
           width: 100%;
@@ -326,6 +328,10 @@ import { FormsModule } from "@angular/forms";
         }
         .toolbar .btn {
           width: 100%;
+        }
+        .btn {
+          padding: 6px 10px;
+          font-size: 12px;
         }
       }
     `,

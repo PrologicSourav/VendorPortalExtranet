@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["language-selector.component.ts"],
+  "sourcesContent": ["\n      .language-selector {\n        display: flex;\n        align-items: center;\n      }\n      .lang-select {\n        padding: 6px 12px;\n        border-radius: 4px;\n        border: 1px solid #ccc;\n        background: white;\n        font-size: 14px;\n        cursor: pointer;\n      }\n    "],
+  "mappings": ";AACM,CAAA;AACE,WAAA;AACA,eAAA;;AAEF,CAAA;AACE,WAAA,IAAA;AACA,iBAAA;AACA,UAAA,IAAA,MAAA;AACA,cAAA;AACA,aAAA;AACA,UAAA;;",
+  "names": []
+}

@@ -45,10 +45,18 @@ namespace WebProlific.Infrastructure.Migrations
                     b.Property<bool>("IsInternal")
                         .HasColumnType("bit");
 
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreferredCurrencyCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -193,6 +201,35 @@ namespace WebProlific.Infrastructure.Migrations
                     b.ToTable("CatalogueLines");
                 });
 
+            modelBuilder.Entity("WebProlific.Core.Entities.Currency", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DecimalPrecision")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Currencies");
+                });
+
             modelBuilder.Entity("WebProlific.Core.Entities.DeliveryNote", b =>
                 {
                     b.Property<Guid>("Id")
@@ -266,6 +303,37 @@ namespace WebProlific.Infrastructure.Migrations
                     b.HasIndex("DeliveryNoteId");
 
                     b.ToTable("DeliveryNoteLines");
+                });
+
+            modelBuilder.Entity("WebProlific.Core.Entities.ExchangeRate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FromCurrencyCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsManual")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ToCurrencyCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ValidTo")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ExchangeRates");
                 });
 
             modelBuilder.Entity("WebProlific.Core.Entities.Invoice", b =>
@@ -787,6 +855,25 @@ namespace WebProlific.Infrastructure.Migrations
                     b.ToTable("RateContractLines");
                 });
 
+            modelBuilder.Entity("WebProlific.Core.Entities.UserPreference", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreferredCurrencyCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserPreferences");
+                });
+
             modelBuilder.Entity("WebProlific.Core.Entities.Vendor", b =>
                 {
                     b.Property<Guid>("Id")
@@ -824,8 +911,7 @@ namespace WebProlific.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Gstin")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool?>("IsMsme")
                         .HasColumnType("bit");
@@ -844,12 +930,10 @@ namespace WebProlific.Infrastructure.Migrations
 
                     b.Property<string>("LegalName")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Pan")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Pincode")
                         .HasColumnType("nvarchar(max)");

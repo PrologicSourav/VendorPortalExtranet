@@ -211,9 +211,33 @@ import { CommonModule } from "@angular/common";
         border-top: 1px solid var(--color-border);
       }
 
-      @media (max-width: 768px) {
+      @media (max-width: 640px) {
+        .tabs {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          &::-webkit-scrollbar {
+            display: none;
+          }
+          .tab {
+            white-space: nowrap;
+            padding: 10px 14px;
+            font-size: 12px;
+          }
+        }
+        .statement-footer {
+          text-align: left;
+        }
+      }
+
+      @media (max-width: 1024px) {
         .kpi-grid {
-          grid-template-columns: 1fr !important;
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 640px) {
+        .kpi-grid {
+          grid-template-columns: 1fr;
         }
         .statement-header {
           flex-direction: column;

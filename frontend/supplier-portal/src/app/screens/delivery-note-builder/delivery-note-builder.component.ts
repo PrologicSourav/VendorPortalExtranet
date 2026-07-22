@@ -32,7 +32,7 @@ import { FormsModule } from "@angular/forms";
           </div>
           <div class="form-group">
             <label>Time Window</label>
-            <div style="display: flex; gap: 8px; align-items: center">
+            <div class="time-window">
               <input type="time" class="form-control" [(ngModel)]="timeStart" />
               <span>to</span>
               <input type="time" class="form-control" [(ngModel)]="timeEnd" />
@@ -223,6 +223,11 @@ import { FormsModule } from "@angular/forms";
         color: #166534;
         font-weight: 500;
       }
+      .time-window {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
 
       @media (max-width: 768px) {
         .form-grid {
@@ -236,6 +241,16 @@ import { FormsModule } from "@angular/forms";
         }
         .inline-input {
           width: 100%;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .form-grid .form-group > div[style*="flex"] {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .upload-area {
+          padding: 16px;
         }
       }
     `,

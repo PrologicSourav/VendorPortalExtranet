@@ -196,6 +196,13 @@ import { NotificationService } from "../../services/notification.service";
           display: none;
         }
       }
+
+      @media (max-width: 640px) {
+        .filter-group select,
+        .filter-group input {
+          width: 100% !important;
+        }
+      }
     `,
   ],
 })

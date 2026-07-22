@@ -247,6 +247,26 @@ textarea.form-control {
   min-height: 80px;
 }
 
+// ═══ Form Grid ═══════════════════════════════════════════════════
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+// ═══ Table Wrap (horizontal scroll for data tables) ═════════════
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// ═══ Inline Input ════════════════════════════════════════════════
+.inline-input {
+  width: 120px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
 // ═══ Tabs ═════════════════════════════════════════════════════════
 .tabs {
   display: flex;
@@ -427,6 +447,12 @@ textarea.form-control {
 // ═══ Responsive Breakpoints ══════════════════════════════════════
 // Mobile: < 640px  |  Tablet: 641-1024px  |  Desktop: > 1024px
 
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .modal {
     width: 95%;
@@ -442,6 +468,12 @@ textarea.form-control {
     .btn {
       width: 100%;
     }
+  }
+  .page-header h1 {
+    font-size: 18px !important;
+  }
+  .page-subtitle {
+    font-size: 12px !important;
   }
   .tabs {
     overflow-x: auto;
@@ -472,5 +504,8 @@ textarea.form-control {
   }
   .card-body {
     padding: 16px;
+  }
+  .inline-input {
+    width: 100% !important;
   }
 }
