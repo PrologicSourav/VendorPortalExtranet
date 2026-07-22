@@ -120,14 +120,20 @@ if (app.Environment.IsDevelopment())
 // ─── Global Exception Middleware ───────────────────────────────────
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-// ─── Apply migrations and update schema ────────
+// ─── Apply migrations ───────────────────────────────────────
+// Fail fast: starting up against an out-of-date/broken schema is worse
+// than not starting at all.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
+// ─── Upgrade any plaintext passwords to BCrypt hashes (one-time cleanup) ───
 try
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-
-    // Upgrade any plaintext passwords to BCrypt hashes (one-time migration)
     var plaintextUsers = db.Users.Where(u =>
         u.PasswordHash != null && !u.PasswordHash.StartsWith("$2")).ToList();
     foreach (var u in plaintextUsers)
@@ -144,7 +150,7 @@ try
 catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "Database migration failed");
+    logger.LogError(ex, "Plaintext password upgrade failed");
 }
 
 // ─── Middleware ──────────────────────────────────────────────
