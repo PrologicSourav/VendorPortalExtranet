@@ -107,9 +107,12 @@ builder.Host.UseSerilog();
 
 var app = builder.Build();
 
-// ─── Swagger (all environments) ─────────────────────────────
-app.UseSwagger();
-app.UseSwaggerUI();
+// ─── Swagger (Development only) ──────────────────────────────
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // ─── Global Exception Middleware ───────────────────────────────────
 app.UseMiddleware<GlobalExceptionMiddleware>();
