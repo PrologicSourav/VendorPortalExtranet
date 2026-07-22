@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -20,9 +22,10 @@ public class VendorsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> GetAll([FromQuery] string? status, [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        _logger.LogInformation("Getting vendors list - Status: {Status}, Search: {Search}, Page: {Page}, PageSize: {PageSize}", 
+        _logger.LogInformation("Getting vendors list - Status: {Status}, Search: {Search}, Page: {Page}, PageSize: {PageSize}",
             status ?? "all", search ?? "none", page, pageSize);
         
         var vendors = await _vendorRepo.GetAllAsync(status, search, page, pageSize);
@@ -35,8 +38,10 @@ public class VendorsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
+        if (!User.CanAccessVendor(id)) return Forbid();
+
         _logger.LogInformation("Getting vendor by ID: {VendorId}", id);
-        
+
         var vendor = await _vendorRepo.GetByIdAsync(id);
         if (vendor is null)
         {
@@ -49,9 +54,10 @@ public class VendorsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> Create([FromBody] Vendor vendor)
     {
-        _logger.LogInformation("Creating new vendor: {LegalName} (GSTIN: {Gstin})", 
+        _logger.LogInformation("Creating new vendor: {LegalName} (GSTIN: {Gstin})",
             vendor.LegalName, vendor.Gstin ?? "null");
         
         if (await _vendorRepo.ExistsByGstinAsync(vendor.Gstin))
@@ -72,8 +78,10 @@ public class VendorsController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] Vendor vendor)
     {
+        if (!User.CanAccessVendor(id)) return Forbid();
+
         _logger.LogInformation("Updating vendor: {VendorId}", id);
-        
+
         var existing = await _vendorRepo.GetByIdAsync(id);
         if (existing is null)
         {

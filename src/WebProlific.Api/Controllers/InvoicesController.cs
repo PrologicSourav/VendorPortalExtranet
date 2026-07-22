@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
 using WebProlific.Infrastructure.Data;
@@ -25,6 +26,8 @@ public class InvoicesController : ControllerBase
     [HttpGet("vendor/{vendorId:guid}")]
     public async Task<IActionResult> GetByVendor(Guid vendorId, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        if (!User.CanAccessVendor(vendorId)) return Forbid();
+
         var invoices = await _invRepo.GetByVendorAsync(vendorId, status, page, pageSize);
         var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
         var total = await _invRepo.GetVendorInvoiceCountAsync(vendorId, status);
@@ -60,6 +63,7 @@ public class InvoicesController : ControllerBase
     {
         var invoice = await _invRepo.GetByIdAsync(id);
         if (invoice is null) return NotFound();
+        if (!User.CanAccessVendor(invoice.VendorId)) return Forbid();
         var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
         var displayTotal = await _currencyConverter.ConvertAsync(invoice.TotalAmount, invoice.Currency, preferredCurrency);
         return Ok(new
@@ -86,6 +90,13 @@ public class InvoicesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Invoice invoice)
     {
+        if (!User.IsInternal())
+        {
+            var callerVendorId = User.GetVendorId();
+            if (callerVendorId is null) return Forbid();
+            invoice.VendorId = callerVendorId.Value;
+        }
+
         invoice.Id = Guid.NewGuid();
         invoice.CreatedAt = DateTime.UtcNow;
 

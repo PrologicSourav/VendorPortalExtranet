@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
 
@@ -15,6 +17,8 @@ public class CataloguesController : ControllerBase
     [HttpGet("vendor/{vendorId:guid}")]
     public async Task<IActionResult> GetByVendor(Guid vendorId, [FromQuery] string? status)
     {
+        if (!User.CanAccessVendor(vendorId)) return Forbid();
+
         var catalogues = await _catRepo.GetByVendorAsync(vendorId, status);
         return Ok(catalogues);
     }
@@ -23,12 +27,21 @@ public class CataloguesController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var catalogue = await _catRepo.GetByIdAsync(id);
-        return catalogue is null ? NotFound() : Ok(catalogue);
+        if (catalogue is null) return NotFound();
+        if (!User.CanAccessVendor(catalogue.VendorId)) return Forbid();
+        return Ok(catalogue);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Catalogue catalogue)
     {
+        if (!User.IsInternal())
+        {
+            var callerVendorId = User.GetVendorId();
+            if (callerVendorId is null) return Forbid();
+            catalogue.VendorId = callerVendorId.Value;
+        }
+
         catalogue.Id = Guid.NewGuid();
         catalogue.CreatedAt = DateTime.UtcNow;
         catalogue.UpdatedAt = DateTime.UtcNow;
@@ -41,6 +54,7 @@ public class CataloguesController : ControllerBase
     {
         var catalogue = await _catRepo.GetByIdAsync(id);
         if (catalogue is null) return NotFound();
+        if (!User.CanAccessVendor(catalogue.VendorId)) return Forbid();
 
         catalogue.Status = CatalogueStatus.Submitted;
         catalogue.SubmittedDate = DateTime.UtcNow;
@@ -50,6 +64,7 @@ public class CataloguesController : ControllerBase
     }
 
     [HttpPut("{id:guid}/approve")]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> Approve(Guid id)
     {
         var catalogue = await _catRepo.GetByIdAsync(id);
@@ -63,6 +78,7 @@ public class CataloguesController : ControllerBase
     }
 
     [HttpPut("{id:guid}/reject")]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> Reject(Guid id, [FromBody] RejectRequest request)
     {
         var catalogue = await _catRepo.GetByIdAsync(id);

@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WebProlific.Api.Services;
 using WebProlific.Api.Middleware;
+using WebProlific.Api.Extensions;
 using WebProlific.Core.Interfaces;
 using WebProlific.Infrastructure.Data;
 using WebProlific.Infrastructure.Repositories;
@@ -69,6 +70,8 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
+    options.AddPolicy("InternalOnly", policy =>
+        policy.RequireAssertion(ctx => ctx.User.IsInternal()));
 });
 
 // ─── Controllers & Swagger ──────────────────────────────────

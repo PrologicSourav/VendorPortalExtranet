@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
 
@@ -13,6 +15,7 @@ public class MakerCheckerController : ControllerBase
     public MakerCheckerController(IMakerCheckerRepository mcRepo) => _mcRepo = mcRepo;
 
     [HttpGet("pending")]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> GetPending()
     {
         var requests = await _mcRepo.GetPendingAsync();
@@ -23,12 +26,26 @@ public class MakerCheckerController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var request = await _mcRepo.GetByIdAsync(id);
-        return request is null ? NotFound() : Ok(request);
+        if (request is null) return NotFound();
+        if (!User.CanAccessVendor(request.VendorId)) return Forbid();
+        return Ok(request);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] KycChangeRequest request)
     {
+        if (!User.IsInternal())
+        {
+            var callerVendorId = User.GetVendorId();
+            if (callerVendorId is null) return Forbid();
+            request.VendorId = callerVendorId.Value;
+        }
+
+        var callerUserId = User.GetUserId();
+        if (callerUserId is null) return Forbid();
+        request.RequestedByUserId = callerUserId.Value;
+        request.RequestedBy = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? string.Empty;
+
         request.Id = Guid.NewGuid();
         request.RequestedDate = DateTime.UtcNow;
         request.Status = MakerCheckerStatus.Pending;
@@ -37,13 +54,15 @@ public class MakerCheckerController : ControllerBase
     }
 
     [HttpPut("{id:guid}/approve")]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveRejectRequest request)
     {
         var existing = await _mcRepo.GetByIdAsync(id);
         if (existing is null) return NotFound();
 
         existing.Status = MakerCheckerStatus.Approved;
-        existing.ApprovedBy = request.ApprovedBy;
+        existing.ApprovedByUserId = User.GetUserId();
+        existing.ApprovedBy = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
         existing.ActionDate = DateTime.UtcNow;
         var updated = await _mcRepo.UpdateAsync(existing);
 
@@ -55,13 +74,15 @@ public class MakerCheckerController : ControllerBase
     }
 
     [HttpPut("{id:guid}/reject")]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> Reject(Guid id, [FromBody] ApproveRejectRequest request)
     {
         var existing = await _mcRepo.GetByIdAsync(id);
         if (existing is null) return NotFound();
 
         existing.Status = MakerCheckerStatus.Rejected;
-        existing.ApprovedBy = request.ApprovedBy;
+        existing.ApprovedByUserId = User.GetUserId();
+        existing.ApprovedBy = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
         existing.RejectionReason = request.Reason;
         existing.ActionDate = DateTime.UtcNow;
         var updated = await _mcRepo.UpdateAsync(existing);

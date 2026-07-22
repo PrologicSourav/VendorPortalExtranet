@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
 
 namespace WebProlific.Api.Controllers;
 
+// Vendor and item de-duplication is an internal governance function; suppliers never call this.
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = "InternalOnly")]
 public class DedupController : ControllerBase
 {
     private readonly IDedupRepository _dedupRepo;

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
 
@@ -15,7 +16,8 @@ public class DeliveryNotesController : ControllerBase
     [HttpGet("po/{poId:guid}")]
     public async Task<IActionResult> GetByPo(Guid poId)
     {
-        var notes = await _dnRepo.GetByPurchaseOrderAsync(poId);
+        var notes = (await _dnRepo.GetByPurchaseOrderAsync(poId)).ToList();
+        if (notes.Count > 0 && !User.CanAccessVendor(notes[0].VendorId)) return Forbid();
         return Ok(notes);
     }
 
@@ -23,12 +25,21 @@ public class DeliveryNotesController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var dn = await _dnRepo.GetByIdAsync(id);
-        return dn is null ? NotFound() : Ok(dn);
+        if (dn is null) return NotFound();
+        if (!User.CanAccessVendor(dn.VendorId)) return Forbid();
+        return Ok(dn);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] DeliveryNote deliveryNote)
     {
+        if (!User.IsInternal())
+        {
+            var callerVendorId = User.GetVendorId();
+            if (callerVendorId is null) return Forbid();
+            deliveryNote.VendorId = callerVendorId.Value;
+        }
+
         deliveryNote.Id = Guid.NewGuid();
         deliveryNote.DeliveryNoteNumber = $"DN-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
         deliveryNote.CreatedAt = DateTime.UtcNow;
@@ -41,6 +52,7 @@ public class DeliveryNotesController : ControllerBase
     {
         var dn = await _dnRepo.GetByIdAsync(id);
         if (dn is null) return NotFound();
+        if (!User.CanAccessVendor(dn.VendorId)) return Forbid();
 
         dn.Status = DeliveryNoteStatus.Submitted;
         var updated = await _dnRepo.UpdateAsync(dn);

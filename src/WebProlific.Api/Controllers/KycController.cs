@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
 
@@ -18,6 +20,7 @@ public class KycController : ControllerBase
     }
 
     [HttpGet("queue")]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> GetQueue([FromQuery] string? status, [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var vendors = await _kycRepo.GetKycQueueAsync(status, search, page, pageSize);
@@ -28,6 +31,8 @@ public class KycController : ControllerBase
     [HttpGet("vendor/{vendorId:guid}")]
     public async Task<IActionResult> GetVendorProfile(Guid vendorId)
     {
+        if (!User.CanAccessVendor(vendorId)) return Forbid();
+
         var vendor = await _vendorRepo.GetByIdAsync(vendorId);
         if (vendor is null) return NotFound();
 
@@ -38,6 +43,8 @@ public class KycController : ControllerBase
     [HttpGet("vendor/{vendorId:guid}/documents")]
     public async Task<IActionResult> GetDocuments(Guid vendorId)
     {
+        if (!User.CanAccessVendor(vendorId)) return Forbid();
+
         var documents = await _kycRepo.GetDocumentsAsync(vendorId);
         return Ok(documents);
     }
@@ -45,6 +52,8 @@ public class KycController : ControllerBase
     [HttpPost("vendor/{vendorId:guid}/documents")]
     public async Task<IActionResult> AddDocument(Guid vendorId, [FromBody] VendorDocument document)
     {
+        if (!User.CanAccessVendor(vendorId)) return Forbid();
+
         document.Id = Guid.NewGuid();
         document.VendorId = vendorId;
         document.UploadDate = DateTime.UtcNow;
@@ -53,6 +62,7 @@ public class KycController : ControllerBase
     }
 
     [HttpPut("vendor/{vendorId:guid}/validate")]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> SetValidated(Guid vendorId)
     {
         var vendor = await _vendorRepo.GetByIdAsync(vendorId);
@@ -68,6 +78,7 @@ public class KycController : ControllerBase
     }
 
     [HttpPut("vendor/{vendorId:guid}/block")]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> SetBlocked(Guid vendorId)
     {
         var vendor = await _vendorRepo.GetByIdAsync(vendorId);

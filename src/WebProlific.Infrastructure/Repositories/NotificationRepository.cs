@@ -11,6 +11,9 @@ public class NotificationRepository : INotificationRepository
 
     public NotificationRepository(AppDbContext db) => _db = db;
 
+    public async Task<Notification?> GetByIdAsync(Guid id) =>
+        await _db.Notifications.FindAsync(id);
+
     public async Task<IEnumerable<Notification>> GetByUserAsync(Guid userId, bool? unreadOnly)
     {
         var query = _db.Notifications.Where(n => n.UserId == userId);

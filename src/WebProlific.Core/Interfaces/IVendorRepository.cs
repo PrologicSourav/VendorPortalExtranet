@@ -87,6 +87,7 @@ public interface IDedupRepository
 
 public interface INotificationRepository
 {
+    Task<Notification?> GetByIdAsync(Guid id);
     Task<IEnumerable<Notification>> GetByUserAsync(Guid userId, bool? unreadOnly);
     Task<int> GetUnreadCountAsync(Guid userId);
     Task MarkAllReadAsync(Guid userId);

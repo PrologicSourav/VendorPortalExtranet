@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Infrastructure.Data;
 
@@ -48,6 +49,8 @@ public class ConfigurationController : ControllerBase
     [HttpPut("users/{userId:guid}/preferences")]
     public async Task<IActionResult> UpdatePreferences(Guid userId, [FromBody] UserPreferencesDto dto)
     {
+        if (User.GetUserId() != userId) return Forbid();
+
         var user = await _db.Users.FindAsync(userId);
         if (user is null) return NotFound();
 

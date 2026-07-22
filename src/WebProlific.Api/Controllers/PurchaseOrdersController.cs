@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
 using WebProlific.Infrastructure.Data;
@@ -25,6 +27,8 @@ public class PurchaseOrdersController : ControllerBase
     [HttpGet("vendor/{vendorId:guid}")]
     public async Task<IActionResult> GetByVendor(Guid vendorId, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        if (!User.CanAccessVendor(vendorId)) return Forbid();
+
         var pos = await _poRepo.GetByVendorAsync(vendorId, status, page, pageSize);
         // Resolve user's preferred currency (set by middleware)
         var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
@@ -60,6 +64,7 @@ public class PurchaseOrdersController : ControllerBase
     {
         var po = await _poRepo.GetByIdAsync(id);
         if (po is null) return NotFound();
+        if (!User.CanAccessVendor(po.VendorId)) return Forbid();
         var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
         var displayValue = await _currencyConverter.ConvertAsync(po.TotalValue, po.Currency, preferredCurrency);
         return Ok(new
@@ -83,6 +88,7 @@ public class PurchaseOrdersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> Create([FromBody] PurchaseOrder po)
     {
         po.Id = Guid.NewGuid();
@@ -98,6 +104,7 @@ public class PurchaseOrdersController : ControllerBase
     {
         var po = await _poRepo.GetByIdAsync(id);
         if (po is null) return NotFound();
+        if (!User.CanAccessVendor(po.VendorId)) return Forbid();
         po.Status = PoStatus.Acknowledged;
         po.UpdatedAt = DateTime.UtcNow;
         var updated = await _poRepo.UpdateAsync(po);
@@ -109,6 +116,7 @@ public class PurchaseOrdersController : ControllerBase
     {
         var po = await _poRepo.GetByIdAsync(id);
         if (po is null) return NotFound();
+        if (!User.CanAccessVendor(po.VendorId)) return Forbid();
         po.Status = PoStatus.PartiallyAccepted;
         po.UpdatedAt = DateTime.UtcNow;
         var updated = await _poRepo.UpdateAsync(po);
@@ -120,6 +128,7 @@ public class PurchaseOrdersController : ControllerBase
     {
         var po = await _poRepo.GetByIdAsync(id);
         if (po is null) return NotFound();
+        if (!User.CanAccessVendor(po.VendorId)) return Forbid();
         po.Status = PoStatus.UnableToSupply;
         po.AcknowledgmentReason = request.Reason;
         po.UpdatedAt = DateTime.UtcNow;
