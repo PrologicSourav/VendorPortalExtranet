@@ -52,7 +52,7 @@ public class InvoicesController : ControllerBase
                 inv.InvoicePdfUrl,
                 inv.CreatedAt,
                 DisplayTotal = displayTotal,
-                DisplayCurrencyCode = preferredCurrency
+                DisplayCurrencyCode = displayTotal.HasValue ? preferredCurrency : null
             });
         }
         return Ok(new { items, total, page, pageSize });
@@ -83,7 +83,7 @@ public class InvoicesController : ControllerBase
             invoice.InvoicePdfUrl,
             invoice.CreatedAt,
             DisplayTotal = displayTotal,
-            DisplayCurrencyCode = preferredCurrency
+            DisplayCurrencyCode = displayTotal.HasValue ? preferredCurrency : null
         });
     }
 

@@ -53,7 +53,7 @@ public class PurchaseOrdersController : ControllerBase
                 po.CreatedAt,
                 po.UpdatedAt,
                 DisplayValue = displayValue,
-                DisplayCurrencyCode = preferredCurrency
+                DisplayCurrencyCode = displayValue.HasValue ? preferredCurrency : null
             });
         }
         return Ok(new { items, total, page, pageSize });
@@ -83,7 +83,7 @@ public class PurchaseOrdersController : ControllerBase
             po.CreatedAt,
             po.UpdatedAt,
             DisplayValue = displayValue,
-            DisplayCurrencyCode = preferredCurrency
+            DisplayCurrencyCode = displayValue.HasValue ? preferredCurrency : null
         });
     }
 

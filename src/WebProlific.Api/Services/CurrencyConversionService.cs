@@ -13,7 +13,8 @@ namespace WebProlific.Api.Services
 {
     public interface ICurrencyConversionService
     {
-        Task<decimal> ConvertAsync(decimal amount, string fromCurrency, string toCurrency);
+        /// <summary>Returns null when no reliable exchange rate is available (do not display a fabricated total).</summary>
+        Task<decimal?> ConvertAsync(decimal amount, string fromCurrency, string toCurrency);
         Task<Dictionary<string, decimal>> GetRatesAsync(string baseCurrency, IEnumerable<string> targetCurrencies);
         Task UpdateRatesAsync();
     }
@@ -32,13 +33,14 @@ namespace WebProlific.Api.Services
             _logger = logger;
         }
 
-        public async Task<decimal> ConvertAsync(decimal amount, string fromCurrency, string toCurrency)
+        public async Task<decimal?> ConvertAsync(decimal amount, string fromCurrency, string toCurrency)
         {
             if (string.Equals(fromCurrency, toCurrency, StringComparison.OrdinalIgnoreCase))
                 return amount;
 
             var rate = await GetRateAsync(fromCurrency, toCurrency);
-            return Math.Round(amount * rate, await GetPrecisionAsync(toCurrency));
+            if (rate is null) return null;
+            return Math.Round(amount * rate.Value, await GetPrecisionAsync(toCurrency));
         }
 
         public async Task<Dictionary<string, decimal>> GetRatesAsync(string baseCurrency, IEnumerable<string> targetCurrencies)
@@ -53,7 +55,8 @@ namespace WebProlific.Api.Services
                 }
 
                 var rate = await GetRateAsync(baseCurrency, target);
-                rates[target] = rate;
+                if (rate is not null)
+                    rates[target] = rate.Value;
             }
             return rates;
         }
@@ -114,7 +117,8 @@ namespace WebProlific.Api.Services
             }
         }
 
-        private async Task<decimal> GetRateAsync(string fromCurrency, string toCurrency)
+        /// <summary>Returns null when no cached or fetchable rate exists — callers must not assume 1:1.</summary>
+        private async Task<decimal?> GetRateAsync(string fromCurrency, string toCurrency)
         {
             // Try to get the rate from the database
             var rate = await _db.ExchangeRates
@@ -130,28 +134,34 @@ namespace WebProlific.Api.Services
                 return rate;
 
             // If not found, fetch from external API and store it
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetFromJsonAsync<ExternalRateResponse>($"{ExternalApiUrl}?base={fromCurrency}&symbols={toCurrency}");
-            if (response != null && response.Success && response.Rates.TryGetValue(toCurrency, out var apiRate))
+            try
             {
-                // Store the fetched rate for future use
-                var exchangeRate = new ExchangeRate
+                var client = _httpClientFactory.CreateClient();
+                var response = await client.GetFromJsonAsync<ExternalRateResponse>($"{ExternalApiUrl}?base={fromCurrency}&symbols={toCurrency}");
+                if (response != null && response.Success && response.Rates.TryGetValue(toCurrency, out var apiRate))
                 {
-                    FromCurrencyCode = fromCurrency,
-                    ToCurrencyCode = toCurrency,
-                    Rate = apiRate,
-                    ValidFrom = DateTime.UtcNow,
-                    ValidTo = DateTime.UtcNow.AddDays(1),
-                    IsManual = false
-                };
-                _db.ExchangeRates.Add(exchangeRate);
-                await _db.SaveChangesAsync();
-                return apiRate;
+                    // Store the fetched rate for future use
+                    var exchangeRate = new ExchangeRate
+                    {
+                        FromCurrencyCode = fromCurrency,
+                        ToCurrencyCode = toCurrency,
+                        Rate = apiRate,
+                        ValidFrom = DateTime.UtcNow,
+                        ValidTo = DateTime.UtcNow.AddDays(1),
+                        IsManual = false
+                    };
+                    _db.ExchangeRates.Add(exchangeRate);
+                    await _db.SaveChangesAsync();
+                    return apiRate;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to fetch exchange rate for {From} to {To} from external API.", fromCurrency, toCurrency);
             }
 
-            // Fallback to 1 if we cannot get the rate
-            _logger.LogWarning("Could not find exchange rate for {From} to {To}. Using fallback rate of 1.", fromCurrency, toCurrency);
-            return 1M;
+            _logger.LogWarning("No exchange rate available for {From} to {To}. Conversion will be omitted rather than shown as 1:1.", fromCurrency, toCurrency);
+            return null;
         }
 
         private async Task<int> GetPrecisionAsync(string currencyCode)
