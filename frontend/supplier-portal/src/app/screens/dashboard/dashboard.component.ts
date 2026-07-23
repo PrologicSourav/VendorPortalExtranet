@@ -121,11 +121,11 @@ const CATALOGUE_APPROVALS_REFRESH_MS = 30000;
 
       .kpi-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 16px;
         margin-bottom: 24px;
       }
-      @media (max-width: 1024px) {
+      @media (max-width: 1023px) {
         .kpi-grid {
           grid-template-columns: repeat(2, 1fr);
         }
