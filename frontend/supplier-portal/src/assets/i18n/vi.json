@@ -116,6 +116,7 @@
     "statusRejected": "Bị từ chối",
     "loading": "Đang tải danh mục…",
     "loadError": "Không thể tải danh mục của bạn. Vui lòng tải lại trang.",
+    "noVendorNotice": "Quản lý danh mục chỉ dành cho tài khoản nhà cung cấp. Bạn đang đăng nhập bằng tài khoản nhân viên nội bộ, không có nhà cung cấp — vui lòng đăng nhập bằng tài khoản nhà cung cấp để quản lý danh mục.",
     "saveError": "Không thể lưu mục này:",
     "toastSubmitted": "Đã gửi danh mục để phê duyệt",
     "toastSubmitError": "Gửi danh mục thất bại. Vui lòng thử lại.",

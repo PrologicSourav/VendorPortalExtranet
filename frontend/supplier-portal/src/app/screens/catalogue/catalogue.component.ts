@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { TranslatePipe } from "@ngx-translate/core";
+import { TranslatePipe, TranslateService } from "@ngx-translate/core";
 import { of, switchMap } from "rxjs";
 import {
   ExcelUploadModalComponent,
@@ -44,7 +44,7 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         </span>
         <button
           class="btn btn-primary"
-          [disabled]="lines.length === 0 || catalogueStatus !== 'Draft' || submitting"
+          [disabled]="lines.length === 0 || catalogueStatus !== 'Draft' || submitting || !hasVendor"
           [title]="'catalogue.submitTooltip' | translate"
           (click)="submitForApproval()"
         >
@@ -58,6 +58,9 @@ const CATALOGUE_UPLOAD_COLUMNS = [
     </div>
     <div *ngIf="loadError" class="load-error" role="alert">
       {{ "catalogue.loadError" | translate }}
+    </div>
+    <div *ngIf="!loading && !hasVendor" class="no-vendor-notice" role="alert">
+      {{ "catalogue.noVendorNotice" | translate }}
     </div>
 
     <ng-container *ngIf="!loading">
@@ -76,14 +79,14 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         </select>
         <button
           class="btn btn-primary"
-          [disabled]="catalogueStatus !== 'Draft'"
+          [disabled]="catalogueStatus !== 'Draft' || !hasVendor"
           (click)="openAddDialog()"
         >
           + {{ "catalogue.addLine" | translate }}
         </button>
         <button
           class="btn btn-secondary"
-          [disabled]="catalogueStatus !== 'Draft'"
+          [disabled]="catalogueStatus !== 'Draft' || !hasVendor"
           (click)="showUploadModal = true"
         >
           📤 {{ "excelUpload.uploadButton" | translate }}
@@ -339,6 +342,15 @@ const CATALOGUE_UPLOAD_COLUMNS = [
       .save-error {
         margin-top: 8px;
       }
+      .no-vendor-notice {
+        padding: 16px;
+        border-radius: 8px;
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fde68a;
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
 
       .toolbar {
         display: flex;
@@ -429,6 +441,7 @@ export class CatalogueComponent implements OnInit {
   private excelService = inject(CatalogueExcelService);
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private translate = inject(TranslateService);
 
   searchTerm = "";
   statusFilter = "";
@@ -446,6 +459,13 @@ export class CatalogueComponent implements OnInit {
   submitting = false;
   saveError: string | null = null;
   toast: { type: string; key?: string; params?: any; text?: string } | null = null;
+
+  /** Catalogues are vendor-scoped. Internal/staff accounts (admin) have no vendorId,
+   *  so they can't own a "My Catalogue" — guard the write actions rather than firing
+   *  a POST with a null vendor that the backend rejects with a confusing FK error. */
+  get hasVendor(): boolean {
+    return !!this.auth.user()?.vendorId;
+  }
 
   validateExcelFile = (file: File) => this.excelService.validateFile(file);
   parseExcelFile = (file: File) => this.excelService.parseAndValidate(file);
@@ -471,8 +491,9 @@ export class CatalogueComponent implements OnInit {
   ngOnInit(): void {
     const vendorId = this.auth.user()?.vendorId;
     if (!vendorId) {
+      // No vendor context (e.g. internal staff account) — not a load failure.
+      // The template's no-vendor notice explains it; don't also flag loadError.
       this.loading = false;
-      this.loadError = true;
       return;
     }
     this.api.getCatalogues(vendorId, "Draft").subscribe({
@@ -540,6 +561,11 @@ export class CatalogueComponent implements OnInit {
       return;
     }
 
+    if (!this.hasVendor) {
+      this.saveError = this.translate.instant("catalogue.noVendorNotice");
+      return;
+    }
+
     this.saving = true;
     this.saveError = null;
 
@@ -559,6 +585,12 @@ export class CatalogueComponent implements OnInit {
   }
 
   onExcelUploadConfirmed(rows: ExcelUploadRow[]): void {
+    if (!this.hasVendor) {
+      this.showUploadModal = false;
+      this.showToast("error", "catalogue.noVendorNotice");
+      return;
+    }
+
     const mapped = rows.map((r) => ({
       itemCode: r["itemCode"] as string,
       description: r["description"] as string,
