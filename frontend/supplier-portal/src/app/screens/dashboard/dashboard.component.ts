@@ -136,12 +136,31 @@ const CATALOGUE_APPROVALS_REFRESH_MS = 30000;
         }
       }
 
+      /* 5 equal columns get tight right at the 1024px+ boundary — shrink
+         label/value sizing there so cards stay short and the page fits
+         without a forced vertical scroll on common laptop heights. */
+      @media (min-width: 1024px) and (max-width: 1365px) {
+        .kpi-card {
+          padding: 14px;
+        }
+        .kpi-label {
+          font-size: 10px;
+          letter-spacing: 0.2px;
+        }
+        .kpi-value {
+          font-size: 19px;
+        }
+        .kpi-sub {
+          font-size: 11px;
+        }
+      }
+
       .panels {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 20px;
       }
-      @media (max-width: 1024px) {
+      @media (max-width: 1023px) {
         .panels {
           grid-template-columns: 1fr;
         }
