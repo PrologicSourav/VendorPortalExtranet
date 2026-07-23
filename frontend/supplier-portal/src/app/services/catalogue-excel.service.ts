@@ -5,7 +5,14 @@ import { Injectable } from "@angular/core";
 import type * as ExcelJSTypes from "exceljs";
 
 async function loadExcelJS(): Promise<typeof ExcelJSTypes> {
-  return import("exceljs");
+  // exceljs is CommonJS; Angular's production esbuild bundler wraps it as
+  // { default: <the actual module.exports> } while the dev-server's Vite
+  // bundler spreads named exports (Workbook, etc.) directly onto the
+  // namespace object. Normalize both shapes so `.Workbook` always resolves.
+  const mod = (await import("exceljs")) as unknown as
+    | typeof ExcelJSTypes
+    | { default: typeof ExcelJSTypes };
+  return "default" in mod && mod.default ? mod.default : (mod as typeof ExcelJSTypes);
 }
 
 /** Column order matches the downloadable template exactly (A → H). */
