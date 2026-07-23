@@ -28,6 +28,15 @@ services:
     rootDir: frontend/supplier-portal
     buildCommand: npm install && npm run build
     staticPublishPath: dist/supplier-portal/browser
+    # SPA fallback: without this, a direct load or refresh of any client-side
+    # route (/dashboard, /catalogue, …) returns Render's "Not Found" because no
+    # such file exists on disk. Rewrite every path to index.html so Angular's
+    # router can resolve it. Must be a rewrite (serves index.html at the original
+    # URL), not a redirect (which would change the address bar back to /).
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: NODE_VERSION
         value: 20
