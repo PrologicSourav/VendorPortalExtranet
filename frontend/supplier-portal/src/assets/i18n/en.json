@@ -145,6 +145,8 @@
     "emptyTitle": "No catalogue lines yet",
     "emptyDesc": "Add your first item to start building your price list.",
     "priceValidation": "Price must be greater than 0",
+    "itemCodeValidation": "Item code may only contain letters, numbers, and dashes",
+    "descriptionValidation": "Description must be {{max}} characters or fewer",
     "validToValidation": "Valid-to must be after valid-from",
     "formNote": "Lines are submitted for buyer approval before becoming orderable.",
     "cancel": "Cancel",

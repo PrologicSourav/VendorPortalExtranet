@@ -145,6 +145,8 @@
     "emptyTitle": "Chưa có dòng danh mục nào",
     "emptyDesc": "Thêm mặt hàng đầu tiên để bắt đầu xây dựng bảng giá của bạn.",
     "priceValidation": "Giá phải lớn hơn 0",
+    "itemCodeValidation": "Mã mặt hàng chỉ được chứa chữ cái, số và dấu gạch ngang",
+    "descriptionValidation": "Mô tả không được vượt quá {{max}} ký tự",
     "validToValidation": "Ngày hết hiệu lực phải sau ngày bắt đầu hiệu lực",
     "formNote": "Các dòng được gửi để bên mua phê duyệt trước khi có thể đặt hàng.",
     "cancel": "Hủy",

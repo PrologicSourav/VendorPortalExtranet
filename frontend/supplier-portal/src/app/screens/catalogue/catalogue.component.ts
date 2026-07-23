@@ -10,7 +10,13 @@ import {
 import {
   CatalogueExcelRow,
   CatalogueExcelService,
+  MAX_DESCRIPTION_LENGTH,
 } from "../../services/catalogue-excel.service";
+
+/** Item codes: letters, digits and dashes only — mirrors the rule enforced by
+ *  CatalogueExcelService (Excel upload) and the server-side FluentValidation
+ *  validator, so manual entry is held to the exact same standard. */
+const ITEM_CODE_PATTERN = /^[a-zA-Z0-9-]+$/;
 import { ApiService } from "../../services/api.service";
 import { AuthService } from "../../services/auth.service";
 
@@ -187,14 +193,28 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                 [(ngModel)]="formData.itemCode"
                 placeholder="FOOD-001"
               />
+              <span
+                *ngIf="formData.itemCode && !isItemCodeValid"
+                class="field-error"
+                >{{ "catalogue.itemCodeValidation" | translate }}</span
+              >
             </div>
             <div class="form-group">
               <label>{{ "catalogue.description" | translate }}</label>
               <input
                 class="form-control"
                 [(ngModel)]="formData.description"
+                [maxlength]="maxDescriptionLength"
                 placeholder="Basmati Rice 25kg"
               />
+              <span
+                *ngIf="formData.description.length > maxDescriptionLength"
+                class="field-error"
+                >{{
+                  "catalogue.descriptionValidation"
+                    | translate: { max: maxDescriptionLength }
+                }}</span
+              >
             </div>
             <div class="form-group">
               <label>{{ "catalogue.packUom" | translate }}</label>
@@ -274,7 +294,12 @@ const CATALOGUE_UPLOAD_COLUMNS = [
             class="btn btn-primary"
             (click)="saveLine()"
             [disabled]="
-              !formData.itemCode || !formData.description || formData.price <= 0 || saving
+              !formData.itemCode ||
+              !isItemCodeValid ||
+              !formData.description ||
+              formData.description.length > maxDescriptionLength ||
+              formData.price <= 0 ||
+              saving
             "
           >
             {{ (editingLine ? "catalogue.update" : "catalogue.addLine") | translate }}
@@ -465,6 +490,13 @@ export class CatalogueComponent implements OnInit {
    *  a POST with a null vendor that the backend rejects with a confusing FK error. */
   get hasVendor(): boolean {
     return !!this.auth.user()?.vendorId;
+  }
+
+  readonly maxDescriptionLength = MAX_DESCRIPTION_LENGTH;
+
+  /** True when the current item code matches the allowed format (letters, digits, dashes). */
+  get isItemCodeValid(): boolean {
+    return ITEM_CODE_PATTERN.test(this.formData.itemCode);
   }
 
   validateExcelFile = (file: File) => this.excelService.validateFile(file);
