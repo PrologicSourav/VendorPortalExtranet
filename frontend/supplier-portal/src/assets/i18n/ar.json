@@ -23,7 +23,9 @@
       "invoicesInProgressSub": "تم الإرسال، بانتظار المراجعة",
       "outstandingAmount": "المبلغ المستحق",
       "outstandingAmountSub": "عبر جميع الكيانات",
-      "nextScheduledPayment": "الدفعة المجدولة القادمة"
+      "nextScheduledPayment": "الدفعة المجدولة القادمة",
+      "cataloguesPendingApproval": "الفهارس بانتظار الموافقة",
+      "cataloguesPendingApprovalSub": "بانتظار موافقة المشتري"
     },
     "actionRequired": {
       "title": "إجراء مطلوب",

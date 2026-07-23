@@ -23,7 +23,9 @@
       "invoicesInProgressSub": "ส่งแล้ว รอการตรวจสอบ",
       "outstandingAmount": "ยอดค้างชำระ",
       "outstandingAmountSub": "ทุกนิติบุคคล",
-      "nextScheduledPayment": "การชำระเงินตามกำหนดครั้งถัดไป"
+      "nextScheduledPayment": "การชำระเงินตามกำหนดครั้งถัดไป",
+      "cataloguesPendingApproval": "แคตตาล็อกที่รอการอนุมัติ",
+      "cataloguesPendingApprovalSub": "รอการอนุมัติจากผู้ซื้อ"
     },
     "actionRequired": {
       "title": "ต้องดำเนินการ",

@@ -23,7 +23,9 @@
       "invoicesInProgressSub": "Submitted, pending review",
       "outstandingAmount": "Outstanding Amount",
       "outstandingAmountSub": "Across all entities",
-      "nextScheduledPayment": "Next Scheduled Payment"
+      "nextScheduledPayment": "Next Scheduled Payment",
+      "cataloguesPendingApproval": "Catalogues Pending Approval",
+      "cataloguesPendingApprovalSub": "Awaiting buyer approval"
     },
     "actionRequired": {
       "title": "Action Required",

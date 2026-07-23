@@ -23,7 +23,9 @@
       "invoicesInProgressSub": "Đã gửi, đang chờ xem xét",
       "outstandingAmount": "Số tiền còn nợ",
       "outstandingAmountSub": "Trên tất cả các thực thể",
-      "nextScheduledPayment": "Khoản thanh toán tiếp theo"
+      "nextScheduledPayment": "Khoản thanh toán tiếp theo",
+      "cataloguesPendingApproval": "Danh mục chờ phê duyệt",
+      "cataloguesPendingApprovalSub": "Đang chờ bên mua phê duyệt"
     },
     "actionRequired": {
       "title": "Yêu cầu xử lý",
