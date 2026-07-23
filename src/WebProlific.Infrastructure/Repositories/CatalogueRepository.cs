@@ -22,6 +22,7 @@ public class CatalogueRepository : ICatalogueRepository
     {
         var query = _db.Catalogues
             .Include(c => c.BuyingEntity)
+            .Include(c => c.Lines)
             .Where(c => c.VendorId == vendorId);
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<CatalogueStatus>(status, true, out var catStatus))
@@ -43,4 +44,23 @@ public class CatalogueRepository : ICatalogueRepository
         await _db.SaveChangesAsync();
         return catalogue;
     }
+
+    public async Task<IEnumerable<CatalogueLine>> AddLinesAsync(Guid catalogueId, IEnumerable<CatalogueLine> lines)
+    {
+        var list = lines.ToList();
+        foreach (var line in list)
+        {
+            line.CatalogueId = catalogueId;
+        }
+        _db.CatalogueLines.AddRange(list);
+        await _db.SaveChangesAsync();
+        return list;
+    }
+
+    public async Task<Guid?> GetDefaultBuyingEntityIdAsync() =>
+        await _db.BuyingEntities
+            .Where(b => b.IsActive)
+            .OrderBy(b => b.Name)
+            .Select(b => (Guid?)b.Id)
+            .FirstOrDefaultAsync();
 }

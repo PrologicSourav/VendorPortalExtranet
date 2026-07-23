@@ -19,6 +19,10 @@ public interface ICatalogueRepository
     Task<IEnumerable<Catalogue>> GetByVendorAsync(Guid vendorId, string? status);
     Task<Catalogue> CreateAsync(Catalogue catalogue);
     Task<Catalogue> UpdateAsync(Catalogue catalogue);
+    Task<IEnumerable<CatalogueLine>> AddLinesAsync(Guid catalogueId, IEnumerable<CatalogueLine> lines);
+    /// <summary>First active buying entity in the system, used to default new catalogues
+    /// when the caller doesn't specify one (no real entity-picker UI exists yet — VP-02).</summary>
+    Task<Guid?> GetDefaultBuyingEntityIdAsync();
 }
 
 public interface IPurchaseOrderRepository

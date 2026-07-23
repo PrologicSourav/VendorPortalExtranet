@@ -7,7 +7,10 @@ public class Catalogue
     public Guid BuyingEntityId { get; set; }
     public string VersionLabel { get; set; } = "v1";
     public CatalogueStatus Status { get; set; } = CatalogueStatus.Draft;
-    public DateTime SubmittedDate { get; set; }
+    // Nullable like ApprovedDate — a Draft catalogue hasn't been submitted yet, so it
+    // has no submission date. Was previously non-nullable, which crashed reads of any
+    // pre-existing Draft row (seed data never set this column).
+    public DateTime? SubmittedDate { get; set; }
     public DateTime? ApprovedDate { get; set; }
     public string? RejectionReason { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

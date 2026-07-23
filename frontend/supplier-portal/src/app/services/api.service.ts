@@ -95,6 +95,16 @@ export class ApiService {
     return this.http.get(`${API}/catalogues/${id}`);
   }
 
+  createCatalogue(vendorId: string): Observable<any> {
+    // buyingEntityId omitted (Guid.Empty server-side) — the API defaults it to the
+    // first active buying entity since no entity-picker UI exists in the portal yet.
+    return this.http.post(`${API}/catalogues`, { vendorId });
+  }
+
+  addCatalogueLines(catalogueId: string, lines: any[]): Observable<any> {
+    return this.http.post(`${API}/catalogues/${catalogueId}/lines`, { lines });
+  }
+
   submitCatalogue(id: string): Observable<any> {
     return this.http.put(`${API}/catalogues/${id}/submit`, {});
   }

@@ -1,7 +1,8 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { TranslatePipe } from "@ngx-translate/core";
+import { of, switchMap } from "rxjs";
 import {
   ExcelUploadModalComponent,
   ExcelUploadRow,
@@ -10,6 +11,8 @@ import {
   CatalogueExcelRow,
   CatalogueExcelService,
 } from "../../services/catalogue-excel.service";
+import { ApiService } from "../../services/api.service";
+import { AuthService } from "../../services/auth.service";
 
 const CATALOGUE_UPLOAD_COLUMNS = [
   { key: "itemCode", labelKey: "catalogue.itemCode" },
@@ -33,37 +36,59 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         <p class="page-subtitle">{{ "catalogue.subtitle" | translate }}</p>
       </div>
       <div class="header-actions">
-        <span class="badge badge-warning">{{ "catalogue.statusDraft" | translate }}</span>
+        <span
+          class="badge"
+          [ngClass]="catalogueStatus === 'Draft' ? 'badge-warning' : 'badge-success'"
+        >
+          {{ ("catalogue.status" + catalogueStatus) | translate }}
+        </span>
         <button
           class="btn btn-primary"
-          [disabled]="lines.length === 0"
+          [disabled]="lines.length === 0 || catalogueStatus !== 'Draft' || submitting"
           [title]="'catalogue.submitTooltip' | translate"
+          (click)="submitForApproval()"
         >
           {{ "catalogue.submitForApproval" | translate }}
         </button>
       </div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <input
-        type="text"
-        class="form-control search-input"
-        [placeholder]="'catalogue.searchPlaceholder' | translate"
-        [(ngModel)]="searchTerm"
-      />
-      <select class="form-control filter-select" [(ngModel)]="statusFilter">
-        <option value="">{{ "catalogue.allStatus" | translate }}</option>
-        <option value="Draft">{{ "catalogue.statusDraft" | translate }}</option>
-        <option value="Approved">{{ "catalogue.statusApproved" | translate }}</option>
-      </select>
-      <button class="btn btn-primary" (click)="showAddDialog = true">
-        + {{ "catalogue.addLine" | translate }}
-      </button>
-      <button class="btn btn-secondary" (click)="showUploadModal = true">
-        📤 {{ "excelUpload.uploadButton" | translate }}
-      </button>
+    <div *ngIf="loading" class="loading-state">
+      {{ "catalogue.loading" | translate }}
     </div>
+    <div *ngIf="loadError" class="load-error" role="alert">
+      {{ "catalogue.loadError" | translate }}
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <input
+          type="text"
+          class="form-control search-input"
+          [placeholder]="'catalogue.searchPlaceholder' | translate"
+          [(ngModel)]="searchTerm"
+        />
+        <select class="form-control filter-select" [(ngModel)]="statusFilter">
+          <option value="">{{ "catalogue.allStatus" | translate }}</option>
+          <option value="Draft">{{ "catalogue.statusDraft" | translate }}</option>
+          <option value="Approved">{{ "catalogue.statusApproved" | translate }}</option>
+        </select>
+        <button
+          class="btn btn-primary"
+          [disabled]="catalogueStatus !== 'Draft'"
+          (click)="openAddDialog()"
+        >
+          + {{ "catalogue.addLine" | translate }}
+        </button>
+        <button
+          class="btn btn-secondary"
+          [disabled]="catalogueStatus !== 'Draft'"
+          (click)="showUploadModal = true"
+        >
+          📤 {{ "excelUpload.uploadButton" | translate }}
+        </button>
+      </div>
 
     <!-- Data Table -->
     <div class="card">
@@ -135,6 +160,7 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         </div>
       </div>
     </div>
+    </ng-container>
 
     <!-- Add/Edit Dialog -->
     <div
@@ -233,6 +259,9 @@ const CATALOGUE_UPLOAD_COLUMNS = [
           <p class="form-note">
             {{ "catalogue.formNote" | translate }}
           </p>
+          <p *ngIf="saveError" class="field-error save-error" role="alert">
+            {{ "catalogue.saveError" | translate }} {{ saveError }}
+          </p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="showAddDialog = false">
@@ -242,7 +271,7 @@ const CATALOGUE_UPLOAD_COLUMNS = [
             class="btn btn-primary"
             (click)="saveLine()"
             [disabled]="
-              !formData.itemCode || !formData.description || formData.price <= 0
+              !formData.itemCode || !formData.description || formData.price <= 0 || saving
             "
           >
             {{ (editingLine ? "catalogue.update" : "catalogue.addLine") | translate }}
@@ -265,8 +294,8 @@ const CATALOGUE_UPLOAD_COLUMNS = [
       (confirmed)="onExcelUploadConfirmed($event)"
     ></excel-upload-modal>
 
-    <div *ngIf="uploadToast" class="toast toast-success">
-      {{ "excelUpload.successToast" | translate: { count: uploadToast } }}
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.key ? (toast.key | translate: toast.params) : toast.text }}
     </div>
   `,
   styles: [
@@ -291,6 +320,24 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         display: flex;
         align-items: center;
         gap: 12px;
+      }
+
+      .loading-state {
+        padding: 40px;
+        text-align: center;
+        color: var(--color-text-secondary);
+        font-size: 13px;
+      }
+      .load-error {
+        padding: 16px;
+        border-radius: 8px;
+        background: #fef2f2;
+        color: var(--color-error);
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+      .save-error {
+        margin-top: 8px;
       }
 
       .toolbar {
@@ -378,8 +425,10 @@ const CATALOGUE_UPLOAD_COLUMNS = [
     `,
   ],
 })
-export class CatalogueComponent {
+export class CatalogueComponent implements OnInit {
   private excelService = inject(CatalogueExcelService);
+  private api = inject(ApiService);
+  private auth = inject(AuthService);
 
   searchTerm = "";
   statusFilter = "";
@@ -387,8 +436,16 @@ export class CatalogueComponent {
   editingLine: any = null;
 
   showUploadModal = false;
-  uploadToast: number | null = null;
   uploadColumns = CATALOGUE_UPLOAD_COLUMNS;
+
+  catalogueId: string | null = null;
+  catalogueStatus = "Draft";
+  loading = true;
+  loadError = false;
+  saving = false;
+  submitting = false;
+  saveError: string | null = null;
+  toast: { type: string; key?: string; params?: any; text?: string } | null = null;
 
   validateExcelFile = (file: File) => this.excelService.validateFile(file);
   parseExcelFile = (file: File) => this.excelService.parseAndValidate(file);
@@ -397,25 +454,6 @@ export class CatalogueComponent {
     this.excelService.buildErrorReportCsv(
       rows as unknown as CatalogueExcelRow[],
     );
-
-  onExcelUploadConfirmed(rows: ExcelUploadRow[]): void {
-    const mapped = rows.map((r) => ({
-      itemCode: r["itemCode"] as string,
-      description: r["description"] as string,
-      packUom: r["packUom"] as string,
-      price: r["price"] as number,
-      currency: r["currency"] as string,
-      validFrom: r["validFrom"] as string,
-      validTo: r["validTo"] as string,
-      taxClass: r["taxClass"] as string,
-      deviation: 0,
-      status: "Draft",
-    }));
-    this.lines.push(...mapped);
-    this.showUploadModal = false;
-    this.uploadToast = mapped.length;
-    setTimeout(() => (this.uploadToast = null), 3000);
-  }
 
   formData = {
     itemCode: "",
@@ -428,44 +466,31 @@ export class CatalogueComponent {
     taxClass: "GST-5",
   };
 
-  lines = [
-    {
-      itemCode: "FOOD-001",
-      description: "Basmati Rice 25kg",
-      packUom: "25kg",
-      price: 2968,
-      currency: "INR",
-      validFrom: "2025-01-01",
-      validTo: "2025-06-30",
-      taxClass: "GST-5",
-      deviation: 6,
-      status: "Draft",
-    },
-    {
-      itemCode: "FOOD-002",
-      description: "Sunflower Oil 15L",
-      packUom: "15L",
-      price: 1650,
-      currency: "INR",
-      validFrom: "2025-01-01",
-      validTo: "2025-06-30",
-      taxClass: "GST-5",
-      deviation: 0,
-      status: "Draft",
-    },
-    {
-      itemCode: "FOOD-003",
-      description: "Tomato Ketchup 1kg",
-      packUom: "1kg",
-      price: 195,
-      currency: "INR",
-      validFrom: "2025-01-01",
-      validTo: "2025-06-30",
-      taxClass: "GST-12",
-      deviation: 8.33,
-      status: "Draft",
-    },
-  ];
+  lines: any[] = [];
+
+  ngOnInit(): void {
+    const vendorId = this.auth.user()?.vendorId;
+    if (!vendorId) {
+      this.loading = false;
+      this.loadError = true;
+      return;
+    }
+    this.api.getCatalogues(vendorId, "Draft").subscribe({
+      next: (catalogues: any[]) => {
+        const draft = catalogues?.[0];
+        if (draft) {
+          this.catalogueId = draft.id;
+          this.catalogueStatus = draft.status ?? "Draft";
+          this.lines = (draft.lines ?? []).map((l: any) => this.mapServerLine(l));
+        }
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.loadError = true;
+      },
+    });
+  }
 
   get filteredLines() {
     return this.lines.filter(
@@ -477,24 +502,9 @@ export class CatalogueComponent {
     );
   }
 
-  editLine(line: any) {
-    this.editingLine = line;
-    this.formData = { ...line };
-    this.showAddDialog = true;
-  }
-
-  deleteLine(line: any) {
-    this.lines = this.lines.filter((l) => l !== line);
-  }
-
-  saveLine() {
-    if (this.editingLine) {
-      Object.assign(this.editingLine, this.formData);
-    } else {
-      this.lines.push({ ...this.formData, deviation: 0, status: "Draft" });
-    }
-    this.showAddDialog = false;
+  openAddDialog(): void {
     this.editingLine = null;
+    this.saveError = null;
     this.formData = {
       itemCode: "",
       description: "",
@@ -505,5 +515,158 @@ export class CatalogueComponent {
       validTo: "",
       taxClass: "GST-5",
     };
+    this.showAddDialog = true;
+  }
+
+  editLine(line: any) {
+    this.editingLine = line;
+    this.formData = { ...line };
+    this.saveError = null;
+    this.showAddDialog = true;
+  }
+
+  deleteLine(line: any) {
+    // Local-only for now — there's no DELETE /catalogues/{id}/lines/{lineId} endpoint yet,
+    // so this only affects the current view and won't survive a reload.
+    this.lines = this.lines.filter((l) => l !== line);
+  }
+
+  saveLine(): void {
+    if (this.editingLine) {
+      // Editing an existing line is local-only too (no update-line endpoint yet) —
+      // reflects immediately in the view but a reload will restore the server's values.
+      Object.assign(this.editingLine, this.formData);
+      this.closeAddDialog();
+      return;
+    }
+
+    this.saving = true;
+    this.saveError = null;
+
+    this.ensureCatalogue()
+      .pipe(switchMap((id) => this.api.addCatalogueLines(id, [{ ...this.formData }])))
+      .subscribe({
+        next: (created: any[]) => {
+          this.lines.push(...created.map((l) => this.mapServerLine(l)));
+          this.saving = false;
+          this.closeAddDialog();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.saveError = this.extractErrorMessage(err);
+        },
+      });
+  }
+
+  onExcelUploadConfirmed(rows: ExcelUploadRow[]): void {
+    const mapped = rows.map((r) => ({
+      itemCode: r["itemCode"] as string,
+      description: r["description"] as string,
+      packUom: r["packUom"] as string,
+      price: r["price"] as number,
+      currency: r["currency"] as string,
+      validFrom: r["validFrom"] as string,
+      validTo: r["validTo"] as string,
+      taxClass: r["taxClass"] as string,
+    }));
+
+    this.ensureCatalogue()
+      .pipe(switchMap((id) => this.api.addCatalogueLines(id, mapped)))
+      .subscribe({
+        next: (created: any[]) => {
+          this.lines.push(...created.map((l) => this.mapServerLine(l)));
+          this.showUploadModal = false;
+          this.showToast("success", "excelUpload.successToast", { count: created.length });
+        },
+        error: (err) => {
+          this.showToast("error", undefined, undefined, this.extractErrorMessage(err));
+        },
+      });
+  }
+
+  submitForApproval(): void {
+    if (!this.catalogueId || this.lines.length === 0 || this.submitting) return;
+    this.submitting = true;
+    this.api.submitCatalogue(this.catalogueId).subscribe({
+      next: () => {
+        this.catalogueStatus = "Submitted";
+        this.submitting = false;
+        this.showToast("success", "catalogue.toastSubmitted");
+      },
+      error: () => {
+        this.submitting = false;
+        this.showToast("error", "catalogue.toastSubmitError");
+      },
+    });
+  }
+
+  /** Returns the vendor's Draft catalogue id, creating one on first use. There's no
+   *  buying-entity picker in the portal yet, so the API defaults that server-side. */
+  private ensureCatalogue() {
+    if (this.catalogueId) return of(this.catalogueId);
+
+    const vendorId = this.auth.user()?.vendorId;
+    return this.api.createCatalogue(vendorId!).pipe(
+      switchMap((created: any) => {
+        this.catalogueId = created.id;
+        this.catalogueStatus = created.status ?? "Draft";
+        return of(created.id as string);
+      }),
+    );
+  }
+
+  private mapServerLine(line: any) {
+    return {
+      id: line.id,
+      itemCode: line.itemCode,
+      description: line.description,
+      packUom: line.packUom,
+      price: line.price,
+      currency: line.currency,
+      validFrom: this.toDateOnly(line.validFrom),
+      validTo: this.toDateOnly(line.validTo),
+      taxClass: line.taxClass,
+      deviation: line.deviationPercent ?? 0,
+      status: line.status ?? "Draft",
+    };
+  }
+
+  private toDateOnly(value: string): string {
+    return value ? value.slice(0, 10) : "";
+  }
+
+  private extractErrorMessage(err: any): string {
+    const body = err?.error;
+    if (body?.errors) {
+      // FluentValidation's ModelState-driven ProblemDetails shape: { errors: { Field: ["msg"] } }
+      const messages = Object.values(body.errors).flat() as string[];
+      if (messages.length) return messages.join(" ");
+    }
+    // GlobalExceptionMiddleware's shape for unhandled server errors: { error: { message, id, code } }
+    if (typeof body?.error?.message === "string") return body.error.message;
+    if (typeof body?.message === "string") return body.message;
+    if (err?.status === 0) return "Could not reach the server. Check your connection and try again.";
+    return "Something went wrong. Please try again.";
+  }
+
+  private closeAddDialog(): void {
+    this.showAddDialog = false;
+    this.editingLine = null;
+    this.saveError = null;
+    this.formData = {
+      itemCode: "",
+      description: "",
+      packUom: "",
+      price: 0,
+      currency: "INR",
+      validFrom: "",
+      validTo: "",
+      taxClass: "GST-5",
+    };
+  }
+
+  private showToast(type: string, key?: string, params?: any, text?: string): void {
+    this.toast = { type, key, params, text };
+    setTimeout(() => (this.toast = null), 4000);
   }
 }

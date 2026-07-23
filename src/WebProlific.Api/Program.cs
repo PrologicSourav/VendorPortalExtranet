@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
 using WebProlific.Api.Services;
 using WebProlific.Api.Middleware;
 using WebProlific.Api.Extensions;
@@ -73,6 +74,20 @@ builder.Services.AddAuthorization(options =>
 
 // ─── Controllers & Swagger ──────────────────────────────────
 builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Entities are serialized directly (no DTO layer) and EF's navigation-fixup
+        // wires child.Parent back to the same tracked instance, e.g.
+        // Catalogue.Lines[].Catalogue.Lines[]... — ignore the cycle instead of 500ing.
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        // Default System.Text.Json behavior serializes enums as their numeric value
+        // (e.g. CatalogueStatus.Draft -> 0). Every frontend screen/mock was built
+        // assuming string status values ("Draft", "New", ...) — without this, status
+        // comparisons and "catalogue.status" + status translation-key lookups silently
+        // break against real data (never caught because nothing exercised real
+        // enum-bearing rows against the frontend until now).
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    })
     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Program>());
 
 builder.Services.AddEndpointsApiExplorer();
