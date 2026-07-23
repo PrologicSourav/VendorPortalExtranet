@@ -1,6 +1,6 @@
-import { Component } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { TranslatePipe } from "@ngx-translate/core";
+import { TranslatePipe, TranslateService } from "@ngx-translate/core";
 
 @Component({
   selector: "app-account",
@@ -140,7 +140,7 @@ import { TranslatePipe } from "@ngx-translate/core";
           <div>
             {{ "account.openingBalance" | translate }}: <strong>₹2,31,500</strong>
           </div>
-          <button class="btn btn-secondary">
+          <button class="btn btn-secondary" (click)="downloadStatement()">
             📥 {{ "account.downloadPdf" | translate }}
           </button>
         </div>
@@ -254,7 +254,135 @@ import { TranslatePipe } from "@ngx-translate/core";
   ],
 })
 export class AccountComponent {
+  private translate = inject(TranslateService);
+
   activeTab = "invoices";
+
+  // Balances shown on the statement tab (kept in sync with the template header/footer).
+  readonly openingBalance = 231500;
+  readonly closingBalance = 189500;
+
+  /**
+   * Renders the statement into a hidden iframe and invokes the browser's print
+   * dialog, from which the user can "Save as PDF". Using an iframe (rather than
+   * window.open) avoids popup blockers and keeps the print document isolated
+   * from the app's own styles.
+   */
+  downloadStatement(): void {
+    const t = (key: string) => this.translate.instant(key);
+    const money = (n: number) => "₹" + n.toLocaleString("en-IN");
+    const lang = this.translate.currentLang() || "en";
+    const isRtl = lang === "ar";
+
+    const rows = this.statement
+      .map(
+        (s) => `
+          <tr>
+            <td>${this.esc(s.date)}</td>
+            <td>${this.esc(s.description)}</td>
+            <td class="num">${s.debit ? money(s.debit) : "-"}</td>
+            <td class="num">${s.credit ? money(s.credit) : "-"}</td>
+            <td class="num"><strong>${money(s.balance)}</strong></td>
+          </tr>`,
+      )
+      .join("");
+
+    const printedOn = new Date().toLocaleString(lang);
+
+    const html = `<!doctype html>
+<html dir="${isRtl ? "rtl" : "ltr"}" lang="${lang}">
+<head>
+  <meta charset="utf-8" />
+  <title>${this.esc(t("account.statementTitle"))}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", Arial, sans-serif; color: #1a1a2e; margin: 32px; font-size: 12px; }
+    .doc-header { display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 2px solid #1b2a4a; padding-bottom: 12px; margin-bottom: 20px; }
+    .doc-header h1 { font-size: 18px; color: #1b2a4a; margin: 0 0 4px; }
+    .doc-header .brand { font-weight: 700; color: #1b2a4a; font-size: 14px; }
+    .meta { text-align: ${isRtl ? "left" : "right"}; font-size: 11px; color: #64748b; }
+    .balances { display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f2f4f8; text-align: ${isRtl ? "right" : "left"};
+      padding: 8px 10px; border-bottom: 2px solid #e2e6ee; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+    td { padding: 8px 10px; border-bottom: 1px solid #eef0f4; }
+    td.num, th.num { text-align: ${isRtl ? "left" : "right"}; white-space: nowrap; }
+    tfoot td { border-top: 2px solid #e2e6ee; font-weight: 700; }
+    @media print { body { margin: 12mm; } }
+  </style>
+</head>
+<body>
+  <div class="doc-header">
+    <div>
+      <h1>${this.esc(t("account.statementTitle"))}</h1>
+      <div class="brand">${this.esc(t("app.title"))}</div>
+    </div>
+    <div class="meta">${this.esc(t("account.printedOn"))}: ${this.esc(printedOn)}</div>
+  </div>
+
+  <div class="balances">
+    <div>${this.esc(t("account.openingBalance"))}: <strong>${money(this.openingBalance)}</strong></div>
+    <div>${this.esc(t("account.closingBalance"))}: <strong>${money(this.closingBalance)}</strong></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>${this.esc(t("account.date"))}</th>
+        <th>${this.esc(t("account.description"))}</th>
+        <th class="num">${this.esc(t("account.debit"))}</th>
+        <th class="num">${this.esc(t("account.credit"))}</th>
+        <th class="num">${this.esc(t("account.balance"))}</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">${this.esc(t("account.closingBalance"))}</td>
+        <td class="num">${money(this.closingBalance)}</td>
+      </tr>
+    </tfoot>
+  </table>
+</body>
+</html>`;
+
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    document.body.appendChild(iframe);
+
+    const win = iframe.contentWindow;
+    if (!win) {
+      document.body.removeChild(iframe);
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+
+    // Give the iframe a tick to lay out before printing, then clean up after.
+    const cleanup = () => setTimeout(() => iframe.remove(), 500);
+    win.onafterprint = cleanup;
+    setTimeout(() => {
+      win.focus();
+      win.print();
+      cleanup();
+    }, 150);
+  }
+
+  /** Minimal HTML-escape for values interpolated into the print document. */
+  private esc(value: string): string {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
 
   invoices = [
     {

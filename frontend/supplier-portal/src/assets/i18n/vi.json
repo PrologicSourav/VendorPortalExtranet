@@ -97,6 +97,8 @@
     "openingBalance": "Số dư đầu kỳ",
     "closingBalance": "Số dư cuối kỳ",
     "downloadPdf": "Tải xuống PDF",
+    "statementTitle": "Sao kê tài khoản",
+    "printedOn": "In vào",
     "description": "Mô tả",
     "debit": "Ghi nợ",
     "credit": "Ghi có",

@@ -97,6 +97,8 @@
     "openingBalance": "ยอดยกมา",
     "closingBalance": "ยอดคงเหลือ",
     "downloadPdf": "ดาวน์โหลด PDF",
+    "statementTitle": "ใบแจ้งยอดบัญชี",
+    "printedOn": "พิมพ์เมื่อ",
     "description": "รายละเอียด",
     "debit": "เดบิต",
     "credit": "เครดิต",

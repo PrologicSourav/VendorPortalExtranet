@@ -97,6 +97,8 @@
     "openingBalance": "الرصيد الافتتاحي",
     "closingBalance": "الرصيد الختامي",
     "downloadPdf": "تحميل PDF",
+    "statementTitle": "كشف الحساب",
+    "printedOn": "تمت الطباعة في",
     "description": "الوصف",
     "debit": "مدين",
     "credit": "دائن",

@@ -97,6 +97,8 @@
     "openingBalance": "Opening Balance",
     "closingBalance": "Closing Balance",
     "downloadPdf": "Download PDF",
+    "statementTitle": "Account Statement",
+    "printedOn": "Printed on",
     "description": "Description",
     "debit": "Debit",
     "credit": "Credit",
