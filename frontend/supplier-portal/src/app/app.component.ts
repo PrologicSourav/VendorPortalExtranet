@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from "@angular/core";
 import { DOCUMENT } from "@angular/common";
 import { RouterOutlet } from "@angular/router";
 import { TranslateService } from "@ngx-translate/core";
+import { ThemeService } from "./services/theme.service";
 
 const LANG_STORAGE_KEY = "wp_lang";
 const RTL_LANGUAGES = ["ar"];
@@ -15,6 +16,9 @@ const RTL_LANGUAGES = ["ar"];
 export class AppComponent implements OnInit {
   private translate = inject(TranslateService);
   private document = inject(DOCUMENT);
+  // Instantiated for its side effect: applies the saved (or OS-preferred) theme
+  // to <html> at startup, before any screen renders.
+  private theme = inject(ThemeService);
 
   ngOnInit(): void {
     // Restore the user's saved language (previously written but never read back).

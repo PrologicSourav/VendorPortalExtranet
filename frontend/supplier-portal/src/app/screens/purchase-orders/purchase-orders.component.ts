@@ -235,7 +235,7 @@ import { TranslatePipe } from "@ngx-translate/core";
       .page-header h1 {
         font-size: 22px;
         font-weight: 700;
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .page-subtitle {
         font-size: 13px;
@@ -258,7 +258,8 @@ import { TranslatePipe } from "@ngx-translate/core";
         font-weight: 500;
         border: 1px solid var(--color-border);
         border-radius: 99px;
-        background: white;
+        background: var(--color-surface);
+        color: var(--color-text);
         cursor: pointer;
         transition: all 0.15s;
         &:hover {
@@ -301,7 +302,8 @@ import { TranslatePipe } from "@ngx-translate/core";
       .drawer {
         width: 700px;
         max-width: 90vw;
-        background: white;
+        background: var(--color-surface);
+        color: var(--color-text);
         overflow-y: auto;
         box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
         position: relative;

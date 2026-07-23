@@ -111,7 +111,7 @@ const CATALOGUE_APPROVALS_REFRESH_MS = 30000;
       .page-header h1 {
         font-size: 22px;
         font-weight: 700;
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .page-subtitle {
         font-size: 13px;
@@ -223,7 +223,7 @@ const CATALOGUE_APPROVALS_REFRESH_MS = 30000;
           border-bottom: none;
         }
         &.unread {
-          background: #f8fafc;
+          background: var(--color-surface-hover);
           margin: 0 -20px;
           padding: 12px 20px;
         }

@@ -2,7 +2,8 @@
   "app": {
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "Supplier Portal",
-    "entity": "Entity:"
+    "entity": "Entity:",
+    "toggleTheme": "Toggle light / dark theme"
   },
   "nav": {
     "dashboard": "Dashboard",

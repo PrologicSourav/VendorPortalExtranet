@@ -2,7 +2,8 @@
   "app": {
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "Cổng thông tin nhà cung cấp",
-    "entity": "Thực thể:"
+    "entity": "Thực thể:",
+    "toggleTheme": "Chuyển giao diện sáng / tối"
   },
   "nav": {
     "dashboard": "Bảng điều khiển",

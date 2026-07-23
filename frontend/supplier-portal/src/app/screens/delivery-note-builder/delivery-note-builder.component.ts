@@ -162,12 +162,12 @@ import { TranslatePipe } from "@ngx-translate/core";
         margin-bottom: 8px;
       }
       .back-link:hover {
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .page-header h1 {
         font-size: 22px;
         font-weight: 700;
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .page-subtitle {
         font-size: 13px;
@@ -206,10 +206,10 @@ import { TranslatePipe } from "@ngx-translate/core";
       .info-banner {
         margin-top: 16px;
         padding: 12px 16px;
-        background: #eef2ff;
+        background: var(--color-surface-active);
         border-radius: 8px;
         font-size: 12px;
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .form-actions {
         display: flex;
@@ -220,10 +220,10 @@ import { TranslatePipe } from "@ngx-translate/core";
       .success-banner {
         margin-top: 16px;
         padding: 16px;
-        background: #dcfce7;
+        background: var(--color-success-soft-bg);
         border-radius: 8px;
         font-size: 13px;
-        color: #166534;
+        color: var(--color-success-soft-text);
         font-weight: 500;
       }
       .time-window {

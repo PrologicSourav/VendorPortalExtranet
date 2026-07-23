@@ -74,7 +74,7 @@ import { NotificationService } from "../../services/notification.service";
       .page-header h1 {
         font-size: 22px;
         font-weight: 700;
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .page-subtitle {
         font-size: 13px;
@@ -118,10 +118,10 @@ import { NotificationService } from "../../services/notification.service";
         cursor: pointer;
         transition: background 0.15s;
         &:hover {
-          background: #fafbfc;
+          background: var(--color-surface-hover);
         }
         &.unread {
-          background: #f0f4ff;
+          background: var(--color-surface-active);
         }
       }
       .notif-icon {
@@ -135,16 +135,16 @@ import { NotificationService } from "../../services/notification.service";
         flex-shrink: 0;
       }
       .icon-po {
-        background: #dbeafe;
+        background: var(--color-info-soft-bg);
       }
       .icon-rejected {
-        background: #fee2e2;
+        background: var(--color-error-soft-bg);
       }
       .icon-payment {
-        background: #dcfce7;
+        background: var(--color-success-soft-bg);
       }
       .icon-catalogue {
-        background: #e8edf4;
+        background: var(--color-navy-soft-bg);
       }
       .notif-body {
         flex: 1;

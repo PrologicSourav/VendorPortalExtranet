@@ -180,7 +180,7 @@ import { TranslatePipe } from "@ngx-translate/core";
       .page-header h1 {
         font-size: 22px;
         font-weight: 700;
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .page-subtitle {
         font-size: 13px;

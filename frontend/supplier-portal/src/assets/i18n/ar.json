@@ -2,7 +2,8 @@
   "app": {
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "بوابة الموردين",
-    "entity": "الكيان:"
+    "entity": "الكيان:",
+    "toggleTheme": "تبديل المظهر الفاتح / الداكن"
   },
   "nav": {
     "dashboard": "لوحة التحكم",

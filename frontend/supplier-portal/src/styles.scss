@@ -2,23 +2,52 @@
 // Web Prol'IFIC — Design System Variables
 // ══════════════════════════════════════════════════════════════════════
 
+// Light theme (default). Every surface/status colour is a variable so the
+// whole app can be re-themed by overriding these under [data-theme="dark"];
+// components reference the variables, never raw hex.
 :root {
   --color-primary: #1b2a4a;
   --color-primary-light: #2c3e6b;
   --color-primary-dark: #0f1a2e;
   --color-accent: #c8102e;
   --color-accent-light: #e8354d;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f2f4f8;
+  // Brand-coloured TEXT shown on a surface (headings, KPI values, active nav).
+  // Distinct from --color-primary (used as a solid background) so it can stay
+  // readable on dark surfaces without making the topbar/buttons too light.
+  --color-heading: #1b2a4a;
+
+  // Surfaces
+  --color-surface: #ffffff; // cards, modals, inputs, sidebar
+  --color-surface-alt: #f2f4f8; // page background, subtle raised areas
+  --color-surface-hover: #f8fafc; // row/hover states
+  --color-surface-active: #eef2ff; // selected nav item / active row
+
   --color-border: #e2e6ee;
   --color-border-light: #eef0f4;
+
   --color-success: #16a34a;
   --color-warning: #d97706;
   --color-error: #dc2626;
   --color-info: #2563eb;
+
   --color-text: #1a1a2e;
   --color-text-secondary: #64748b;
   --color-text-muted: #94a3b8;
+
+  // Soft status pills / banners (background + matching foreground)
+  --color-success-soft-bg: #dcfce7;
+  --color-success-soft-text: #166534;
+  --color-warning-soft-bg: #fef3c7;
+  --color-warning-soft-text: #92400e;
+  --color-error-soft-bg: #fee2e2;
+  --color-error-soft-text: #991b1b;
+  --color-error-soft-border: #fecaca;
+  --color-info-soft-bg: #dbeafe;
+  --color-info-soft-text: #1e40af;
+  --color-muted-soft-bg: #f1f5f9;
+  --color-muted-soft-text: #475569;
+  --color-navy-soft-bg: #e8edf4;
+
   --font-family:
     "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -29,6 +58,54 @@
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
+}
+
+// Dark theme — activated by data-theme="dark" on <html> (set by ThemeService).
+// Only colours change; spacing/radius/typography are shared.
+:root[data-theme="dark"] {
+  --color-primary: #3b5488;
+  --color-primary-light: #4a6ba8;
+  --color-primary-dark: #16233d;
+  --color-accent: #e8354d;
+  --color-accent-light: #f2607a;
+  // Light blue so headings / KPI numbers read clearly on dark surfaces.
+  --color-heading: #9db8e8;
+
+  --color-surface: #1e293b;
+  --color-surface-alt: #0f172a;
+  --color-surface-hover: #273549;
+  --color-surface-active: #1e3a5f;
+
+  --color-border: #334155;
+  --color-border-light: #2a3648;
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  --color-text: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+
+  --color-success-soft-bg: #14311f;
+  --color-success-soft-text: #86efac;
+  --color-warning-soft-bg: #3a2a12;
+  --color-warning-soft-text: #fcd34d;
+  --color-error-soft-bg: #3a1618;
+  --color-error-soft-text: #fca5a5;
+  --color-error-soft-border: #7f1d1d;
+  --color-info-soft-bg: #14243f;
+  --color-info-soft-text: #93c5fd;
+  --color-muted-soft-bg: #273549;
+  --color-muted-soft-text: #cbd5e1;
+  --color-navy-soft-bg: #1e3a5f;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.55), 0 4px 6px -4px rgba(0, 0, 0, 0.55);
 }
 
 // ═══ Reset & Base ═══════════════════════════════════════════════════
@@ -88,7 +165,7 @@ a:hover {
 }
 
 .btn-secondary {
-  background: white;
+  background: var(--color-surface);
   color: var(--color-text);
   border-color: var(--color-border);
   &:hover:not(:disabled) {
@@ -125,33 +202,33 @@ a:hover {
 }
 
 .badge-success {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-soft-bg);
+  color: var(--color-success-soft-text);
 }
 .badge-warning {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-soft-bg);
+  color: var(--color-warning-soft-text);
 }
 .badge-error {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-error-soft-bg);
+  color: var(--color-error-soft-text);
 }
 .badge-info {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--color-info-soft-bg);
+  color: var(--color-info-soft-text);
 }
 .badge-muted {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--color-muted-soft-bg);
+  color: var(--color-muted-soft-text);
 }
 .badge-navy {
-  background: #e8edf4;
-  color: var(--color-primary);
+  background: var(--color-navy-soft-bg);
+  color: var(--color-heading);
 }
 
 // ═══ Card ═════════════════════════════════════════════════════════
 .card {
-  background: white;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
@@ -184,6 +261,7 @@ a:hover {
     top: 0;
     z-index: 1;
     white-space: nowrap;
+    color: var(--color-text);
   }
 
   td {
@@ -193,13 +271,13 @@ a:hover {
   }
 
   tbody tr:hover {
-    background: #f8fafc;
+    background: var(--color-surface-hover);
   }
   tbody tr:nth-child(even) {
-    background: #fafbfc;
+    background: var(--color-surface-alt);
   }
   tbody tr:nth-child(even):hover {
-    background: #f1f5f9;
+    background: var(--color-surface-hover);
   }
 }
 
@@ -224,7 +302,8 @@ a:hover {
   font-size: 13px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: white;
+  background: var(--color-surface);
+  color: var(--color-text);
   transition: border-color 0.15s ease;
 
   &:focus {
@@ -234,7 +313,7 @@ a:hover {
   }
 
   &:disabled {
-    background: #f8fafc;
+    background: var(--color-surface-alt);
     color: var(--color-text-muted);
   }
   &.error {
@@ -287,7 +366,7 @@ textarea.form-control {
       color: var(--color-text);
     }
     &.active {
-      color: var(--color-primary);
+      color: var(--color-heading);
       border-bottom-color: var(--color-primary);
     }
   }
@@ -344,7 +423,7 @@ textarea.form-control {
 
 // ═══ KPI Card ══════════════════════════════════════════════════════
 .kpi-card {
-  background: white;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -362,7 +441,7 @@ textarea.form-control {
   .kpi-value {
     font-size: 24px;
     font-weight: 700;
-    color: var(--color-primary);
+    color: var(--color-heading);
   }
 
   .kpi-sub {
@@ -425,7 +504,8 @@ textarea.form-control {
 }
 
 .modal {
-  background: white;
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   width: 90%;

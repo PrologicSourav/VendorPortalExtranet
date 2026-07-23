@@ -194,7 +194,8 @@ export interface ExcelUploadParseResult {
   styles: [
     `
       .upload-modal {
-        background: white;
+        background: var(--color-surface);
+        color: var(--color-text);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-lg);
         width: 95%;
@@ -256,7 +257,7 @@ export interface ExcelUploadParseResult {
       }
       .drop-zone.dragover {
         border-color: var(--color-primary);
-        background: #eef2ff;
+        background: var(--color-surface-active);
       }
       .drop-zone-label {
         display: flex;
@@ -326,7 +327,7 @@ export interface ExcelUploadParseResult {
         top: 0;
       }
       .row-invalid {
-        background: #fef2f2;
+        background: var(--color-error-soft-bg);
       }
       .row-errors {
         margin: 4px 0 0;

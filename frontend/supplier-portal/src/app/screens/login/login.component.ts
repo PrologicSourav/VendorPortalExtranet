@@ -331,7 +331,8 @@ import { LanguageSelectorComponent } from "../../components/language-selector/la
         inset-inline-end: 16px;
       }
       .login-card {
-        background: white;
+        background: var(--color-surface);
+        color: var(--color-text);
         border-radius: 12px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         width: 100%;
@@ -358,7 +359,7 @@ import { LanguageSelectorComponent } from "../../components/language-selector/la
       .brand h1 {
         font-size: 22px;
         font-weight: 700;
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .brand-sub {
         font-size: 12px;
@@ -371,13 +372,13 @@ import { LanguageSelectorComponent } from "../../components/language-selector/la
         margin-bottom: 20px;
       }
       .error-msg {
-        background: #fef2f2;
-        color: #991b1b;
+        background: var(--color-error-soft-bg);
+        color: var(--color-error-soft-text);
         padding: 8px 12px;
         border-radius: 6px;
         font-size: 13px;
         margin-bottom: 12px;
-        border: 1px solid #fecaca;
+        border: 1px solid var(--color-error-soft-border);
       }
       .form-row {
         display: flex;
@@ -425,7 +426,7 @@ import { LanguageSelectorComponent } from "../../components/language-selector/la
       .success-msg {
         font-size: 14px;
         font-weight: 600;
-        color: var(--color-text-primary, #1a1a2e);
+        color: var(--color-text);
         margin-bottom: 6px;
       }
       .success-hint {

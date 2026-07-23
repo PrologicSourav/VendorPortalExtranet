@@ -215,7 +215,7 @@ import { TranslatePipe } from "@ngx-translate/core";
       .page-header h1 {
         font-size: 22px;
         font-weight: 700;
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .page-subtitle {
         font-size: 13px;
@@ -239,11 +239,11 @@ import { TranslatePipe } from "@ngx-translate/core";
         transition: all 0.15s;
         &:hover {
           border-color: var(--color-primary);
-          background: #fafbfc;
+          background: var(--color-surface-hover);
         }
         &.selected {
           border-color: var(--color-primary);
-          background: #eef2ff;
+          background: var(--color-surface-active);
         }
       }
       .po-number {
@@ -304,22 +304,22 @@ import { TranslatePipe } from "@ngx-translate/core";
         top: 80px;
       }
       .match-header-ok {
-        background: #dcfce7 !important;
-        color: #166534 !important;
+        background: var(--color-success-soft-bg) !important;
+        color: var(--color-success-soft-text) !important;
       }
       .match-header-warn {
-        background: #fef3c7 !important;
-        color: #92400e !important;
+        background: var(--color-warning-soft-bg) !important;
+        color: var(--color-warning-soft-text) !important;
       }
       .match-status {
         margin-bottom: 16px;
         font-size: 13px;
       }
       .match-ok p {
-        color: #166534;
+        color: var(--color-success-soft-text);
       }
       .match-err .match-reason {
-        color: #991b1b;
+        color: var(--color-error-soft-text);
         padding: 4px 0;
         font-size: 12px;
       }
@@ -339,7 +339,7 @@ import { TranslatePipe } from "@ngx-translate/core";
       .match-note {
         margin-top: 16px;
         padding: 10px;
-        background: #f8fafc;
+        background: var(--color-surface-alt);
         border-radius: 6px;
         font-size: 11px;
         color: var(--color-text-secondary);

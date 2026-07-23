@@ -343,7 +343,7 @@ const CATALOGUE_UPLOAD_COLUMNS = [
       .page-header h1 {
         font-size: 22px;
         font-weight: 700;
-        color: var(--color-primary);
+        color: var(--color-heading);
       }
       .page-subtitle {
         font-size: 13px;
@@ -365,7 +365,7 @@ const CATALOGUE_UPLOAD_COLUMNS = [
       .load-error {
         padding: 16px;
         border-radius: 8px;
-        background: #fef2f2;
+        background: var(--color-error-soft-bg);
         color: var(--color-error);
         font-size: 13px;
         margin-bottom: 16px;
@@ -376,9 +376,9 @@ const CATALOGUE_UPLOAD_COLUMNS = [
       .no-vendor-notice {
         padding: 16px;
         border-radius: 8px;
-        background: #fffbeb;
-        color: #92400e;
-        border: 1px solid #fde68a;
+        background: var(--color-warning-soft-bg);
+        color: var(--color-warning-soft-text);
+        border: 1px solid var(--color-warning);
         font-size: 13px;
         margin-bottom: 16px;
       }

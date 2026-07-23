@@ -9,6 +9,7 @@ import {
 import { TranslatePipe } from "@ngx-translate/core";
 import { NotificationService } from "../services/notification.service";
 import { AuthService } from "../services/auth.service";
+import { ThemeService } from "../services/theme.service";
 import { LanguageSelectorComponent } from "../components/language-selector/language-selector.component";
 import { CurrencySelectorComponent } from "../components/currency-selector/currency-selector.component";
 
@@ -52,6 +53,14 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
             <option>Taj Hotels — West</option>
           </select>
         </div>
+        <button
+          class="theme-toggle"
+          (click)="theme.toggle()"
+          [attr.aria-label]="'app.toggleTheme' | translate"
+          [title]="'app.toggleTheme' | translate"
+        >
+          {{ theme.theme() === "dark" ? "☀️" : "🌙" }}
+        </button>
         <a routerLink="/notifications" class="notif-bell">
           🔔
           @if (notifService.unreadCount() > 0) {
@@ -219,6 +228,23 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
         background: #1b2a4a;
         color: white;
       }
+      .theme-toggle {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      .theme-toggle:hover {
+        background: rgba(255, 255, 255, 0.28);
+      }
       .notif-bell {
         position: relative;
         font-size: 18px;
@@ -275,7 +301,7 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
 
       .sidebar {
         width: 220px;
-        background: white;
+        background: var(--color-surface);
         border-right: 1px solid var(--color-border);
         padding: 12px 0;
         flex-shrink: 0;
@@ -297,8 +323,8 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
         color: var(--color-text);
       }
       .nav-item.active {
-        color: var(--color-primary);
-        background: #eef2ff;
+        color: var(--color-heading);
+        background: var(--color-surface-active);
         border-left-color: var(--color-primary);
         font-weight: 600;
       }
@@ -405,6 +431,7 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
 })
 export class LayoutComponent {
   notifService = inject(NotificationService);
+  theme = inject(ThemeService);
   private auth = inject(AuthService);
   private router = inject(Router);
   sidebarOpen = false;

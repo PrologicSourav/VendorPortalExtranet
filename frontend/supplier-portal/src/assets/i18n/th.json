@@ -2,7 +2,8 @@
   "app": {
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "พอร์ทัลซัพพลายเออร์",
-    "entity": "นิติบุคคล:"
+    "entity": "นิติบุคคล:",
+    "toggleTheme": "สลับธีมสว่าง / มืด"
   },
   "nav": {
     "dashboard": "แดชบอร์ด",
