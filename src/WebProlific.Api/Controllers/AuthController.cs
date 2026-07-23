@@ -233,9 +233,48 @@ public class AuthController : ControllerBase
             isInternal = user.IsInternal
         });
     }
+
+    /// <summary>
+    /// Change the currently authenticated user's own password. Requires the
+    /// current password for confirmation.
+    /// </summary>
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { error = "Invalid token" });
+
+        if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
+            return BadRequest(new { message = "Current and new password are required." });
+
+        if (request.NewPassword.Length < 6)
+            return BadRequest(new { message = "New password must be at least 6 characters." });
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+        if (user == null)
+            return Unauthorized(new { error = "User not found" });
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        {
+            _logger.LogWarning("Change-password failed: incorrect current password for user {UserId}", userId);
+            return BadRequest(new { message = "Current password is incorrect." });
+        }
+
+        if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+            return BadRequest(new { message = "New password must be different from the current password." });
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Password changed for user {UserId}", userId);
+        return Ok(new { message = "Password changed successfully." });
+    }
 }
 
 public class LoginRequest { public string Email { get; set; } = string.Empty; public string Password { get; set; } = string.Empty; public bool RememberMe { get; set; } }
 public class OtpRequest { public string Otp { get; set; } = string.Empty; }
 public class ForgotPasswordRequest { public string Email { get; set; } = string.Empty; }
+public class ChangePasswordRequest { public string CurrentPassword { get; set; } = string.Empty; public string NewPassword { get; set; } = string.Empty; }
 public class RegisterRequest { public string Email { get; set; } = string.Empty; public string Password { get; set; } = string.Empty; public string CompanyName { get; set; } = string.Empty; public string? DisplayName { get; set; } public string? Gstin { get; set; } }

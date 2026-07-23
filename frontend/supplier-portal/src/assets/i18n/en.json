@@ -5,6 +5,18 @@
     "entity": "Entity:",
     "toggleTheme": "Toggle light / dark theme"
   },
+  "profile": {
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "save": "Update Password",
+    "cancel": "Cancel",
+    "tooShort": "Password must be at least 6 characters",
+    "mismatch": "Passwords do not match",
+    "passwordChanged": "Password changed successfully",
+    "changeError": "Could not change password. Please try again."
+  },
   "nav": {
     "dashboard": "Dashboard",
     "catalogue": "Catalogue",

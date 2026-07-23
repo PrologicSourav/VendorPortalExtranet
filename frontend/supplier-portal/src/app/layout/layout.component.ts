@@ -1,15 +1,17 @@
 import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import {
   Router,
   RouterOutlet,
   RouterLink,
   RouterLinkActive,
 } from "@angular/router";
-import { TranslatePipe } from "@ngx-translate/core";
+import { TranslatePipe, TranslateService } from "@ngx-translate/core";
 import { NotificationService } from "../services/notification.service";
 import { AuthService } from "../services/auth.service";
 import { ThemeService } from "../services/theme.service";
+import { ApiService } from "../services/api.service";
 import { LanguageSelectorComponent } from "../components/language-selector/language-selector.component";
 import { CurrencySelectorComponent } from "../components/currency-selector/currency-selector.component";
 
@@ -18,6 +20,7 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -67,9 +70,31 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
             <span class="notif-count">{{ notifService.unreadCount() }}</span>
           }
         </a>
-        <div class="user-menu" [title]="userEmail">
-          <span class="user-avatar">{{ userInitials }}</span>
-          <span class="user-name">{{ userName }}</span>
+        <div class="user-menu-wrap">
+          <button
+            class="user-menu"
+            (click)="userMenuOpen = !userMenuOpen"
+            [title]="userEmail"
+          >
+            <span class="user-avatar">{{ userInitials }}</span>
+            <span class="user-name">{{ userName }}</span>
+            <span class="caret">▾</span>
+          </button>
+          @if (userMenuOpen) {
+            <div class="menu-backdrop" (click)="userMenuOpen = false"></div>
+            <div class="user-dropdown">
+              <div class="user-dropdown-head">
+                <strong>{{ userName }}</strong>
+                <span>{{ userEmail }}</span>
+              </div>
+              <button class="user-dropdown-item" (click)="openChangePassword()">
+                🔑 {{ "profile.changePassword" | translate }}
+              </button>
+              <button class="user-dropdown-item danger" (click)="logout()">
+                🚪 {{ "nav.logout" | translate }}
+              </button>
+            </div>
+          }
         </div>
       </div>
     </header>
@@ -143,6 +168,55 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
       <main class="main-content">
         <router-outlet />
       </main>
+    </div>
+
+    <!-- Change Password modal -->
+    @if (showPasswordModal) {
+      <div class="modal-backdrop" (click)="closePasswordModal()">
+        <div class="modal" style="max-width: 420px" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>{{ "profile.changePassword" | translate }}</h3>
+            <button class="btn btn-sm" (click)="closePasswordModal()">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>{{ "profile.currentPassword" | translate }}</label>
+              <input type="password" class="form-control" [(ngModel)]="pw.current" autocomplete="current-password" />
+            </div>
+            <div class="form-group">
+              <label>{{ "profile.newPassword" | translate }}</label>
+              <input type="password" class="form-control" [(ngModel)]="pw.next" autocomplete="new-password" />
+              <span *ngIf="pw.next && pw.next.length < 6" class="field-error">
+                {{ "profile.tooShort" | translate }}
+              </span>
+            </div>
+            <div class="form-group">
+              <label>{{ "profile.confirmPassword" | translate }}</label>
+              <input type="password" class="form-control" [(ngModel)]="pw.confirm" autocomplete="new-password" />
+              <span *ngIf="pw.confirm && pw.next !== pw.confirm" class="field-error">
+                {{ "profile.mismatch" | translate }}
+              </span>
+            </div>
+            <p *ngIf="pwError" class="field-error" role="alert">{{ pwError }}</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="closePasswordModal()" [disabled]="pwSaving">
+              {{ "profile.cancel" | translate }}
+            </button>
+            <button
+              class="btn btn-primary"
+              (click)="submitPassword()"
+              [disabled]="pwSaving || !pw.current || pw.next.length < 6 || pw.next !== pw.confirm"
+            >
+              {{ "profile.save" | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.key | translate }}
     </div>
   `,
   styles: [
@@ -261,10 +335,83 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
         padding: 1px 5px;
         border-radius: 99px;
       }
+      .user-menu-wrap {
+        position: relative;
+      }
       .user-menu {
         display: flex;
         align-items: center;
         gap: 8px;
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        padding: 4px;
+        font: inherit;
+      }
+      .caret {
+        font-size: 10px;
+        opacity: 0.8;
+      }
+      .menu-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 400;
+      }
+      .user-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        inset-inline-end: 0;
+        min-width: 220px;
+        background: var(--color-surface);
+        color: var(--color-text);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 401;
+        overflow: hidden;
+        padding: 6px;
+      }
+      .user-dropdown-head {
+        display: flex;
+        flex-direction: column;
+        padding: 8px 10px 10px;
+        border-bottom: 1px solid var(--color-border-light);
+        margin-bottom: 6px;
+      }
+      .user-dropdown-head strong {
+        font-size: 13px;
+      }
+      .user-dropdown-head span {
+        font-size: 11px;
+        color: var(--color-text-secondary);
+        word-break: break-all;
+      }
+      .user-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        text-align: start;
+        background: none;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 8px 10px;
+        font-size: 13px;
+        color: var(--color-text);
+        cursor: pointer;
+      }
+      .user-dropdown-item:hover {
+        background: var(--color-surface-alt);
+      }
+      .user-dropdown-item.danger {
+        color: var(--color-error);
+      }
+      .field-error {
+        color: var(--color-error);
+        font-size: 11px;
+        margin-top: 4px;
+        display: block;
       }
       .user-avatar {
         width: 32px;
@@ -433,8 +580,18 @@ export class LayoutComponent {
   notifService = inject(NotificationService);
   theme = inject(ThemeService);
   private auth = inject(AuthService);
+  private api = inject(ApiService);
+  private translate = inject(TranslateService);
   private router = inject(Router);
   sidebarOpen = false;
+
+  // ─── User menu / change password ────────────────────────────
+  userMenuOpen = false;
+  showPasswordModal = false;
+  pwSaving = false;
+  pwError: string | null = null;
+  pw = { current: "", next: "", confirm: "" };
+  toast: { type: string; key: string } | null = null;
 
   /** Logged-in user's display name (falls back to email). */
   get userName(): string {
@@ -461,5 +618,51 @@ export class LayoutComponent {
   logout() {
     this.auth.logout();
     this.router.navigate(["/login"]);
+  }
+
+  openChangePassword(): void {
+    this.userMenuOpen = false;
+    this.pw = { current: "", next: "", confirm: "" };
+    this.pwError = null;
+    this.showPasswordModal = true;
+  }
+
+  closePasswordModal(): void {
+    if (this.pwSaving) return;
+    this.showPasswordModal = false;
+    this.pw = { current: "", next: "", confirm: "" };
+    this.pwError = null;
+  }
+
+  submitPassword(): void {
+    if (this.pw.next.length < 6 || this.pw.next !== this.pw.confirm || !this.pw.current) {
+      return;
+    }
+    this.pwSaving = true;
+    this.pwError = null;
+    this.api.changePassword(this.pw.current, this.pw.next).subscribe({
+      next: () => {
+        this.pwSaving = false;
+        this.showPasswordModal = false;
+        this.pw = { current: "", next: "", confirm: "" };
+        this.showToast("success", "profile.passwordChanged");
+      },
+      error: (err) => {
+        this.pwSaving = false;
+        this.pwError = this.extractError(err);
+      },
+    });
+  }
+
+  private extractError(err: any): string {
+    const body = err?.error;
+    if (typeof body?.message === "string") return body.message;
+    if (typeof body?.error === "string") return body.error;
+    return this.translate.instant("profile.changeError");
+  }
+
+  private showToast(type: string, key: string): void {
+    this.toast = { type, key };
+    setTimeout(() => (this.toast = null), 3500);
   }
 }

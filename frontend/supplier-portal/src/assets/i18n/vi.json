@@ -5,6 +5,18 @@
     "entity": "Thực thể:",
     "toggleTheme": "Chuyển giao diện sáng / tối"
   },
+  "profile": {
+    "changePassword": "Đổi mật khẩu",
+    "currentPassword": "Mật khẩu hiện tại",
+    "newPassword": "Mật khẩu mới",
+    "confirmPassword": "Xác nhận mật khẩu mới",
+    "save": "Cập nhật mật khẩu",
+    "cancel": "Hủy",
+    "tooShort": "Mật khẩu phải có ít nhất 6 ký tự",
+    "mismatch": "Mật khẩu không khớp",
+    "passwordChanged": "Đổi mật khẩu thành công",
+    "changeError": "Không thể đổi mật khẩu. Vui lòng thử lại."
+  },
   "nav": {
     "dashboard": "Bảng điều khiển",
     "catalogue": "Danh mục",

@@ -29,6 +29,16 @@ export class ApiService {
     return this.http.post(`${API}/auth/forgot-password`, { email });
   }
 
+  changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Observable<any> {
+    return this.http.post(`${API}/auth/change-password`, {
+      currentPassword,
+      newPassword,
+    });
+  }
+
   register(data: {
     email: string;
     password: string;
