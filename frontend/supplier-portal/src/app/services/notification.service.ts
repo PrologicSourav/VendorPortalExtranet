@@ -58,15 +58,21 @@ export class NotificationService {
   );
 
   constructor() {
-    // Auto-load whenever userId changes (e.g. after login)
-    effect(() => {
-      const uid = this.auth.userId();
-      if (uid) {
-        this.load();
-      } else {
-        this.notifications.set([]);
-      }
-    });
+    // Auto-load whenever userId changes (e.g. after login). Clearing on logout
+    // writes to the `notifications` signal synchronously inside the effect,
+    // which Angular disallows by default (NG0600) — this is the sanctioned
+    // pattern for it, not a workaround.
+    effect(
+      () => {
+        const uid = this.auth.userId();
+        if (uid) {
+          this.load();
+        } else {
+          this.notifications.set([]);
+        }
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   /** Load notifications from the real backend API */
