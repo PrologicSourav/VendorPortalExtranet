@@ -5,6 +5,7 @@ import { FormsModule } from "@angular/forms";
 import { TranslatePipe } from "@ngx-translate/core";
 import { ApiService } from "../../services/api.service";
 import { AuthService } from "../../services/auth.service";
+import { ThemeService } from "../../services/theme.service";
 import { LanguageSelectorComponent } from "../../components/language-selector/language-selector.component";
 
 @Component({
@@ -13,7 +14,17 @@ import { LanguageSelectorComponent } from "../../components/language-selector/la
   imports: [CommonModule, FormsModule, TranslatePipe, LanguageSelectorComponent],
   template: `
     <div class="login-page">
-      <language-selector class="login-lang-selector"></language-selector>
+      <div class="login-top-controls">
+        <button
+          class="login-theme-toggle"
+          (click)="theme.toggle()"
+          [attr.aria-label]="'app.toggleTheme' | translate"
+          [title]="'app.toggleTheme' | translate"
+        >
+          {{ theme.theme() === "dark" ? "☀️" : "🌙" }}
+        </button>
+        <language-selector></language-selector>
+      </div>
       <div class="login-card">
         <div class="brand">
           <div class="brand-icon">WP</div>
@@ -329,10 +340,30 @@ import { LanguageSelectorComponent } from "../../components/language-selector/la
         );
         padding: 20px;
       }
-      .login-lang-selector {
+      .login-top-controls {
         position: absolute;
         top: 16px;
         inset-inline-end: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .login-theme-toggle {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      .login-theme-toggle:hover {
+        background: rgba(255, 255, 255, 0.28);
       }
       .login-card {
         background: var(--color-surface);
@@ -562,6 +593,7 @@ export class LoginComponent {
     private route: ActivatedRoute,
     private api: ApiService,
     private auth: AuthService,
+    public theme: ThemeService,
   ) {
     this.idleLogout = this.route.snapshot.queryParamMap.get("reason") === "idle";
   }
