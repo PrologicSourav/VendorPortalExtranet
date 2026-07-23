@@ -434,8 +434,12 @@ export class ExcelUploadModalComponent {
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    // Revoking too soon races the browser's download handling for blob:
+    // URLs (silently fails, notably in Firefox) — give it real headroom.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   onCancel(): void {
