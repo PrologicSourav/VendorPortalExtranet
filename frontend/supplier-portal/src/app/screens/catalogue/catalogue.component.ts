@@ -198,6 +198,11 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                 class="field-error"
                 >{{ "catalogue.itemCodeValidation" | translate }}</span
               >
+              <span
+                *ngIf="formData.itemCode && isItemCodeValid && isItemCodeDuplicate"
+                class="field-error"
+                >{{ "catalogue.itemCodeDuplicate" | translate }}</span
+              >
             </div>
             <div class="form-group">
               <label>{{ "catalogue.description" | translate }}</label>
@@ -296,6 +301,7 @@ const CATALOGUE_UPLOAD_COLUMNS = [
             [disabled]="
               !formData.itemCode ||
               !isItemCodeValid ||
+              isItemCodeDuplicate ||
               !formData.description ||
               formData.description.length > maxDescriptionLength ||
               formData.price <= 0 ||
@@ -499,8 +505,22 @@ export class CatalogueComponent implements OnInit {
     return ITEM_CODE_PATTERN.test(this.formData.itemCode);
   }
 
+  /** True when the current item code already exists on another line (case-insensitive).
+   *  Editing a line against its own code is fine — only collisions with *other* lines count. */
+  get isItemCodeDuplicate(): boolean {
+    const code = this.formData.itemCode.trim().toLowerCase();
+    if (!code) return false;
+    return this.lines.some(
+      (l) => l !== this.editingLine && (l.itemCode ?? "").trim().toLowerCase() === code,
+    );
+  }
+
   validateExcelFile = (file: File) => this.excelService.validateFile(file);
-  parseExcelFile = (file: File) => this.excelService.parseAndValidate(file);
+  parseExcelFile = (file: File) =>
+    this.excelService.parseAndValidate(
+      file,
+      this.lines.map((l) => l.itemCode ?? ""),
+    );
   downloadExcelTemplate = () => this.excelService.buildTemplate();
   buildExcelErrorReport = (rows: ExcelUploadRow[]) =>
     this.excelService.buildErrorReportCsv(

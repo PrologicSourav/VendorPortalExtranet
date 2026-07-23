@@ -236,6 +236,38 @@ describe("CatalogueExcelService", () => {
         "excelUpload.errorCorruptFile",
       );
     });
+
+    it("flags an item code that duplicates another row in the same file", async () => {
+      const file = await buildXlsxFile([
+        VALID_ROW,
+        { ...VALID_ROW, description: "Duplicate of FOOD-001" },
+      ]);
+      const result = await service.parseAndValidate(file);
+      // First occurrence is valid, second is flagged as duplicate.
+      expect(result.rows[0].valid).toBeTrue();
+      expect(result.rows[1].valid).toBeFalse();
+      expect(result.rows[1].errors).toContain(
+        "excelUpload.rowErrorItemCodeDuplicate",
+      );
+    });
+
+    it("flags an item code that already exists in the catalogue (case-insensitive)", async () => {
+      const file = await buildXlsxFile([VALID_ROW]);
+      const result = await service.parseAndValidate(file, ["food-001"]);
+      expect(result.rows[0].valid).toBeFalse();
+      expect(result.rows[0].errors).toContain(
+        "excelUpload.rowErrorItemCodeDuplicate",
+      );
+    });
+
+    it("does not flag distinct item codes against existing ones", async () => {
+      const file = await buildXlsxFile([{ ...VALID_ROW, itemCode: "FOOD-999" }]);
+      const result = await service.parseAndValidate(file, ["FOOD-001"]);
+      expect(result.rows[0].valid).toBeTrue();
+      expect(result.rows[0].errors).not.toContain(
+        "excelUpload.rowErrorItemCodeDuplicate",
+      );
+    });
   });
 
   describe("buildErrorReportCsv", () => {

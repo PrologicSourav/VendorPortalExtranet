@@ -99,8 +99,15 @@ export class CatalogueExcelService {
     return null;
   }
 
-  /** Parses and validates an .xlsx File, returning every data row with per-row errors. */
-  async parseAndValidate(file: File): Promise<CatalogueExcelParseResult> {
+  /**
+   * Parses and validates an .xlsx File, returning every data row with per-row errors.
+   * @param existingItemCodes item codes already present in the catalogue — any row
+   *        reusing one (or duplicating another row within the same file) is flagged.
+   */
+  async parseAndValidate(
+    file: File,
+    existingItemCodes: string[] = [],
+  ): Promise<CatalogueExcelParseResult> {
     const buffer = await file.arrayBuffer();
     const ExcelJS = await loadExcelJS();
     const workbook = new ExcelJS.Workbook();
@@ -122,6 +129,11 @@ export class CatalogueExcelService {
     }
 
     const rows: CatalogueExcelRow[] = [];
+    // Item codes are matched case-insensitively for duplicate detection.
+    const existingCodes = new Set(
+      existingItemCodes.map((c) => c.trim().toLowerCase()).filter(Boolean),
+    );
+    const seenInFile = new Set<string>();
 
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // header
@@ -155,6 +167,16 @@ export class CatalogueExcelService {
       };
 
       parsed.errors = this.validateRow(parsed, raw["price"]);
+
+      // Duplicate item code — either already in the catalogue, or repeated in this file.
+      const codeKey = parsed.itemCode.trim().toLowerCase();
+      if (codeKey) {
+        if (existingCodes.has(codeKey) || seenInFile.has(codeKey)) {
+          parsed.errors.push("excelUpload.rowErrorItemCodeDuplicate");
+        }
+        seenInFile.add(codeKey);
+      }
+
       parsed.valid = parsed.errors.length === 0;
       rows.push(parsed);
     });

@@ -95,6 +95,23 @@ public class CataloguesController : ControllerBase
         if (catalogue.Status != CatalogueStatus.Draft)
             return BadRequest(new { message = "Lines can only be added while the catalogue is in Draft status." });
 
+        // Item codes must be unique within a catalogue — reject codes that are repeated
+        // in this request or that already exist on the catalogue (case-insensitive).
+        var existingCodes = catalogue.Lines
+            .Select(l => l.ItemCode.Trim().ToLowerInvariant())
+            .ToHashSet();
+        var duplicates = request.Lines
+            .Select(l => l.ItemCode.Trim())
+            .GroupBy(c => c.ToLowerInvariant())
+            .Where(g => g.Count() > 1 || existingCodes.Contains(g.Key))
+            .Select(g => g.First())
+            .ToList();
+        if (duplicates.Count > 0)
+            return BadRequest(new
+            {
+                message = $"Duplicate item code(s): {string.Join(", ", duplicates)}. Each item code must be unique within a catalogue."
+            });
+
         var lines = request.Lines.Select(l => new CatalogueLine
         {
             Id = Guid.NewGuid(),
