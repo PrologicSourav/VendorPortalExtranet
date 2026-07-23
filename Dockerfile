@@ -20,6 +20,12 @@ COPY --from=build /app/publish .
 
 ENV ASPNETCORE_URLS=http://0.0.0.0:$PORT
 ENV ASPNETCORE_ENVIRONMENT=Production
+# Read at host bootstrap, before CreateBuilder() adds its default appsettings.json
+# source (which defaults to reloadOnChange:true, i.e. an inotify watch). Render's
+# free-tier containers hit the inotify instance limit and the process segfaults
+# (exit 139) inside WebApplication.CreateBuilder before any app code can run —
+# so this must be set as an env var, not in code after CreateBuilder returns.
+ENV DOTNET_hostBuilder__reloadConfigOnChange=false
 
 EXPOSE 8080
 

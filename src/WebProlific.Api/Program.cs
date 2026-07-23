@@ -11,14 +11,11 @@ using WebProlific.Infrastructure.Repositories;
 using FluentValidation.AspNetCore;
 using Serilog;
 
+// Config file watching (inotify) is disabled via the DOTNET_hostBuilder__reloadConfigOnChange=false
+// env var (set in render.yaml/Dockerfile) to avoid exhausting Render's free-tier inotify limit —
+// must be an env var, not code here, since CreateBuilder() below adds its default appsettings.json
+// source (reloadOnChange defaults to true) before any code in this file can run.
 var builder = WebApplication.CreateBuilder(args);
-
-// ─── Disable config file watching to avoid inotify limits on Render free tier ──
-builder.Configuration.Sources.Clear();
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
-    .AddEnvironmentVariables();
 
 // ─── Database ───────────────────────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
