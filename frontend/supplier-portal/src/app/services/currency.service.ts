@@ -24,6 +24,10 @@ export class CurrencyService {
   }
 
   getAvailableCurrencies() {
-    return this.http.get<CurrencyInfo[]>(`${environment.apiUrl}/currencies`);
+    // Lives on ConfigurationController, not its own controller — was 404ing
+    // against the non-existent /currencies (no such top-level route exists).
+    return this.http.get<CurrencyInfo[]>(
+      `${environment.apiUrl}/configuration/currencies`,
+    );
   }
 }
