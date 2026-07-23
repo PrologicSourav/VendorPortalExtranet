@@ -1,11 +1,14 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { TranslatePipe, TranslateService } from "@ngx-translate/core";
+import { ApiService } from "../../services/api.service";
+import { AuthService } from "../../services/auth.service";
 
 @Component({
   selector: "app-account",
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   template: `
     <div class="page-header">
       <h1>{{ "account.title" | translate }}</h1>
@@ -34,6 +37,13 @@ import { TranslatePipe, TranslateService } from "@ngx-translate/core";
     <div class="tabs">
       <div
         class="tab"
+        [class.active]="activeTab === 'profile'"
+        (click)="activeTab = 'profile'"
+      >
+        {{ "account.tabProfile" | translate }}
+      </div>
+      <div
+        class="tab"
         [class.active]="activeTab === 'invoices'"
         (click)="activeTab = 'invoices'"
       >
@@ -52,6 +62,89 @@ import { TranslatePipe, TranslateService } from "@ngx-translate/core";
         (click)="activeTab = 'statement'"
       >
         {{ "account.tabStatement" | translate }}
+      </div>
+    </div>
+
+    <!-- Company Profile -->
+    <div
+      *ngIf="activeTab === 'profile'"
+      class="card"
+      style="border-top: none; border-radius: 0 0 8px 8px"
+    >
+      <div class="card-body">
+        <div *ngIf="profileLoading" class="profile-state">
+          {{ "account.profileLoading" | translate }}
+        </div>
+        <div *ngIf="profileError" class="profile-error" role="alert">
+          {{ "account.profileError" | translate }}
+        </div>
+
+        <ng-container *ngIf="!profileLoading && vendor">
+          <div class="profile-header">
+            <h3>{{ "account.companyProfile" | translate }}</h3>
+            <button
+              *ngIf="!editing"
+              class="btn btn-secondary"
+              (click)="startEdit()"
+            >
+              ✏️ {{ "account.edit" | translate }}
+            </button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>{{ "account.legalName" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.legalName" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.tradingName" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.tradingName" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.contactEmail" | translate }}</label>
+              <input type="email" class="form-control" [(ngModel)]="form.contactEmail" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.contactPhone" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.contactPhone" [disabled]="!editing" />
+            </div>
+            <div class="form-group full">
+              <label>{{ "account.address" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.address" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.city" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.city" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.state" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.state" [disabled]="!editing" />
+            </div>
+            <!-- Read-only regulatory identifiers -->
+            <div class="form-group">
+              <label>{{ "account.gstin" | translate }}</label>
+              <input class="form-control" [value]="vendor.gstin || '—'" disabled />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.pan" | translate }}</label>
+              <input class="form-control" [value]="vendor.pan || '—'" disabled />
+            </div>
+          </div>
+          <p class="profile-note">{{ "account.profileNote" | translate }}</p>
+
+          <div *ngIf="editing" class="profile-actions">
+            <button class="btn btn-secondary" (click)="cancelEdit()" [disabled]="saving">
+              {{ "account.cancel" | translate }}
+            </button>
+            <button
+              class="btn btn-primary"
+              (click)="saveProfile()"
+              [disabled]="saving || !form.legalName || !form.contactEmail"
+            >
+              {{ "account.save" | translate }}
+            </button>
+          </div>
+        </ng-container>
       </div>
     </div>
 
@@ -171,6 +264,10 @@ import { TranslatePipe, TranslateService } from "@ngx-translate/core";
         </div>
       </div>
     </div>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.key | translate }}
+    </div>
   `,
   styles: [
     `
@@ -216,6 +313,45 @@ import { TranslatePipe, TranslateService } from "@ngx-translate/core";
         border-top: 1px solid var(--color-border);
       }
 
+      .profile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .profile-header h3 {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .form-group.full {
+        grid-column: 1 / -1;
+      }
+      .profile-note {
+        font-size: 12px;
+        color: var(--color-text-muted);
+        margin-top: 4px;
+        font-style: italic;
+      }
+      .profile-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .profile-state {
+        padding: 24px;
+        text-align: center;
+        color: var(--color-text-secondary);
+        font-size: 13px;
+      }
+      .profile-error {
+        padding: 16px;
+        border-radius: 8px;
+        background: var(--color-error-soft-bg);
+        color: var(--color-error);
+        font-size: 13px;
+      }
+
       @media (max-width: 640px) {
         .tabs {
           overflow-x: auto;
@@ -253,10 +389,100 @@ import { TranslatePipe, TranslateService } from "@ngx-translate/core";
     `,
   ],
 })
-export class AccountComponent {
+export class AccountComponent implements OnInit {
   private translate = inject(TranslateService);
+  private api = inject(ApiService);
+  private auth = inject(AuthService);
 
-  activeTab = "invoices";
+  activeTab = "profile";
+
+  // ─── Company profile (vendor) ───────────────────────────────
+  vendor: any = null;
+  profileLoading = true;
+  profileError = false;
+  editing = false;
+  saving = false;
+  form = {
+    legalName: "",
+    tradingName: "",
+    contactEmail: "",
+    contactPhone: "",
+    address: "",
+    city: "",
+    state: "",
+  };
+  toast: { type: string; key: string } | null = null;
+
+  ngOnInit(): void {
+    const vendorId = this.auth.user()?.vendorId;
+    if (!vendorId) {
+      this.profileLoading = false;
+      this.profileError = true;
+      return;
+    }
+    this.api.getVendor(vendorId).subscribe({
+      next: (v: any) => {
+        this.vendor = v;
+        this.resetForm();
+        this.profileLoading = false;
+      },
+      error: () => {
+        this.profileLoading = false;
+        this.profileError = true;
+      },
+    });
+  }
+
+  startEdit(): void {
+    this.resetForm();
+    this.editing = true;
+  }
+
+  cancelEdit(): void {
+    this.resetForm();
+    this.editing = false;
+  }
+
+  saveProfile(): void {
+    const vendorId = this.auth.user()?.vendorId;
+    if (!vendorId) return;
+    this.saving = true;
+
+    // Only the fields the backend PUT /vendors/{id} actually accepts are sent;
+    // GSTIN/PAN and other regulated fields stay read-only.
+    const payload = { ...this.vendor, ...this.form };
+    this.api.updateVendor(vendorId, payload).subscribe({
+      next: (updated: any) => {
+        this.vendor = updated;
+        this.resetForm();
+        this.editing = false;
+        this.saving = false;
+        this.showToast("success", "account.profileSaved");
+      },
+      error: () => {
+        this.saving = false;
+        this.showToast("error", "account.profileSaveError");
+      },
+    });
+  }
+
+  private resetForm(): void {
+    if (!this.vendor) return;
+    this.form = {
+      legalName: this.vendor.legalName ?? "",
+      tradingName: this.vendor.tradingName ?? "",
+      contactEmail: this.vendor.contactEmail ?? "",
+      contactPhone: this.vendor.contactPhone ?? "",
+      address: this.vendor.address ?? "",
+      city: this.vendor.city ?? "",
+      state: this.vendor.state ?? "",
+    };
+  }
+
+  private showToast(type: string, key: string): void {
+    this.toast = { type, key };
+    setTimeout(() => (this.toast = null), 3500);
+  }
 
   // Balances shown on the statement tab (kept in sync with the template header/footer).
   readonly openingBalance = 231500;

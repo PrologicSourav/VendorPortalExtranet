@@ -51,6 +51,10 @@ export class ApiService {
     return this.http.get(`${API}/vendors/${id}`);
   }
 
+  updateVendor(id: string, vendor: any): Observable<any> {
+    return this.http.put(`${API}/vendors/${id}`, vendor);
+  }
+
   // Purchase Orders
   getPurchaseOrders(
     vendorId: string,

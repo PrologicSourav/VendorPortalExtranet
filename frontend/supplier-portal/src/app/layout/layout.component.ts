@@ -67,9 +67,9 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
             <span class="notif-count">{{ notifService.unreadCount() }}</span>
           }
         </a>
-        <div class="user-menu">
-          <span class="user-avatar">MF</span>
-          <span class="user-name">Mumbai Fresh Foods</span>
+        <div class="user-menu" [title]="userEmail">
+          <span class="user-avatar">{{ userInitials }}</span>
+          <span class="user-name">{{ userName }}</span>
         </div>
       </div>
     </header>
@@ -435,6 +435,28 @@ export class LayoutComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   sidebarOpen = false;
+
+  /** Logged-in user's display name (falls back to email). */
+  get userName(): string {
+    const u = this.auth.user();
+    return u?.displayName || u?.email || "";
+  }
+
+  get userEmail(): string {
+    return this.auth.user()?.email ?? "";
+  }
+
+  /** Up to two initials from the display name for the avatar circle. */
+  get userInitials(): string {
+    const source = this.auth.user()?.displayName || this.auth.user()?.email || "?";
+    return source
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  }
 
   logout() {
     this.auth.logout();
