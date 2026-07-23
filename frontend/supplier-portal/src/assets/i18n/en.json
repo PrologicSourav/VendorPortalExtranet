@@ -315,6 +315,7 @@
     "signIn": "Sign in",
     "register": "Register",
     "invalidCredentials": "Invalid credentials. Please try again.",
+    "idleLogout": "You were signed out due to inactivity. Please sign in again.",
     "signingIn": "Signing in...",
     "noAccount": "Don't have an account?",
     "mfaTitle": "Two-Factor Authentication",

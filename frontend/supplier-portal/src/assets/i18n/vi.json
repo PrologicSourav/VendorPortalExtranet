@@ -315,6 +315,7 @@
     "signIn": "Đăng nhập",
     "register": "Đăng ký",
     "invalidCredentials": "Thông tin đăng nhập không hợp lệ. Vui lòng thử lại.",
+    "idleLogout": "Bạn đã bị đăng xuất do không hoạt động. Vui lòng đăng nhập lại.",
     "signingIn": "Đang đăng nhập...",
     "noAccount": "Chưa có tài khoản?",
     "mfaTitle": "Xác thực hai yếu tố",

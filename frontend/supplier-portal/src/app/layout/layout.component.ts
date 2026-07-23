@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, OnDestroy, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import {
@@ -12,6 +12,7 @@ import { NotificationService } from "../services/notification.service";
 import { AuthService } from "../services/auth.service";
 import { ThemeService } from "../services/theme.service";
 import { ApiService } from "../services/api.service";
+import { IdleService } from "../services/idle.service";
 import { LanguageSelectorComponent } from "../components/language-selector/language-selector.component";
 import { CurrencySelectorComponent } from "../components/currency-selector/currency-selector.component";
 
@@ -576,14 +577,27 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
     `,
   ],
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit, OnDestroy {
   notifService = inject(NotificationService);
   theme = inject(ThemeService);
   private auth = inject(AuthService);
   private api = inject(ApiService);
   private translate = inject(TranslateService);
+  private idle = inject(IdleService);
   private router = inject(Router);
   sidebarOpen = false;
+
+  ngOnInit(): void {
+    // Auto-logout after 10 minutes of inactivity while inside the app.
+    this.idle.start(() => {
+      this.auth.logout();
+      this.router.navigate(["/login"], { queryParams: { reason: "idle" } });
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.idle.stop();
+  }
 
   // ─── User menu / change password ────────────────────────────
   userMenuOpen = false;

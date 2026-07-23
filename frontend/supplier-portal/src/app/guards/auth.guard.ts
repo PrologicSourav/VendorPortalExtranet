@@ -13,11 +13,13 @@ export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  if (auth.isLoggedIn()) {
+  if (auth.isAuthenticated()) {
     return true;
   }
 
-  // Not logged in — redirect to login
+  // Not logged in, or the stored token is missing/expired — clear any stale
+  // session and send the user to login.
+  auth.logout();
   return router.createUrlTree(["/login"]);
 };
 
@@ -29,10 +31,12 @@ export const loginGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  if (!auth.isLoggedIn()) {
+  // Only a valid (non-expired) session skips the login page; a stale/expired
+  // one falls through so the user can sign in again.
+  if (!auth.isAuthenticated()) {
     return true;
   }
 
-  // Already logged in — redirect to dashboard
+  // Already logged in with a valid session — go straight to dashboard.
   return router.createUrlTree(["/dashboard"]);
 };

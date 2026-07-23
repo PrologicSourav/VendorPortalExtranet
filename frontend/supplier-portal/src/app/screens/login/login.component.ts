@@ -1,6 +1,6 @@
 import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { TranslatePipe } from "@ngx-translate/core";
 import { ApiService } from "../../services/api.service";
@@ -25,6 +25,10 @@ import { LanguageSelectorComponent } from "../../components/language-selector/la
         @if (step === 1) {
           <div class="login-form">
             <h2>{{ "login.title" | translate }}</h2>
+
+            <div *ngIf="idleLogout" class="idle-msg">
+              {{ "login.idleLogout" | translate }}
+            </div>
 
             <div class="form-group">
               <label>{{ "login.email" | translate }}</label>
@@ -380,6 +384,15 @@ import { LanguageSelectorComponent } from "../../components/language-selector/la
         margin-bottom: 12px;
         border: 1px solid var(--color-error-soft-border);
       }
+      .idle-msg {
+        background: var(--color-warning-soft-bg);
+        color: var(--color-warning-soft-text);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        margin-bottom: 16px;
+        border: 1px solid var(--color-warning);
+      }
       .form-row {
         display: flex;
         justify-content: space-between;
@@ -541,11 +554,17 @@ export class LoginComponent {
   signupGstin = "";
   signupSuccess = false;
 
+  /** Set when the user landed here after being auto-logged-out for inactivity. */
+  idleLogout = false;
+
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private api: ApiService,
     private auth: AuthService,
-  ) {}
+  ) {
+    this.idleLogout = this.route.snapshot.queryParamMap.get("reason") === "idle";
+  }
 
   handleLogin() {
     this.loading = true;
