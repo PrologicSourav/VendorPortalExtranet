@@ -1,12 +1,31 @@
-import { Component } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { TranslatePipe } from "@ngx-translate/core";
+import {
+  ExcelUploadModalComponent,
+  ExcelUploadRow,
+} from "../../components/excel-upload-modal/excel-upload-modal.component";
+import {
+  CatalogueExcelRow,
+  CatalogueExcelService,
+} from "../../services/catalogue-excel.service";
+
+const CATALOGUE_UPLOAD_COLUMNS = [
+  { key: "itemCode", labelKey: "catalogue.itemCode" },
+  { key: "description", labelKey: "catalogue.description" },
+  { key: "packUom", labelKey: "catalogue.packUom" },
+  { key: "price", labelKey: "catalogue.price" },
+  { key: "currency", labelKey: "catalogue.currency" },
+  { key: "validFrom", labelKey: "catalogue.validFrom" },
+  { key: "validTo", labelKey: "catalogue.validTo" },
+  { key: "taxClass", labelKey: "catalogue.taxClass" },
+];
 
 @Component({
   selector: "app-catalogue",
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe, ExcelUploadModalComponent],
   template: `
     <div class="page-header">
       <div>
@@ -40,6 +59,9 @@ import { TranslatePipe } from "@ngx-translate/core";
       </select>
       <button class="btn btn-primary" (click)="showAddDialog = true">
         + {{ "catalogue.addLine" | translate }}
+      </button>
+      <button class="btn btn-secondary" (click)="showUploadModal = true">
+        📤 {{ "excelUpload.uploadButton" | translate }}
       </button>
     </div>
 
@@ -228,6 +250,24 @@ import { TranslatePipe } from "@ngx-translate/core";
         </div>
       </div>
     </div>
+
+    <!-- Bulk Excel Upload -->
+    <excel-upload-modal
+      *ngIf="showUploadModal"
+      titleKey="excelUpload.title"
+      [columns]="uploadColumns"
+      [validateFile]="validateExcelFile"
+      [parseFile]="parseExcelFile"
+      [downloadTemplateFn]="downloadExcelTemplate"
+      [buildErrorReportFn]="buildExcelErrorReport"
+      templateFilename="catalogue-upload-template.xlsx"
+      (cancelled)="showUploadModal = false"
+      (confirmed)="onExcelUploadConfirmed($event)"
+    ></excel-upload-modal>
+
+    <div *ngIf="uploadToast" class="toast toast-success">
+      {{ "excelUpload.successToast" | translate: { count: uploadToast } }}
+    </div>
   `,
   styles: [
     `
@@ -339,10 +379,43 @@ import { TranslatePipe } from "@ngx-translate/core";
   ],
 })
 export class CatalogueComponent {
+  private excelService = inject(CatalogueExcelService);
+
   searchTerm = "";
   statusFilter = "";
   showAddDialog = false;
   editingLine: any = null;
+
+  showUploadModal = false;
+  uploadToast: number | null = null;
+  uploadColumns = CATALOGUE_UPLOAD_COLUMNS;
+
+  validateExcelFile = (file: File) => this.excelService.validateFile(file);
+  parseExcelFile = (file: File) => this.excelService.parseAndValidate(file);
+  downloadExcelTemplate = () => this.excelService.buildTemplate();
+  buildExcelErrorReport = (rows: ExcelUploadRow[]) =>
+    this.excelService.buildErrorReportCsv(
+      rows as unknown as CatalogueExcelRow[],
+    );
+
+  onExcelUploadConfirmed(rows: ExcelUploadRow[]): void {
+    const mapped = rows.map((r) => ({
+      itemCode: r["itemCode"] as string,
+      description: r["description"] as string,
+      packUom: r["packUom"] as string,
+      price: r["price"] as number,
+      currency: r["currency"] as string,
+      validFrom: r["validFrom"] as string,
+      validTo: r["validTo"] as string,
+      taxClass: r["taxClass"] as string,
+      deviation: 0,
+      status: "Draft",
+    }));
+    this.lines.push(...mapped);
+    this.showUploadModal = false;
+    this.uploadToast = mapped.length;
+    setTimeout(() => (this.uploadToast = null), 3000);
+  }
 
   formData = {
     itemCode: "",

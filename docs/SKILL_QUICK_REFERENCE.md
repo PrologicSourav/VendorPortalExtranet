@@ -65,7 +65,7 @@ The complete [`SKILL.md`](./SKILL.md) is organized into 13 major sections:
 - Milestones M1–M6 (Q4 2026 target)
 
 #### **11. Common Gotchas & Anti-Patterns** (Lines 2238-2295)
-- 13 CRITICAL anti-patterns to avoid (8 original + 5 added in v1.1 from the Jul 22 hardening pass — hardcoded secret fallbacks, swallowed startup failures, duplicate root shells, `[value]`-bound selects, flag-emoji language pickers)
+- 16 CRITICAL anti-patterns to avoid (8 original + 5 added in v1.1 from the Jul 22 hardening pass — hardcoded secret fallbacks, swallowed startup failures, duplicate root shells, `[value]`-bound selects, flag-emoji language pickers + 3 added in v1.2 from the Jul 23 feature pass — statically-bundled parsing libraries, test infra added after component code, default Karma timeouts vs. real file payloads)
 - Mobile-first anti-patterns
 - Memory leak anti-patterns
 
@@ -77,6 +77,7 @@ The complete [`SKILL.md`](./SKILL.md) is organized into 13 major sections:
 #### **13. Document Control** (Lines 2327-2371)
 - Version history
 - **§13.1: Jul 22 2026 engineering hardening notes** — what was fixed in the backend/frontend and what's deliberately still open
+- **§13.2: Jul 23 2026 feature pass notes** — dashboard pending-approvals KPI + layout fixes, Excel bulk-upload for Catalogue Manager, first test infra (Karma) added to the repo
 - Update process
 
 ---
@@ -248,11 +249,9 @@ A: See SKILL.md §5.4 (validation rules) + §8.1 (test examples).
 
 ### 📈 Version Info
 
-- **Version:** 1.1
-- **Date:** 22 July 2026
-- **Lines:** 2,371
-- **Size:** 84 KB
-- **Status:** ✅ CURRENT — see §13.1 for the latest engineering hardening notes
+- **Version:** 1.2
+- **Date:** 23 July 2026
+- **Status:** ✅ CURRENT — see §13.2 for the latest engineering notes (§13.1 for the Jul 22 hardening pass)
 
 ---
 

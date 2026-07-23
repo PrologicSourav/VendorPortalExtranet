@@ -1,9 +1,15 @@
 # VendorPortalExtranet
 VendorPortalExtranet
 
-## Recent changes (22 Jul 2026)
+## Recent changes (23 Jul 2026)
 
-A security/code-quality hardening pass and a full multilingual implementation landed this week. See [`docs/SKILL.md` §13.1](docs/SKILL.md#131-engineering-notes--22-jul-2026-hardening-pass) for the complete list of what changed and what's still open (notably: real OTP/MFA, the empty DTO layer, and a SQL Server pagination compatibility bug). In short:
+A dashboard feature and Excel bulk-upload landed for `supplier-portal`. See [`docs/SKILL.md` §13.2](docs/SKILL.md#132-engineering-notes--23-jul-2026-feature-pass) for full details. In short:
+- Dashboard now shows a "Catalogues Pending Approval" KPI card (vendor-scoped, 30s auto-refresh), and a layout bug that forced a page scroll at exactly 1024px width is fixed.
+- Catalogue Manager supports bulk upload via `.xlsx` (drag-drop, validation, preview, downloadable template) using `exceljs` — chosen over `xlsx`/SheetJS due to unpatched HIGH-severity CVEs in the latter. This is also the first component in the repo covered by real unit tests, which required adding Karma test infra (didn't exist before).
+
+### Previous changes (22 Jul 2026)
+
+A security/code-quality hardening pass and a full multilingual implementation landed. See [`docs/SKILL.md` §13.1](docs/SKILL.md#131-engineering-notes--22-jul-2026-hardening-pass) for the complete list of what changed and what's still open (notably: real OTP/MFA, the empty DTO layer, and a SQL Server pagination compatibility bug). In short:
 - API auth was effectively absent (only one endpoint required a token) — now every endpoint requires authentication by default, with per-resource ownership checks (IDOR fixed) and internal-only gating on governance actions.
 - Hardcoded secrets (JWT key, DB connection string) removed from source; the API now fails fast at startup if they're unset instead of using a working fallback.
 - `supplier-portal` had a structural bug causing duplicate topbars on every screen, no working language persistence, and translation coverage limited to the login screen. All fixed — full RTL support and all 7 screens translated across English, Arabic, Vietnamese, and Thai.

@@ -2291,6 +2291,18 @@ Complete map of every Phase B requirement to its implementation. See Section 9 o
 - **Anti-pattern:** Mapping a language code to a national flag, e.g. Arabic → 🇸🇦.
 - **Correct:** Flag emoji are built from ISO country codes, not language codes — many languages (English, Arabic, Spanish...) have no single "home" country, so the mapping is arbitrary and can look wrong to users from other countries speaking the same language. Prefer the language's own name or a plain code (EN/AR/VI/TH).
 
+🚫 **Statically importing a large parsing/export library**
+- **Anti-pattern:** `import * as ExcelJS from "exceljs"` at the top of a component/service — pulls the full ~1.4MB library into the initial bundle even though it's only needed when a user opens an upload/export modal, blowing the production bundle budget.
+- **Correct:** `import type * as ExcelJSTypes from "exceljs"` for types only, plus a lazy `async function load() { return import("exceljs"); }` called from inside the user action. Confirmed this drops the library into its own lazy chunk (only fetched on first use) instead of the initial bundle.
+
+🚫 **Adding test infra after component code already exists**
+- **Anti-pattern:** Writing `.spec.ts` files in a project with no `test` architect target, no `karma.conf.js`, and `tsconfig.app.json` with no exclusion for spec files — the app build (`ng build`/`ng serve`) then tries to compile the spec file too and fails with dozens of `Cannot find name 'describe'/'it'/'expect'` errors, because the app tsconfig correctly has no Jasmine types.
+- **Correct:** When wiring up test infra for the first time, `tsconfig.app.json` MUST exclude `src/**/*.spec.ts` (app build) while `tsconfig.spec.json` includes it (test build, with `"types": ["jasmine", "node"]`). Verify by running both `ng build` and `ng test` after adding the first spec file, not just one.
+
+🚫 **Default Karma timeouts with tests that build real binary payloads**
+- **Anti-pattern:** Leaving Karma's default 2s ping timeout / 10s disconnect timeout when a test constructs a real in-memory file (e.g. an actual `.xlsx` workbook via `exceljs`) — the browser can block the main thread long enough to disconnect before any result is reported, and the whole suite fails with no useful output.
+- **Correct:** Raise `pingTimeout`/`browserDisconnectTimeout`/`browserNoActivityTimeout` in `karma.conf.js` (30s/30s/60s worked here) whenever tests do real, non-trivial work in the browser rather than mocking it.
+
 ---
 
 ## 12. How to Use This SKILL.md
@@ -2331,6 +2343,7 @@ Complete map of every Phase B requirement to its implementation. See Section 9 o
 | 0.1 (Draft) | 26 Jun 2026 | Initial creation from Functional Spec §§5.1–5.3, 6 | — |
 | 1.0 (Complete) | 22 Jul 2026 | Integrated Angular component structure (§7), responsive design requirements, unit test examples, merged with Component Structure Addendum | ✅ FINAL |
 | 1.1 | 22 Jul 2026 | Documented an engineering hardening pass against the running codebase (not a spec change — spec requirements unchanged). See notes below. Added 5 new entries to §11 Common Gotchas. | ✅ |
+| 1.2 | 23 Jul 2026 | Documented a supplier-portal feature pass: dashboard pending-approvals KPI + layout fixes, and Excel bulk-upload for Catalogue Manager (first use of a test runner in this repo). Added 3 new entries to §11 Common Gotchas. | ✅ |
 
 ### 13.1 Engineering notes — 22 Jul 2026 hardening pass
 
@@ -2354,6 +2367,21 @@ A security/code-quality review of `WebProlific.Api`/`Infrastructure` and a UX au
 - Added logical-property RTL rules to `styles.scss` per this doc's own "no hardcoded left/right in SCSS" requirement (§7.4); two pre-existing hardcoded instances fixed.
 
 **Known convention gap, not resolved:** §7.4 prescribes a mobile-first SCSS architecture with a shared `$breakpoints` map and `@include breakpoint()` mixin from `src/app/styles/variables.scss`. The actual codebase uses desktop-first inline component styles with raw `@media (max-width: …)` queries, and no shared mixin file exists. Retrofitting every existing component to the prescribed architecture is a separate, larger migration and was out of scope for this pass — new/touched code in this pass followed the spec's breakpoint *values* (320/480/768/1024/1440) but not its file structure.
+
+### 13.2 Engineering notes — 23 Jul 2026 feature pass
+
+**Dashboard — closes a gap against VP-03/VP-04 (catalogue approval visibility):**
+- Added a 5th KPI card, "Catalogues Pending Approval," scoped to the logged-in vendor via the existing `GET /api/Catalogues/vendor/{id}?status=Submitted` endpoint (no new backend endpoint was added — an earlier spec referenced a nonexistent `/internal/catalogues/approvals` route, confirmed not to exist before building against it). Auto-refreshes every 30s via `interval(30000)` with proper `takeUntil(destroy$)` cleanup.
+- Fixed the KPI grid to show all 5 cards in one row at desktop widths (was `repeat(4, 1fr)`, a leftover from 4 cards) with 2–3 columns on tablet and 1 on mobile.
+- Fixed a forced page scroll at exactly 1024×768: `.kpi-grid` and `.panels` had drifted to different breakpoints (1023px vs 1024px) during two separate edits, so at exactly 1024px width both the 5-wide KPI row and the two-column panel layout were briefly active at once, overflowing the viewport. Both are now aligned to the same 1023px breakpoint, with an additional size-down step for KPI cards in the 1024–1365px range.
+
+**Catalogue Manager — Excel bulk upload (new capability, not in original VP-03 spec):**
+- Added `exceljs` for parsing/generating `.xlsx` files — chosen over `xlsx`/SheetJS, which has two HIGH-severity CVEs (prototype pollution, ReDoS) with no fix available on the npm registry.
+- Built a reusable `ExcelUploadModalComponent` (drag-drop, file validation, preview table, error report) and a catalogue-specific `CatalogueExcelService` (parses/validates rows against `SUPPORTED_CURRENCIES`/`SUPPORTED_TAX_CLASSES`, row/file size limits, downloadable template).
+- Integrated into the Catalogue screen as a **local-state-only bulk add**: valid rows are appended to the same in-memory `lines` array the manual "+ Add Line" flow uses, then go through the existing `POST /catalogues` submit-for-approval flow unchanged. No new backend endpoint — deliberate scope decision, since the original spec's "existing bulk endpoint" didn't exist either.
+- Added ~37 new i18n keys (`excelUpload.*`) across all 4 languages (272 keys × 4 languages, parity verified).
+- This is the **first test infrastructure in the repo** — `angular.json` had no `test` architect target, no `karma.conf.js`, no `tsconfig.spec.json` existed before this pass. Added all three, plus 22 real unit tests (not mocked) for `CatalogueExcelService` that build actual in-memory `.xlsx` files via `ExcelJS.Workbook()` and assert against real parse output.
+- Verified live in-browser end-to-end (not just unit tests): button renders, modal opens, "Download Template" exercises the real lazy-loaded `exceljs` chunk, the downloaded template round-trips back through the parser correctly, valid rows append to the catalogue table with a success toast, and both responsive layout (375/768px) and Arabic RTL rendering of the modal are correct.
 
 **To update this document:**
 - Create a pull request in the project repository (`/SKILL.md`).
