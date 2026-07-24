@@ -40,3 +40,18 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20
+
+  - type: static
+    name: vendorportal-governance
+    rootDir: frontend/governance-console
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist/governance-console/browser
+    # SPA fallback — same reason as the supplier portal above: rewrite every path
+    # to index.html so the Angular router can resolve deep links / refreshes.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: 20
