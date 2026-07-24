@@ -1,5 +1,11 @@
-import { Component } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { HttpErrorResponse } from "@angular/common/http";
+import {
+  DedupService,
+  ItemDedupCluster,
+  ItemDedupCandidate,
+} from "../../services/dedup.service";
 
 @Component({
   selector: "app-item-dedup",
@@ -9,70 +15,134 @@ import { CommonModule } from "@angular/common";
     <div class="page-header">
       <h1>Item Deduplication</h1>
       <p class="page-subtitle">
-        Manage duplicate item suggestions from AI/ML pipeline · Model v2.3
+        Manage duplicate item suggestions from the AI/ML pipeline{{
+          modelVersion ? " · Model " + modelVersion : ""
+        }}
       </p>
     </div>
 
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">Open Suggestions</div>
-        <div class="kpi-value">2</div>
+        <div class="kpi-value">{{ openCount }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Resolved This Month</div>
-        <div class="kpi-value">15</div>
+        <div class="kpi-value">{{ resolvedThisMonth }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Last Model Run</div>
         <div class="kpi-value" style="font-size: 16px">
-          Jul 7, 2025 03:00 UTC
+          {{
+            lastModelRun
+              ? (lastModelRun | date: "MMM d, y, HH:mm" : "UTC") + " UTC"
+              : "—"
+          }}
         </div>
       </div>
     </div>
 
-    <div
-      *ngFor="let cluster of clusters"
-      class="cluster-card card"
-      style="margin-top: 16px"
-    >
-      <div class="card-header">
-        {{ cluster.itemName }} — Similarity: {{ cluster.similarity }}%
-        <span class="badge badge-info" style="margin-left: 8px">{{
-          cluster.status
-        }}</span>
+    <!-- Auth required (host did not supply a token, or it was rejected) -->
+    <div *ngIf="authError" class="card" style="margin-top: 16px">
+      <div class="empty-state">
+        <div class="empty-icon">🔒</div>
+        <div class="empty-title">Authentication required</div>
+        <div class="empty-desc">
+          This console must be opened from the host application with a valid
+          governance session. No internal access token was provided.
+        </div>
       </div>
-      <div class="card-body">
-        <div class="item-comparison">
-          <div *ngFor="let item of cluster.items" class="item-row">
-            <span class="item-code">{{ item.itemCode }}</span>
-            <span class="item-desc">{{ item.description }}</span>
-            <span class="item-price">₹{{ item.price | number: "1.2-2" }}</span>
-            <span class="item-vendor">{{ item.vendor }}</span>
-            <span *ngIf="item.isPrimary" class="badge badge-success"
-              >Master</span
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="card" style="margin-top: 16px">
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Loading suggestions…</div>
+      </div>
+    </div>
+
+    <!-- Load error (non-auth) -->
+    <div *ngIf="loadError && !authError" class="card" style="margin-top: 16px">
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">Could not load suggestions</div>
+        <div class="empty-desc">{{ loadError }}</div>
+        <button
+          class="btn btn-secondary"
+          style="margin-top: 12px"
+          (click)="load()"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+
+    <!-- Clusters -->
+    <ng-container *ngIf="!loading && !authError && !loadError">
+      <div
+        *ngFor="let cluster of clusters"
+        class="cluster-card card"
+        style="margin-top: 16px"
+      >
+        <div class="card-header">
+          {{ clusterTitle(cluster) }} — Similarity:
+          {{ topSimilarity(cluster) | number: "1.0-0" }}%
+          <span class="badge badge-info" style="margin-left: 8px">{{
+            cluster.status
+          }}</span>
+        </div>
+        <div class="card-body">
+          <div class="item-comparison">
+            <div *ngFor="let c of cluster.candidates" class="item-row">
+              <span class="item-code">{{ c.item.itemCode }}</span>
+              <span class="item-desc">{{ c.item.description }}</span>
+              <span class="item-meta">
+                {{ c.item.category }} · {{ c.item.baseUom
+                }}{{ c.item.packSize ? " · " + c.item.packSize : "" }}
+              </span>
+              <span class="item-score">{{
+                c.similarityScore | number: "1.0-0"
+              }}%</span>
+              <span class="item-attrs">
+                <span
+                  *ngFor="let a of matchedAttributes(c)"
+                  class="attr-chip"
+                  >{{ a }}</span
+                >
+              </span>
+              <span *ngIf="c.isSource" class="badge badge-success">Master</span>
+            </div>
+          </div>
+          <div class="cluster-actions">
+            <button
+              class="btn btn-primary"
+              [disabled]="busyId === cluster.id"
+              (click)="merge(cluster)"
             >
+              🔗 Merge
+            </button>
+            <button
+              class="btn btn-secondary"
+              [disabled]="busyId === cluster.id"
+              (click)="dismiss(cluster)"
+            >
+              Dismiss
+            </button>
           </div>
         </div>
-        <div class="cluster-actions">
-          <button class="btn btn-primary" (click)="merge(cluster)">
-            🔗 Merge
-          </button>
-          <button class="btn btn-secondary" (click)="dismiss(cluster)">
-            Dismiss
-          </button>
-        </div>
       </div>
-    </div>
 
-    <div *ngIf="clusters.length === 0" class="card" style="margin-top: 16px">
-      <div class="empty-state">
-        <div class="empty-icon">📦</div>
-        <div class="empty-title">No open suggestions</div>
-        <div class="empty-desc">
-          All item deduplication suggestions have been reviewed.
+      <div *ngIf="clusters.length === 0" class="card" style="margin-top: 16px">
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <div class="empty-title">No open suggestions</div>
+          <div class="empty-desc">
+            All item deduplication suggestions have been reviewed.
+          </div>
         </div>
       </div>
-    </div>
+    </ng-container>
 
     <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
       {{ toast.message }}
@@ -105,7 +175,7 @@ import { CommonModule } from "@angular/common";
       }
       .item-row {
         display: grid;
-        grid-template-columns: 120px 1fr 100px 140px 80px;
+        grid-template-columns: 120px 1fr 200px 70px 1fr 80px;
         align-items: center;
         gap: 12px;
         padding: 10px 12px;
@@ -120,12 +190,24 @@ import { CommonModule } from "@angular/common";
         padding: 2px 6px;
         border-radius: 3px;
       }
-      .item-price {
-        font-weight: 600;
-      }
-      .item-vendor {
+      .item-meta {
         font-size: 12px;
         color: var(--color-text-secondary);
+      }
+      .item-score {
+        font-weight: 600;
+      }
+      .item-attrs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .attr-chip {
+        font-size: 11px;
+        background: var(--color-surface-alt);
+        color: var(--color-text-secondary);
+        padding: 1px 6px;
+        border-radius: 10px;
       }
       .cluster-actions {
         display: flex;
@@ -137,65 +219,156 @@ import { CommonModule } from "@angular/common";
     `,
   ],
 })
-export class ItemDedupComponent {
-  toast: any = null;
+export class ItemDedupComponent implements OnInit {
+  private dedup = inject(DedupService);
 
-  clusters = [
-    {
-      itemName: "Basmati Rice 25kg",
-      similarity: 95,
-      status: "Open",
-      items: [
-        {
-          itemCode: "FOOD-001",
-          description: "Basmati Rice 25kg",
-          price: 2968,
-          vendor: "Mumbai Fresh Foods",
-          isPrimary: true,
-        },
-        {
-          itemCode: "FOOD-102",
-          description: "Premium Basmati Rice 25kg Bag",
-          price: 2890,
-          vendor: "Delhi Spice Traders",
-          isPrimary: false,
-        },
-      ],
-    },
-    {
-      itemName: "Sunflower Oil 15L",
-      similarity: 88,
-      status: "Open",
-      items: [
-        {
-          itemCode: "FOOD-002",
-          description: "Sunflower Oil 15L",
-          price: 1650,
-          vendor: "Green Valley Farms",
-          isPrimary: true,
-        },
-        {
-          itemCode: "FOOD-205",
-          description: "Sunflower Refined Oil 15L Tin",
-          price: 1680,
-          vendor: "Coastal Seafood Exports",
-          isPrimary: false,
-        },
-      ],
-    },
-  ];
+  clusters: ItemDedupCluster[] = [];
+  openCount = 0;
+  resolvedThisMonth = 0;
+  lastModelRun: string | null = null;
+  modelVersion: string | null = null;
 
-  merge(cluster: any) {
-    this.clusters = this.clusters.filter((c) => c !== cluster);
-    this.showToast("success", `"${cluster.itemName}" merged successfully`);
+  loading = false;
+  authError = false;
+  loadError: string | null = null;
+  busyId: string | null = null;
+  toast: { type: string; message: string } | null = null;
+
+  ngOnInit(): void {
+    this.load();
   }
 
-  dismiss(cluster: any) {
-    this.clusters = this.clusters.filter((c) => c !== cluster);
-    this.showToast("success", `Suggestion for "${cluster.itemName}" dismissed`);
+  load(): void {
+    // Always attempt the call. The backend decides whether auth is required:
+    // if it responds 401/403 we show the auth-required state; otherwise (a valid
+    // token, or the Dedup:AllowAnonymous testing flag) the data loads.
+    this.loading = true;
+    this.authError = false;
+    this.loadError = null;
+
+    // Fetch all clusters so we can show open suggestions and derive KPIs.
+    this.dedup.getItemClusters().subscribe({
+      next: (all) => {
+        this.clusters = all.filter((c) => c.status === "Open");
+        this.computeKpis(all);
+        this.loading = false;
+      },
+      error: (err: HttpErrorResponse) => {
+        this.loading = false;
+        if (err.status === 401 || err.status === 403) {
+          this.authError = true;
+        } else {
+          this.loadError = this.extractError(err);
+        }
+      },
+    });
   }
 
-  showToast(type: string, message: string) {
+  private computeKpis(all: ItemDedupCluster[]): void {
+    this.openCount = all.filter((c) => c.status === "Open").length;
+
+    const now = new Date();
+    this.resolvedThisMonth = all.filter((c) => {
+      if (c.status === "Open" || !c.resolvedAt) return false;
+      const d = new Date(c.resolvedAt);
+      return (
+        d.getUTCFullYear() === now.getUTCFullYear() &&
+        d.getUTCMonth() === now.getUTCMonth()
+      );
+    }).length;
+
+    const latest = all
+      .map((c) => c.createdAt)
+      .filter(Boolean)
+      .sort()
+      .pop();
+    this.lastModelRun = latest ?? null;
+    // Model version of the most recently created cluster, if any.
+    const latestCluster = all
+      .slice()
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .pop();
+    this.modelVersion = latestCluster?.modelVersion ?? null;
+  }
+
+  clusterTitle(cluster: ItemDedupCluster): string {
+    const source = cluster.candidates.find((c) => c.isSource);
+    return (source ?? cluster.candidates[0])?.item.description ?? "Cluster";
+  }
+
+  topSimilarity(cluster: ItemDedupCluster): number {
+    return cluster.candidates.reduce(
+      (max, c) => Math.max(max, c.similarityScore),
+      0,
+    );
+  }
+
+  matchedAttributes(candidate: ItemDedupCandidate): string[] {
+    if (!candidate.matchedAttributes) return [];
+    try {
+      const parsed = JSON.parse(candidate.matchedAttributes);
+      return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  merge(cluster: ItemDedupCluster): void {
+    const source =
+      cluster.candidates.find((c) => c.isSource) ?? cluster.candidates[0];
+    if (!source) {
+      this.showToast("error", "Cluster has no items to merge.");
+      return;
+    }
+    this.busyId = cluster.id;
+    this.dedup.merge(cluster.id, source.itemId).subscribe({
+      next: (res) => {
+        this.removeCluster(cluster);
+        this.showToast("success", res?.message ?? "Item merge completed.");
+      },
+      error: (err: HttpErrorResponse) => {
+        this.busyId = null;
+        this.showToast("error", this.extractError(err));
+      },
+    });
+  }
+
+  dismiss(cluster: ItemDedupCluster): void {
+    this.busyId = cluster.id;
+    this.dedup.dismiss(cluster.id).subscribe({
+      next: (res) => {
+        this.removeCluster(cluster);
+        this.showToast(
+          "success",
+          res?.message ?? `Suggestion for "${this.clusterTitle(cluster)}" dismissed`,
+        );
+      },
+      error: (err: HttpErrorResponse) => {
+        this.busyId = null;
+        this.showToast("error", this.extractError(err));
+      },
+    });
+  }
+
+  private removeCluster(cluster: ItemDedupCluster): void {
+    this.clusters = this.clusters.filter((c) => c.id !== cluster.id);
+    this.openCount = this.clusters.length;
+    this.busyId = null;
+  }
+
+  private extractError(err: HttpErrorResponse): string {
+    const e = err?.error;
+    if (typeof e === "string" && e) return e;
+    return (
+      e?.error?.message ??
+      e?.message ??
+      e?.error ??
+      err?.message ??
+      "Something went wrong. Please try again."
+    );
+  }
+
+  private showToast(type: string, message: string): void {
     this.toast = { type, message };
     setTimeout(() => (this.toast = null), 3000);
   }

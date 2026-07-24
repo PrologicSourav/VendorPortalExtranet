@@ -63,13 +63,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
+// Testing escape hatch: when Dedup:AllowAnonymous is true the InternalOnly policy
+// lets unauthenticated callers through so the dedup screens can be exercised
+// without wiring up a token. Defaults to false — leave it off in production.
+var allowAnonymousDedup = builder.Configuration.GetValue<bool>("Dedup:AllowAnonymous");
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
     options.AddPolicy("InternalOnly", policy =>
-        policy.RequireAssertion(ctx => ctx.User.IsInternal()));
+        policy.RequireAssertion(ctx => allowAnonymousDedup || ctx.User.IsInternal()));
 });
 
 // ─── Controllers & Swagger ──────────────────────────────────
