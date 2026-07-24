@@ -7,6 +7,7 @@ import {
   ExcelUploadModalComponent,
   ExcelUploadRow,
 } from "../../components/excel-upload-modal/excel-upload-modal.component";
+import { MoneyPipe } from "../../pipes/money.pipe";
 import {
   CatalogueExcelRow,
   CatalogueExcelService,
@@ -34,7 +35,13 @@ const CATALOGUE_UPLOAD_COLUMNS = [
 @Component({
   selector: "app-catalogue",
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, ExcelUploadModalComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslatePipe,
+    ExcelUploadModalComponent,
+    MoneyPipe,
+  ],
   template: `
     <div class="page-header">
       <div>
@@ -124,7 +131,7 @@ const CATALOGUE_UPLOAD_COLUMNS = [
               </td>
               <td>{{ line.description }}</td>
               <td>{{ line.packUom }}</td>
-              <td>₹{{ line.price | number: "1.2-2" }}</td>
+              <td>{{ line.price | money }}</td>
               <td>{{ line.currency }}</td>
               <td>{{ line.validFrom }}</td>
               <td>{{ line.validTo }}</td>

@@ -4,11 +4,13 @@ import { FormsModule } from "@angular/forms";
 import { TranslatePipe, TranslateService } from "@ngx-translate/core";
 import { ApiService } from "../../services/api.service";
 import { AuthService } from "../../services/auth.service";
+import { CurrencyService } from "../../services/currency.service";
+import { MoneyPipe } from "../../pipes/money.pipe";
 
 @Component({
   selector: "app-account",
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe, MoneyPipe],
   template: `
     <div class="page-header">
       <h1>{{ "account.title" | translate }}</h1>
@@ -19,16 +21,18 @@ import { AuthService } from "../../services/auth.service";
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">{{ "account.totalOutstanding" | translate }}</div>
-        <div class="kpi-value">₹1,89,500</div>
+        <div class="kpi-value">{{ totalOutstanding | money }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">{{ "account.overdueAmount" | translate }}</div>
-        <div class="kpi-value" style="color: var(--color-error)">₹42,000</div>
+        <div class="kpi-value" style="color: var(--color-error)">
+          {{ overdueAmount | money }}
+        </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">{{ "account.paidLast30Days" | translate }}</div>
         <div class="kpi-value" style="color: var(--color-success)">
-          ₹2,15,500
+          {{ paidLast30Days | money }}
         </div>
       </div>
     </div>
@@ -172,7 +176,7 @@ import { AuthService } from "../../services/auth.service";
               </td>
               <td>{{ inv.date }}</td>
               <td>{{ inv.dueDate }}</td>
-              <td>₹{{ inv.amount | number }}</td>
+              <td>{{ inv.amount | money }}</td>
               <td>
                 <span class="badge" [ngClass]="getStatusBadge(inv.status)">{{
                   getStatusKey(inv.status) | translate
@@ -206,7 +210,7 @@ import { AuthService } from "../../services/auth.service";
                 <code>{{ p.reference }}</code>
               </td>
               <td>{{ p.date }}</td>
-              <td>₹{{ p.amount | number }}</td>
+              <td>{{ p.amount | money }}</td>
               <td>
                 <span
                   class="badge"
@@ -231,7 +235,8 @@ import { AuthService } from "../../services/auth.service";
       <div class="card-body">
         <div class="statement-header">
           <div>
-            {{ "account.openingBalance" | translate }}: <strong>₹2,31,500</strong>
+            {{ "account.openingBalance" | translate }}:
+            <strong>{{ openingBalance | money }}</strong>
           </div>
           <button class="btn btn-secondary" (click)="downloadStatement()">
             📥 {{ "account.downloadPdf" | translate }}
@@ -251,16 +256,17 @@ import { AuthService } from "../../services/auth.service";
             <tr *ngFor="let s of statement">
               <td>{{ s.date }}</td>
               <td>{{ s.description }}</td>
-              <td>{{ s.debit ? "₹" + (s.debit | number) : "-" }}</td>
-              <td>{{ s.credit ? "₹" + (s.credit | number) : "-" }}</td>
+              <td>{{ s.debit ? (s.debit | money) : "-" }}</td>
+              <td>{{ s.credit ? (s.credit | money) : "-" }}</td>
               <td>
-                <strong>₹{{ s.balance | number }}</strong>
+                <strong>{{ s.balance | money }}</strong>
               </td>
             </tr>
           </tbody>
         </table>
         <div class="statement-footer">
-          {{ "account.closingBalance" | translate }}: <strong>₹1,89,500</strong>
+          {{ "account.closingBalance" | translate }}:
+          <strong>{{ closingBalance | money }}</strong>
         </div>
       </div>
     </div>
@@ -393,8 +399,14 @@ export class AccountComponent implements OnInit {
   private translate = inject(TranslateService);
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private currency = inject(CurrencyService);
 
   activeTab = "profile";
+
+  // KPI figures (base currency INR; displayed via the money pipe/converter).
+  readonly totalOutstanding = 189500;
+  readonly overdueAmount = 42000;
+  readonly paidLast30Days = 215500;
 
   // ─── Company profile (vendor) ───────────────────────────────
   vendor: any = null;
@@ -496,8 +508,25 @@ export class AccountComponent implements OnInit {
    */
   downloadStatement(): void {
     const t = (key: string) => this.translate.instant(key);
-    const money = (n: number) => "₹" + n.toLocaleString("en-IN");
     const lang = this.translate.currentLang() || "en";
+    // Convert base (INR) figures to the selected display currency for the PDF.
+    const money = (n: number) => {
+      const converted = this.currency.convertFromBase(n);
+      const code =
+        converted != null ? this.currency.selectedCurrency() : this.currency.baseCurrency;
+      const val = converted != null ? converted : n;
+      const digits = this.currency.decimalPrecisionFor(code);
+      try {
+        return new Intl.NumberFormat(lang, {
+          style: "currency",
+          currency: code,
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits,
+        }).format(val);
+      } catch {
+        return `${code} ${val.toFixed(2)}`;
+      }
+    };
     const isRtl = lang === "ar";
 
     const rows = this.statement

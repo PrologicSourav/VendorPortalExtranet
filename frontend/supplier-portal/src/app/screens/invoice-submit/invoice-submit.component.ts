@@ -2,11 +2,12 @@ import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { TranslatePipe } from "@ngx-translate/core";
+import { MoneyPipe } from "../../pipes/money.pipe";
 
 @Component({
   selector: "app-invoice-submit",
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe, MoneyPipe],
   template: `
     <div class="page-header">
       <h1>{{ "invoiceSubmit.title" | translate }}</h1>
@@ -33,7 +34,7 @@ import { TranslatePipe } from "@ngx-translate/core";
                 "invoiceSubmit.delivered" | translate: { date: po.deliveryDate }
               }}</span>
             </div>
-            <span class="po-value">₹{{ po.value | number }}</span>
+            <span class="po-value">{{ po.value | money }}</span>
           </div>
         </div>
         <button
@@ -109,7 +110,7 @@ import { TranslatePipe } from "@ngx-translate/core";
                           min="0"
                         />
                       </td>
-                      <td>₹{{ line.expectedPrice | number: "1.2-2" }}</td>
+                      <td>{{ line.expectedPrice | money }}</td>
                       <td>
                         <input
                           type="number"
@@ -120,10 +121,7 @@ import { TranslatePipe } from "@ngx-translate/core";
                         />
                       </td>
                       <td>
-                        ₹{{
-                          line.invoicedQty * line.invoicedPrice
-                            | number: "1.2-2"
-                        }}
+                        {{ line.invoicedQty * line.invoicedPrice | money }}
                       </td>
                     </tr>
                   </tbody>
@@ -174,15 +172,15 @@ import { TranslatePipe } from "@ngx-translate/core";
               <div class="match-summary">
                 <div class="match-row">
                   <span>{{ "invoiceSubmit.subtotal" | translate }}</span>
-                  <span>₹{{ subtotal | number: "1.2-2" }}</span>
+                  <span>{{ subtotal | money }}</span>
                 </div>
                 <div class="match-row">
                   <span>{{ "invoiceSubmit.tax" | translate }}</span>
-                  <span>₹{{ tax | number: "1.2-2" }}</span>
+                  <span>{{ tax | money }}</span>
                 </div>
                 <div class="match-row total">
                   <span>{{ "invoiceSubmit.total" | translate }}</span>
-                  <span>₹{{ total | number: "1.2-2" }}</span>
+                  <span>{{ total | money }}</span>
                 </div>
               </div>
               <div class="match-note">

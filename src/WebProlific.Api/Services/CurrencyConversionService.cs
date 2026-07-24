@@ -24,7 +24,9 @@ namespace WebProlific.Api.Services
         private readonly AppDbContext _db;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<CurrencyConversionService> _logger;
-        private const string ExternalApiUrl = "https://api.exchangerate.host/latest";
+        // Keyless, free feed (https://www.exchangerate-api.com/docs/free). One call per
+        // base returns rates to every currency: GET {ExternalApiUrl}/{BASE}.
+        private const string ExternalApiUrl = "https://open.er-api.com/v6/latest";
 
         public CurrencyConversionService(AppDbContext db, IHttpClientFactory httpClientFactory, ILogger<CurrencyConversionService> logger)
         {
@@ -66,8 +68,8 @@ namespace WebProlific.Api.Services
             try
             {
                 var client = _httpClientFactory.CreateClient();
-                var response = await client.GetFromJsonAsync<ExternalRateResponse>($"{ExternalApiUrl}?base=USD&symbols=EUR,GBP,INR,AED,VND,THB");
-                if (response == null || !response.Success)
+                var response = await client.GetFromJsonAsync<ExternalRateResponse>($"{ExternalApiUrl}/USD");
+                if (response == null || response.Result != "success")
                 {
                     _logger.LogWarning("Failed to fetch exchange rates from external API.");
                     return;
@@ -137,8 +139,8 @@ namespace WebProlific.Api.Services
             try
             {
                 var client = _httpClientFactory.CreateClient();
-                var response = await client.GetFromJsonAsync<ExternalRateResponse>($"{ExternalApiUrl}?base={fromCurrency}&symbols={toCurrency}");
-                if (response != null && response.Success && response.Rates.TryGetValue(toCurrency, out var apiRate))
+                var response = await client.GetFromJsonAsync<ExternalRateResponse>($"{ExternalApiUrl}/{fromCurrency}");
+                if (response != null && response.Result == "success" && response.Rates.TryGetValue(toCurrency, out var apiRate))
                 {
                     // Store the fetched rate for future use
                     var exchangeRate = new ExchangeRate
@@ -175,12 +177,17 @@ namespace WebProlific.Api.Services
         }
     }
 
-    // DTO for external API response
+    // DTO for the open.er-api.com response shape:
+    // { "result":"success", "base_code":"INR", "rates": { "USD":0.012, ... } }
     internal class ExternalRateResponse
     {
-        public bool Success { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("result")]
+        public string Result { get; set; } = string.Empty;
+
+        [System.Text.Json.Serialization.JsonPropertyName("base_code")]
         public string Base { get; set; } = string.Empty;
-        public DateTime Date { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("rates")]
         public Dictionary<string, decimal> Rates { get; set; } = new Dictionary<string, decimal>();
     }
 }

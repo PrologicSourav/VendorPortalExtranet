@@ -13,6 +13,7 @@ import { AuthService } from "../services/auth.service";
 import { ThemeService } from "../services/theme.service";
 import { ApiService } from "../services/api.service";
 import { IdleService } from "../services/idle.service";
+import { CurrencyService } from "../services/currency.service";
 import { LanguageSelectorComponent } from "../components/language-selector/language-selector.component";
 import { CurrencySelectorComponent } from "../components/currency-selector/currency-selector.component";
 
@@ -585,9 +586,13 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   private idle = inject(IdleService);
   private router = inject(Router);
+  private currency = inject(CurrencyService);
   sidebarOpen = false;
 
   ngOnInit(): void {
+    // Load currency list + exchange rates now that the user is authenticated.
+    this.currency.loadReferenceData();
+
     // Auto-logout after 10 minutes of inactivity while inside the app.
     this.idle.start(() => {
       this.auth.logout();

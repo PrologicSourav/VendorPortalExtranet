@@ -3,11 +3,12 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router, RouterModule } from "@angular/router";
 import { TranslatePipe } from "@ngx-translate/core";
+import { MoneyPipe } from "../../pipes/money.pipe";
 
 @Component({
   selector: "app-purchase-orders",
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, RouterModule, TranslatePipe, MoneyPipe],
   template: `
     <div class="page-header">
       <h1>{{ "purchaseOrders.title" | translate }}</h1>
@@ -64,7 +65,7 @@ import { TranslatePipe } from "@ngx-translate/core";
               <td>{{ po.orderDate }}</td>
               <td>{{ po.requiredBy }}</td>
               <td>{{ po.lines }}</td>
-              <td>₹{{ po.value | number }}</td>
+              <td>{{ po.value | money }}</td>
               <td>
                 <span class="badge" [ngClass]="getStatusBadge(po.status)">{{
                   getStatusKey(po.status) | translate
@@ -99,7 +100,7 @@ import { TranslatePipe } from "@ngx-translate/core";
             <div><strong>{{ "purchaseOrders.orderDate" | translate }}:</strong> {{ selectedPO.orderDate }}</div>
             <div><strong>{{ "purchaseOrders.requiredBy" | translate }}:</strong> {{ selectedPO.requiredBy }}</div>
             <div>
-              <strong>{{ "purchaseOrders.totalValue" | translate }}:</strong> ₹{{ selectedPO.value | number }}
+              <strong>{{ "purchaseOrders.totalValue" | translate }}:</strong> {{ selectedPO.value | money }}
             </div>
           </div>
 
@@ -119,8 +120,8 @@ import { TranslatePipe } from "@ngx-translate/core";
                 <td>{{ line.item }}</td>
                 <td>{{ line.qty }}</td>
                 <td>{{ line.uom }}</td>
-                <td>₹{{ line.unitPrice | number: "1.2-2" }}</td>
-                <td>₹{{ line.lineTotal | number: "1.2-2" }}</td>
+                <td>{{ line.unitPrice | money }}</td>
+                <td>{{ line.lineTotal | money }}</td>
               </tr>
             </tbody>
           </table>

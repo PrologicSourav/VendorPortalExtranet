@@ -171,6 +171,13 @@ public class AppDbContext : DbContext
             _logger.LogDebug("Configured ItemDedupCandidate entity relationships");
         });
 
+        // Exchange rates need more scale than the default decimal(18,2): a rate
+        // like INR->USD (0.010339) would otherwise be rounded to 0.01 on write.
+        modelBuilder.Entity<ExchangeRate>(e =>
+        {
+            e.Property(r => r.Rate).HasPrecision(18, 8);
+        });
+
         // Rate Contract
         modelBuilder.Entity<RateContract>(e =>
         {

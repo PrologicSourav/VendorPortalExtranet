@@ -7,13 +7,14 @@ import { MOCK_DASHBOARD } from "../../services/mock-data";
 import { NotificationService } from "../../services/notification.service";
 import { ApiService } from "../../services/api.service";
 import { AuthService } from "../../services/auth.service";
+import { MoneyPipe } from "../../pipes/money.pipe";
 
 const CATALOGUE_APPROVALS_REFRESH_MS = 30000;
 
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, MoneyPipe],
   template: `
     <div class="page-header">
       <h1>{{ "dashboard.title" | translate }}</h1>
@@ -36,12 +37,12 @@ const CATALOGUE_APPROVALS_REFRESH_MS = 30000;
       </div>
       <div class="kpi-card">
         <div class="kpi-label">{{ "dashboard.kpi.outstandingAmount" | translate }}</div>
-        <div class="kpi-value">₹{{ data.outstandingAmount | number }}</div>
+        <div class="kpi-value">{{ data.outstandingAmount | money }}</div>
         <div class="kpi-sub">{{ "dashboard.kpi.outstandingAmountSub" | translate }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">{{ "dashboard.kpi.nextScheduledPayment" | translate }}</div>
-        <div class="kpi-value">₹{{ data.nextPayment.amount | number }}</div>
+        <div class="kpi-value">{{ data.nextPayment.amount | money }}</div>
         <div class="kpi-sub">{{ data.nextPayment.date }}</div>
       </div>
       <div class="kpi-card">
@@ -60,7 +61,7 @@ const CATALOGUE_APPROVALS_REFRESH_MS = 30000;
             <div class="action-info">
               <span class="po-number">{{ po.number }}</span>
               <span class="po-property">{{ po.property }}</span>
-              <span class="po-value">₹{{ po.value | number }}</span>
+              <span class="po-value">{{ po.value | money }}</span>
               <span class="po-date">{{ po.date }}</span>
             </div>
             <button

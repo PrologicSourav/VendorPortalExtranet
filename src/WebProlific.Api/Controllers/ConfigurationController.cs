@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebProlific.Api.Extensions;
+using WebProlific.Api.Services;
 using WebProlific.Core.Entities;
 using WebProlific.Infrastructure.Data;
 
@@ -11,10 +12,12 @@ namespace WebProlific.Api.Controllers;
 public class ConfigurationController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly ICurrencyConversionService _conversion;
 
-    public ConfigurationController(AppDbContext db)
+    public ConfigurationController(AppDbContext db, ICurrencyConversionService conversion)
     {
         _db = db;
+        _conversion = conversion;
     }
 
     [HttpGet("languages")]
@@ -44,6 +47,23 @@ public class ConfigurationController : ControllerBase
             })
             .ToListAsync();
         return Ok(currencies);
+    }
+
+    /// <summary>
+    /// Returns conversion rates from <paramref name="base"/> to every active currency
+    /// (base -> target). Rates come from the DB cache, falling back to a free external
+    /// feed; a target is omitted if no reliable rate is available (never faked as 1:1).
+    /// </summary>
+    [HttpGet("exchange-rates")]
+    public async Task<IActionResult> GetExchangeRates([FromQuery(Name = "base")] string baseCurrency = "INR")
+    {
+        var codes = await _db.Currencies
+            .Where(c => c.IsActive)
+            .Select(c => c.Code)
+            .ToListAsync();
+
+        var rates = await _conversion.GetRatesAsync(baseCurrency, codes);
+        return Ok(new { baseCurrency, asOf = DateTime.UtcNow, rates });
     }
 
     [HttpPut("users/{userId:guid}/preferences")]
