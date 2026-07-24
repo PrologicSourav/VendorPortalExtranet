@@ -23,7 +23,8 @@ services:
       - key: DOTNET_hostBuilder__reloadConfigOnChange
         value: "false"
 
-  - type: static
+  - type: web
+    runtime: static
     name: vendorportal-frontend
     rootDir: frontend/supplier-portal
     buildCommand: npm install && npm run build
@@ -41,7 +42,8 @@ services:
       - key: NODE_VERSION
         value: 20
 
-  - type: static
+  - type: web
+    runtime: static
     name: vendorportal-governance
     rootDir: frontend/governance-console
     buildCommand: npm install && npm run build
