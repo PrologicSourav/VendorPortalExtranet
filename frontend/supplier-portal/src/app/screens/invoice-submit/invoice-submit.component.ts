@@ -1,8 +1,10 @@
-import { Component } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { TranslatePipe } from "@ngx-translate/core";
 import { MoneyPipe } from "../../pipes/money.pipe";
+import { ApiService } from "../../services/api.service";
+import { AuthService } from "../../services/auth.service";
 
 @Component({
   selector: "app-invoice-submit",
@@ -16,10 +18,20 @@ import { MoneyPipe } from "../../pipes/money.pipe";
       </p>
     </div>
 
+    <div *ngIf="!hasVendor" class="card notice">
+      {{ "invoiceSubmit.noVendorNotice" | translate }}
+    </div>
+
     <!-- Step 1: Select PO/GRN -->
-    <div *ngIf="step === 1" class="card">
+    <div *ngIf="hasVendor && step === 1" class="card">
       <div class="card-header">{{ "invoiceSubmit.selectPo" | translate }}</div>
       <div class="card-body">
+        <div *ngIf="loading" class="notice">
+          {{ "invoiceSubmit.loading" | translate }}
+        </div>
+        <div *ngIf="!loading && deliveredPOs.length === 0" class="notice">
+          {{ "invoiceSubmit.noInvoiceablePos" | translate }}
+        </div>
         <div class="po-select-list">
           <div
             *ngFor="let po of deliveredPOs"
@@ -189,6 +201,7 @@ import { MoneyPipe } from "../../pipes/money.pipe";
               <button
                 class="btn btn-primary btn-block"
                 style="margin-top: 16px"
+                [disabled]="busy"
                 (click)="submitInvoice()"
               >
                 {{
@@ -200,8 +213,8 @@ import { MoneyPipe } from "../../pipes/money.pipe";
         </div>
       </div>
 
-      <div *ngIf="submitted" class="toast toast-success">
-        {{ "invoiceSubmit.submittedToast" | translate }}
+      <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+        {{ toast.raw ? toast.message : (toast.message | translate) }}
       </div>
     </div>
   `,
@@ -221,6 +234,11 @@ import { MoneyPipe } from "../../pipes/money.pipe";
         margin-top: 4px;
       }
 
+      .notice {
+        padding: 12px;
+        font-size: 13px;
+        color: var(--color-text-secondary);
+      }
       .po-select-list {
         display: flex;
         flex-direction: column;
@@ -386,7 +404,10 @@ import { MoneyPipe } from "../../pipes/money.pipe";
     `,
   ],
 })
-export class InvoiceSubmitComponent {
+export class InvoiceSubmitComponent implements OnInit {
+  private api = inject(ApiService);
+  private auth = inject(AuthService);
+
   step = 1;
   selectedPO: any = null;
   invoiceNumber = "";
@@ -395,41 +416,45 @@ export class InvoiceSubmitComponent {
   selectedFile = "";
   submitted = false;
 
-  deliveredPOs = [
-    {
-      id: "1",
-      poNumber: "PO-20250702-002",
-      entity: "Accor — North India",
-      property: "Novotel Mumbai",
-      deliveryDate: "Jul 10, 2025",
-      value: 49500,
-    },
-    {
-      id: "2",
-      poNumber: "PO-20250704-004",
-      entity: "Taj Hotels — West",
-      property: "Taj Palace Mumbai",
-      deliveryDate: "Jul 12, 2025",
-      value: 126000,
-    },
-  ];
+  loading = false;
+  busy = false;
+  deliveredPOs: any[] = [];
+  invoiceLines: any[] = [];
 
-  invoiceLines = [
-    {
-      item: "Sunflower Oil 15L",
-      expectedQty: 30,
-      invoicedQty: 30,
-      expectedPrice: 1650,
-      invoicedPrice: 1650,
-    },
-    {
-      item: "Basmati Rice 25kg",
-      expectedQty: 30,
-      invoicedQty: 30,
-      expectedPrice: 2800,
-      invoicedPrice: 2815,
-    },
-  ];
+  get vendorId(): string | null {
+    return this.auth.user()?.vendorId ?? null;
+  }
+  get hasVendor(): boolean {
+    return !!this.vendorId;
+  }
+
+  ngOnInit(): void {
+    const vid = this.vendorId;
+    if (!vid) return;
+    this.loading = true;
+    // Invoiceable POs = those the buyer has acknowledged or received (delivered).
+    this.api.getPurchaseOrders(vid).subscribe({
+      next: (res: any) => {
+        const items = res?.items ?? res ?? [];
+        this.deliveredPOs = items
+          .filter((p: any) => p.status === "Delivered" || p.status === "Acknowledged")
+          .map((p: any) => ({
+            id: p.id,
+            poNumber: p.poNumber,
+            entity: p.entityName ?? "—",
+            property: p.propertyName ?? "",
+            deliveryDate: p.requiredByDate
+              ? new Date(p.requiredByDate).toLocaleDateString()
+              : "",
+            value: p.totalValue,
+          }));
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      },
+    });
+  }
 
   get subtotal(): number {
     return this.invoiceLines.reduce(
@@ -471,6 +496,21 @@ export class InvoiceSubmitComponent {
 
   selectPo(po: any) {
     this.selectedPO = po;
+    // Pull the PO's line items to prefill expected qty/price for the match.
+    this.api.getPurchaseOrder(po.id).subscribe({
+      next: (d: any) => {
+        this.invoiceLines = (d?.lines ?? []).map((l: any) => ({
+          item: l.itemDescription,
+          expectedQty: l.qtyOrdered,
+          invoicedQty: l.qtyOrdered,
+          expectedPrice: l.unitPrice,
+          invoicedPrice: l.unitPrice,
+        }));
+      },
+      error: () => {
+        this.invoiceLines = [];
+      },
+    });
   }
 
   onFileSelect(event: Event) {
@@ -479,6 +519,64 @@ export class InvoiceSubmitComponent {
   }
 
   submitInvoice() {
-    this.submitted = true;
+    if (this.busy || !this.selectedPO) return;
+    if (!this.invoiceNumber.trim() || !this.invoiceDate) {
+      this.showToast("error", "invoiceSubmit.missingFields");
+      return;
+    }
+    this.busy = true;
+    const payload = {
+      vendorId: this.vendorId,
+      purchaseOrderId: this.selectedPO.id,
+      invoiceNumber: this.invoiceNumber.trim(),
+      invoiceDate: this.invoiceDate,
+      currency: this.currency,
+      subTotal: this.subtotal,
+      taxAmount: this.tax,
+      totalAmount: this.total,
+      lines: this.invoiceLines.map((l) => ({
+        itemDescription: l.item,
+        invoicedQty: l.invoicedQty,
+        invoicedUnitPrice: l.invoicedPrice,
+        expectedQty: l.expectedQty,
+        expectedUnitPrice: l.expectedPrice,
+        lineTotal: l.invoicedQty * l.invoicedPrice,
+      })),
+    };
+    this.api.createInvoice(payload).subscribe({
+      next: (created: any) => {
+        this.busy = false;
+        // Backend is authoritative on the match outcome.
+        const matched = created?.matchStatus === "Matched";
+        this.showToast(
+          "success",
+          matched
+            ? "invoiceSubmit.submittedMatched"
+            : "invoiceSubmit.submittedMismatch",
+        );
+      },
+      error: (err) => {
+        this.busy = false;
+        this.showToast("error", this.extractError(err), true);
+      },
+    });
+  }
+
+  // Toast shown at the bottom; `raw` = message is literal text, not a i18n key.
+  toast: { type: string; message: string; raw?: boolean } | null = null;
+  private showToast(type: string, message: string, raw = false) {
+    this.submitted = type === "success";
+    this.toast = { type, message, raw };
+    setTimeout(() => (this.toast = null), 3500);
+  }
+
+  private extractError(err: any): string {
+    return (
+      err?.error?.error?.message ??
+      err?.error?.error ??
+      err?.error?.message ??
+      err?.message ??
+      "Something went wrong. Please try again."
+    );
   }
 }

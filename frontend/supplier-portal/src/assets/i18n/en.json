@@ -68,6 +68,9 @@
     "emptyDesc": "You're all caught up."
   },
   "deliveryNote": {
+    "loadError": "Could not load the purchase order. Please try again.",
+    "noQtyError": "Enter a delivery quantity for at least one line.",
+    "submitError": "Could not submit the delivery note. Please try again.",
     "backToPurchaseOrders": "Back to Purchase Orders",
     "title": "Create Delivery Note",
     "againstPo": "Against PO {{poNumber}}",
@@ -188,6 +191,12 @@
     "update": "Update"
   },
   "invoiceSubmit": {
+    "noVendorNotice": "Your account isn't linked to a vendor yet, so there are no invoices to submit.",
+    "loading": "Loading purchase orders…",
+    "noInvoiceablePos": "No acknowledged or delivered purchase orders are available to invoice.",
+    "missingFields": "Please enter an invoice number and date.",
+    "submittedMatched": "Invoice submitted and matched successfully.",
+    "submittedMismatch": "Invoice submitted with a mismatch — sent to AP for review.",
     "title": "Submit Invoice",
     "subtitle": "Submit an invoice against a delivered purchase order",
     "selectPo": "Select PO to Invoice Against",
@@ -220,6 +229,9 @@
     "submittedToast": "Invoice submitted successfully"
   },
   "purchaseOrders": {
+    "noVendorNotice": "Your account isn't linked to a vendor yet, so there are no purchase orders to show.",
+    "loading": "Loading purchase orders…",
+    "retry": "Retry",
     "title": "Purchase Orders",
     "subtitle": "View and respond to purchase orders from your buying entities",
     "filterAll": "All",

@@ -27,9 +27,10 @@ public class InvoiceRepository : IInvoiceRepository
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<InvoiceStatus>(status, true, out var invStatus))
             query = query.Where(inv => inv.Status == invStatus);
 
-        return await query
-            .OrderByDescending(inv => inv.InvoiceDate)
-            .Skip((page - 1) * pageSize)
+        // Page 1 uses TOP (not OFFSET/FETCH) for SQL Server 2008 R2 compatibility.
+        var ordered = query.OrderByDescending(inv => inv.InvoiceDate);
+        IQueryable<Invoice> paged = page > 1 ? ordered.Skip((page - 1) * pageSize) : ordered;
+        return await paged
             .Take(pageSize)
             .ToListAsync();
     }

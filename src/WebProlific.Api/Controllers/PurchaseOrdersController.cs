@@ -43,9 +43,12 @@ public class PurchaseOrdersController : ControllerBase
                 po.PoNumber,
                 po.VendorId,
                 po.BuyingEntityId,
+                EntityName = po.BuyingEntity?.Name,
                 po.PropertyId,
+                PropertyName = po.Property?.Name,
                 po.OrderDate,
                 po.RequiredByDate,
+                LineCount = po.Lines?.Count ?? 0,
                 TotalValue = po.TotalValue,
                 TransactionCurrencyCode = po.Currency,
                 po.Status,
@@ -73,7 +76,9 @@ public class PurchaseOrdersController : ControllerBase
             po.PoNumber,
             po.VendorId,
             po.BuyingEntityId,
+            EntityName = po.BuyingEntity?.Name,
             po.PropertyId,
+            PropertyName = po.Property?.Name,
             po.OrderDate,
             po.RequiredByDate,
             TotalValue = po.TotalValue,
@@ -83,7 +88,17 @@ public class PurchaseOrdersController : ControllerBase
             po.CreatedAt,
             po.UpdatedAt,
             DisplayValue = displayValue,
-            DisplayCurrencyCode = displayValue.HasValue ? preferredCurrency : null
+            DisplayCurrencyCode = displayValue.HasValue ? preferredCurrency : null,
+            Lines = po.Lines.Select(l => new
+            {
+                l.Id,
+                l.ItemDescription,
+                l.QtyOrdered,
+                l.QtyAccepted,
+                l.Uom,
+                l.UnitPrice,
+                l.LineTotal
+            })
         });
     }
 

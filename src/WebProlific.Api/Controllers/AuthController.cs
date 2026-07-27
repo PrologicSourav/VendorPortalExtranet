@@ -147,6 +147,14 @@ public class AuthController : ControllerBase
             return BadRequest(new { error = "Password must be at least 6 characters" });
         }
 
+        // KYC-02: if a GSTIN is supplied at sign-up, it must be structurally valid.
+        var kycErrors = WebProlific.Core.Validation.KycValidation.ValidateIdentifiers(request.Gstin, null);
+        if (kycErrors.Count > 0)
+        {
+            _logger.LogWarning("Registration failed KYC validation: {Errors}", string.Join("; ", kycErrors));
+            return BadRequest(new { error = kycErrors[0] });
+        }
+
         // Check if email already exists
         var existing = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (existing != null)

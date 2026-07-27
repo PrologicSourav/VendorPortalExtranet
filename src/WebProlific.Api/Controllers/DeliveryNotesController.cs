@@ -31,20 +31,47 @@ public class DeliveryNotesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] DeliveryNote deliveryNote)
+    public async Task<IActionResult> Create([FromBody] CreateDeliveryNoteRequest request)
     {
+        Guid vendorId;
         if (!User.IsInternal())
         {
             var callerVendorId = User.GetVendorId();
             if (callerVendorId is null) return Forbid();
-            deliveryNote.VendorId = callerVendorId.Value;
+            vendorId = callerVendorId.Value;
+        }
+        else
+        {
+            if (request.VendorId is null || request.VendorId == Guid.Empty)
+                return BadRequest(new { error = "vendorId is required." });
+            vendorId = request.VendorId.Value;
         }
 
-        deliveryNote.Id = Guid.NewGuid();
-        deliveryNote.DeliveryNoteNumber = $"DN-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
-        deliveryNote.CreatedAt = DateTime.UtcNow;
+        var deliveryNote = new DeliveryNote
+        {
+            Id = Guid.NewGuid(),
+            VendorId = vendorId,
+            PurchaseOrderId = request.PurchaseOrderId,
+            DeliveryNoteNumber = $"DN-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}",
+            ExpectedDeliveryDate = request.ExpectedDeliveryDate,
+            TimeWindowStart = request.TimeWindowStart,
+            TimeWindowEnd = request.TimeWindowEnd,
+            Notes = request.Notes,
+            Status = DeliveryNoteStatus.Draft,
+            CreatedAt = DateTime.UtcNow,
+            Lines = (request.Lines ?? new()).Select(l => new DeliveryNoteLine
+            {
+                Id = Guid.NewGuid(),
+                ItemDescription = l.ItemDescription,
+                QtyInDelivery = l.QtyInDelivery,
+                BatchLotNumber = l.BatchLotNumber,
+                ExpiryDate = l.ExpiryDate
+            }).ToList()
+        };
+
         var created = await _dnRepo.CreateAsync(deliveryNote);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id },
+            new { created.Id, created.DeliveryNoteNumber, created.Status });
     }
 
     [HttpPut("{id:guid}/submit")]
@@ -56,6 +83,25 @@ public class DeliveryNotesController : ControllerBase
 
         dn.Status = DeliveryNoteStatus.Submitted;
         var updated = await _dnRepo.UpdateAsync(dn);
-        return Ok(updated);
+        return Ok(new { updated.Id, updated.DeliveryNoteNumber, updated.Status });
     }
+}
+
+public class CreateDeliveryNoteRequest
+{
+    public Guid? VendorId { get; set; }
+    public Guid PurchaseOrderId { get; set; }
+    public DateTime ExpectedDeliveryDate { get; set; }
+    public string? TimeWindowStart { get; set; }
+    public string? TimeWindowEnd { get; set; }
+    public string? Notes { get; set; }
+    public List<CreateDeliveryNoteLineInput>? Lines { get; set; }
+}
+
+public class CreateDeliveryNoteLineInput
+{
+    public string ItemDescription { get; set; } = string.Empty;
+    public decimal QtyInDelivery { get; set; }
+    public string? BatchLotNumber { get; set; }
+    public DateTime? ExpiryDate { get; set; }
 }

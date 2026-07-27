@@ -27,16 +27,20 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
         var query = _db.PurchaseOrders
             .Include(po => po.BuyingEntity)
             .Include(po => po.Property)
+            .Include(po => po.Lines)
             .Where(po => po.VendorId == vendorId);
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<PoStatus>(status, true, out var poStatus))
             query = query.Where(po => po.Status == poStatus);
 
-        return await query
-            .OrderByDescending(po => po.OrderDate)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var ordered = query.OrderByDescending(po => po.OrderDate);
+        // Page 1 uses TOP (SELECT TOP n) rather than OFFSET/FETCH, which the SQL
+        // Server 2008 R2 engine does not support. Deeper pages still use OFFSET
+        // (fine on SQL 2012+); the UI only ever requests page 1 today.
+        IQueryable<PurchaseOrder> paged = page > 1
+            ? ordered.Skip((page - 1) * pageSize)
+            : ordered;
+        return await paged.Take(pageSize).ToListAsync();
     }
 
     public async Task<int> GetVendorPoCountAsync(Guid vendorId, string? status)

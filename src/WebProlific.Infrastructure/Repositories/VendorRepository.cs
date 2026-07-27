@@ -67,9 +67,10 @@ public class VendorRepository : IVendorRepository
             _logger.LogDebug("Filtering by search term: {Search}", search);
         }
 
-        var vendors = await query
-            .OrderByDescending(v => v.UpdatedAt)
-            .Skip((page - 1) * pageSize)
+        // Page 1 uses TOP (not OFFSET/FETCH) for SQL Server 2008 R2 compatibility.
+        var ordered = query.OrderByDescending(v => v.UpdatedAt);
+        IQueryable<Vendor> paged = page > 1 ? ordered.Skip((page - 1) * pageSize) : ordered;
+        var vendors = await paged
             .Take(pageSize)
             .ToListAsync();
 

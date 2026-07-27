@@ -88,19 +88,50 @@ public class InvoicesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Invoice invoice)
+    public async Task<IActionResult> Create([FromBody] CreateInvoiceRequest request)
     {
+        // A supplier caller can only invoice as its own vendor; internal callers
+        // (e.g. AP) provide the vendor explicitly.
+        Guid vendorId;
         if (!User.IsInternal())
         {
             var callerVendorId = User.GetVendorId();
             if (callerVendorId is null) return Forbid();
-            invoice.VendorId = callerVendorId.Value;
+            vendorId = callerVendorId.Value;
+        }
+        else
+        {
+            if (request.VendorId is null || request.VendorId == Guid.Empty)
+                return BadRequest(new { error = "vendorId is required." });
+            vendorId = request.VendorId.Value;
         }
 
-        invoice.Id = Guid.NewGuid();
-        invoice.CreatedAt = DateTime.UtcNow;
+        var invoice = new Invoice
+        {
+            Id = Guid.NewGuid(),
+            VendorId = vendorId,
+            PurchaseOrderId = request.PurchaseOrderId,
+            InvoiceNumber = request.InvoiceNumber,
+            InvoiceDate = request.InvoiceDate,
+            Currency = string.IsNullOrWhiteSpace(request.Currency) ? "INR" : request.Currency,
+            SubTotal = request.SubTotal,
+            TaxAmount = request.TaxAmount,
+            TotalAmount = request.TotalAmount,
+            Status = InvoiceStatus.Submitted,
+            CreatedAt = DateTime.UtcNow,
+            Lines = (request.Lines ?? new()).Select(l => new InvoiceLine
+            {
+                Id = Guid.NewGuid(),
+                ItemDescription = l.ItemDescription,
+                InvoicedQty = l.InvoicedQty,
+                InvoicedUnitPrice = l.InvoicedUnitPrice,
+                ExpectedQty = l.ExpectedQty,
+                ExpectedUnitPrice = l.ExpectedUnitPrice,
+                LineTotal = l.LineTotal
+            }).ToList()
+        };
 
-        // Three-way match calculation
+        // Three-way match: invoice must not exceed the PO/GRN-derived qty or price.
         var mismatches = new List<string>();
         foreach (var line in invoice.Lines)
         {
@@ -112,9 +143,32 @@ public class InvoicesController : ControllerBase
 
         invoice.MatchStatus = mismatches.Any() ? MatchStatus.Mismatch : MatchStatus.Matched;
         invoice.MismatchReasons = mismatches.Any() ? string.Join("; ", mismatches) : null;
-        invoice.Status = InvoiceStatus.Submitted;
 
         var created = await _invRepo.CreateAsync(invoice);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id },
+            new { created.Id, created.InvoiceNumber, created.MatchStatus, created.MismatchReasons, created.Status });
     }
+}
+
+public class CreateInvoiceRequest
+{
+    public Guid? VendorId { get; set; }
+    public Guid PurchaseOrderId { get; set; }
+    public string InvoiceNumber { get; set; } = string.Empty;
+    public DateTime InvoiceDate { get; set; }
+    public string? Currency { get; set; }
+    public decimal SubTotal { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal TotalAmount { get; set; }
+    public List<CreateInvoiceLineInput>? Lines { get; set; }
+}
+
+public class CreateInvoiceLineInput
+{
+    public string ItemDescription { get; set; } = string.Empty;
+    public decimal InvoicedQty { get; set; }
+    public decimal InvoicedUnitPrice { get; set; }
+    public decimal ExpectedQty { get; set; }
+    public decimal ExpectedUnitPrice { get; set; }
+    public decimal LineTotal { get; set; }
 }

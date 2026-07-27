@@ -59,7 +59,15 @@ public class VendorsController : ControllerBase
     {
         _logger.LogInformation("Creating new vendor: {LegalName} (GSTIN: {Gstin})",
             vendor.LegalName, vendor.Gstin ?? "null");
-        
+
+        // KYC-02: reject malformed GSTIN/PAN (structure, check digit, cross-field) server-side.
+        var kycErrors = WebProlific.Core.Validation.KycValidation.ValidateIdentifiers(vendor.Gstin, vendor.Pan);
+        if (kycErrors.Count > 0)
+        {
+            _logger.LogWarning("Vendor creation failed KYC validation: {Errors}", string.Join("; ", kycErrors));
+            return BadRequest(new { error = "KYC validation failed", errors = kycErrors });
+        }
+
         if (await _vendorRepo.ExistsByGstinAsync(vendor.Gstin))
         {
             _logger.LogWarning("Vendor creation failed: GSTIN already exists: {Gstin}", vendor.Gstin);

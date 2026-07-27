@@ -68,6 +68,9 @@
     "emptyDesc": "Bạn đã cập nhật đầy đủ."
   },
   "deliveryNote": {
+    "loadError": "Không thể tải đơn đặt hàng. Vui lòng thử lại.",
+    "noQtyError": "Nhập số lượng giao cho ít nhất một dòng.",
+    "submitError": "Không thể gửi phiếu giao hàng. Vui lòng thử lại.",
     "backToPurchaseOrders": "Quay lại Đơn đặt hàng",
     "title": "Tạo phiếu giao hàng",
     "againstPo": "Đối với đơn hàng {{poNumber}}",
@@ -188,6 +191,12 @@
     "update": "Cập nhật"
   },
   "invoiceSubmit": {
+    "noVendorNotice": "Tài khoản của bạn chưa được liên kết với nhà cung cấp nên không có hóa đơn nào để gửi.",
+    "loading": "Đang tải đơn đặt hàng…",
+    "noInvoiceablePos": "Không có đơn đặt hàng đã xác nhận hoặc đã giao nào để lập hóa đơn.",
+    "missingFields": "Vui lòng nhập số hóa đơn và ngày.",
+    "submittedMatched": "Đã gửi hóa đơn và khớp thành công.",
+    "submittedMismatch": "Đã gửi hóa đơn nhưng có sai lệch — đã chuyển cho bộ phận AP xem xét.",
     "title": "Gửi hóa đơn",
     "subtitle": "Gửi hóa đơn cho một đơn đặt hàng đã giao",
     "selectPo": "Chọn đơn đặt hàng để lập hóa đơn",
@@ -220,6 +229,9 @@
     "submittedToast": "Gửi hóa đơn thành công"
   },
   "purchaseOrders": {
+    "noVendorNotice": "Tài khoản của bạn chưa được liên kết với nhà cung cấp nên không có đơn đặt hàng nào để hiển thị.",
+    "loading": "Đang tải đơn đặt hàng…",
+    "retry": "Thử lại",
     "title": "Đơn đặt hàng",
     "subtitle": "Xem và phản hồi các đơn đặt hàng từ các đơn vị mua hàng của bạn",
     "filterAll": "Tất cả",

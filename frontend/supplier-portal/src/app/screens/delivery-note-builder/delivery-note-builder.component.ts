@@ -1,8 +1,10 @@
-import { Component } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { FormsModule } from "@angular/forms";
-import { TranslatePipe } from "@ngx-translate/core";
+import { TranslatePipe, TranslateService } from "@ngx-translate/core";
+import { ApiService } from "../../services/api.service";
+import { AuthService } from "../../services/auth.service";
 
 @Component({
   selector: "app-delivery-note-builder",
@@ -16,7 +18,8 @@ import { TranslatePipe } from "@ngx-translate/core";
         >
         <h1>{{ "deliveryNote.title" | translate }}</h1>
         <p class="page-subtitle">
-          {{ "deliveryNote.againstPo" | translate: { poNumber } }} · Sofitel Delhi
+          {{ "deliveryNote.againstPo" | translate: { poNumber } }}
+          <span *ngIf="propertyName"> · {{ propertyName }}</span>
         </p>
       </div>
     </div>
@@ -138,7 +141,7 @@ import { TranslatePipe } from "@ngx-translate/core";
         <button
           class="btn btn-primary"
           (click)="submitDn()"
-          [disabled]="!deliveryDate"
+          [disabled]="!deliveryDate || busy"
         >
           {{ "deliveryNote.submit" | translate }}
         </button>
@@ -147,6 +150,7 @@ import { TranslatePipe } from "@ngx-translate/core";
       <div *ngIf="submitted" class="success-banner">
         ✅ {{ "deliveryNote.successBanner" | translate }}
       </div>
+      <div *ngIf="errorMsg" class="error-banner">⚠️ {{ errorMsg }}</div>
     </div>
   `,
   styles: [
@@ -226,6 +230,15 @@ import { TranslatePipe } from "@ngx-translate/core";
         color: var(--color-success-soft-text);
         font-weight: 500;
       }
+      .error-banner {
+        margin-top: 16px;
+        padding: 16px;
+        background: var(--color-error-soft-bg);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--color-error-soft-text);
+        font-weight: 500;
+      }
       .time-window {
         display: flex;
         gap: 8px;
@@ -259,31 +272,53 @@ import { TranslatePipe } from "@ngx-translate/core";
     `,
   ],
 })
-export class DeliveryNoteBuilderComponent {
-  poNumber = "PO-20250701-001";
+export class DeliveryNoteBuilderComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private api = inject(ApiService);
+  private auth = inject(AuthService);
+  private translate = inject(TranslateService);
+
+  poId = "";
+  poNumber = "";
+  propertyName = "";
   deliveryDate = "";
   timeStart = "";
   timeEnd = "";
   selectedFile = "";
   submitted = false;
+  busy = false;
+  errorMsg: string | null = null;
 
-  lines = [
-    {
-      item: "Basmati Rice 25kg",
-      orderedQty: 30,
-      deliveredSoFar: 0,
-      qtyInDelivery: 0,
-      batchLot: "",
-      expiryDate: "",
-    },
-  ];
+  lines: any[] = [];
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {
+  ngOnInit(): void {
     this.route.params.subscribe((p) => {
-      if (p["poId"]) this.poNumber = "PO-" + p["poId"].substring(0, 8);
+      this.poId = p["poId"];
+      if (this.poId) this.loadPo();
+    });
+  }
+
+  private loadPo(): void {
+    this.api.getPurchaseOrder(this.poId).subscribe({
+      next: (po: any) => {
+        this.poNumber = po?.poNumber ?? "PO-" + this.poId.substring(0, 8);
+        this.propertyName = po?.propertyName ?? "";
+        this.lines = (po?.lines ?? []).map((l: any) => {
+          const remaining = (l.qtyOrdered ?? 0) - (l.qtyDelivered ?? 0);
+          return {
+            item: l.itemDescription,
+            orderedQty: l.qtyOrdered,
+            deliveredSoFar: l.qtyDelivered ?? 0,
+            qtyInDelivery: remaining > 0 ? remaining : 0,
+            batchLot: "",
+            expiryDate: "",
+          };
+        });
+      },
+      error: () => {
+        this.errorMsg = this.translate.instant("deliveryNote.loadError");
+      },
     });
   }
 
@@ -295,6 +330,52 @@ export class DeliveryNoteBuilderComponent {
   }
 
   submitDn() {
-    this.submitted = true;
+    if (this.busy || !this.deliveryDate) return;
+    const dnLines = this.lines
+      .filter((l) => l.qtyInDelivery > 0)
+      .map((l) => ({
+        itemDescription: l.item,
+        qtyInDelivery: l.qtyInDelivery,
+        batchLotNumber: l.batchLot || null,
+        expiryDate: l.expiryDate || null,
+      }));
+    if (dnLines.length === 0) {
+      this.errorMsg = this.translate.instant("deliveryNote.noQtyError");
+      return;
+    }
+    this.busy = true;
+    this.errorMsg = null;
+    const payload = {
+      vendorId: this.auth.user()?.vendorId ?? null,
+      purchaseOrderId: this.poId,
+      expectedDeliveryDate: this.deliveryDate,
+      timeWindowStart: this.timeStart || null,
+      timeWindowEnd: this.timeEnd || null,
+      lines: dnLines,
+    };
+    // Create the draft ASN, then submit it as a pending receipt.
+    this.api.createDeliveryNote(payload).subscribe({
+      next: (created: any) => {
+        this.api.submitDeliveryNote(created.id).subscribe({
+          next: () => {
+            this.busy = false;
+            this.submitted = true;
+            setTimeout(() => this.router.navigate(["/purchase-orders"]), 1500);
+          },
+          error: (err) => this.onError(err),
+        });
+      },
+      error: (err) => this.onError(err),
+    });
+  }
+
+  private onError(err: any) {
+    this.busy = false;
+    this.errorMsg =
+      err?.error?.error?.message ??
+      err?.error?.error ??
+      err?.error?.message ??
+      err?.message ??
+      this.translate.instant("deliveryNote.submitError");
   }
 }

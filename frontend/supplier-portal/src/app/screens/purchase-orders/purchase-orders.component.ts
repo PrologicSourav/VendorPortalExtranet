@@ -1,9 +1,11 @@
-import { Component } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router, RouterModule } from "@angular/router";
 import { TranslatePipe } from "@ngx-translate/core";
 import { MoneyPipe } from "../../pipes/money.pipe";
+import { ApiService } from "../../services/api.service";
+import { AuthService } from "../../services/auth.service";
 
 @Component({
   selector: "app-purchase-orders",
@@ -17,8 +19,22 @@ import { MoneyPipe } from "../../pipes/money.pipe";
       </p>
     </div>
 
+    <!-- No vendor / loading / error notices -->
+    <div *ngIf="!hasVendor" class="card notice">
+      {{ "purchaseOrders.noVendorNotice" | translate }}
+    </div>
+    <div *ngIf="hasVendor && loading" class="card notice">
+      {{ "purchaseOrders.loading" | translate }}
+    </div>
+    <div *ngIf="hasVendor && loadError" class="card notice error">
+      {{ loadError }}
+      <button class="btn btn-sm" (click)="load()">
+        {{ "purchaseOrders.retry" | translate }}
+      </button>
+    </div>
+
     <!-- Status Filter Chips -->
-    <div class="filter-bar">
+    <div class="filter-bar" *ngIf="hasVendor && !loading && !loadError">
       <div class="filter-chips">
         <button
           *ngFor="let f of filters"
@@ -38,7 +54,7 @@ import { MoneyPipe } from "../../pipes/money.pipe";
     </div>
 
     <!-- PO Table -->
-    <div class="card">
+    <div class="card" *ngIf="hasVendor && !loading && !loadError">
       <div class="table-wrap">
         <table class="data-table">
           <thead>
@@ -62,8 +78,8 @@ import { MoneyPipe } from "../../pipes/money.pipe";
                 <code>{{ po.poNumber }}</code>
               </td>
               <td>{{ po.entity }}</td>
-              <td>{{ po.orderDate }}</td>
-              <td>{{ po.requiredBy }}</td>
+              <td>{{ po.orderDate | date: "mediumDate" }}</td>
+              <td>{{ po.requiredBy | date: "mediumDate" }}</td>
               <td>{{ po.lines }}</td>
               <td>{{ po.value | money }}</td>
               <td>
@@ -97,8 +113,8 @@ import { MoneyPipe } from "../../pipes/money.pipe";
 
         <div class="drawer-body">
           <div class="po-meta">
-            <div><strong>{{ "purchaseOrders.orderDate" | translate }}:</strong> {{ selectedPO.orderDate }}</div>
-            <div><strong>{{ "purchaseOrders.requiredBy" | translate }}:</strong> {{ selectedPO.requiredBy }}</div>
+            <div><strong>{{ "purchaseOrders.orderDate" | translate }}:</strong> {{ selectedPO.orderDate | date: "mediumDate" }}</div>
+            <div><strong>{{ "purchaseOrders.requiredBy" | translate }}:</strong> {{ selectedPO.requiredBy | date: "mediumDate" }}</div>
             <div>
               <strong>{{ "purchaseOrders.totalValue" | translate }}:</strong> {{ selectedPO.value | money }}
             </div>
@@ -242,6 +258,18 @@ import { MoneyPipe } from "../../pipes/money.pipe";
         font-size: 13px;
         color: var(--color-text-secondary);
         margin-top: 4px;
+      }
+      .notice {
+        padding: 16px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .notice.error {
+        color: var(--color-error);
       }
       .filter-bar {
         display: flex;
@@ -420,7 +448,10 @@ import { MoneyPipe } from "../../pipes/money.pipe";
     `,
   ],
 })
-export class PurchaseOrdersComponent {
+export class PurchaseOrdersComponent implements OnInit {
+  private api = inject(ApiService);
+  private auth = inject(AuthService);
+
   searchTerm = "";
   statusFilter = "";
   selectedPO: any = null;
@@ -431,6 +462,11 @@ export class PurchaseOrdersComponent {
   unableReason = "";
   toast: any = null;
 
+  loading = false;
+  loadError: string | null = null;
+  busy = false;
+  pos: any[] = [];
+
   filters = [
     { label: "purchaseOrders.filterAll", value: "" },
     { label: "purchaseOrders.filterNew", value: "New" },
@@ -438,88 +474,49 @@ export class PurchaseOrdersComponent {
     { label: "purchaseOrders.filterDelivered", value: "Delivered" },
   ];
 
-  pos = [
-    {
-      id: "1",
-      poNumber: "PO-20250701-001",
-      entity: "Accor — North India",
-      property: "Sofitel Delhi",
-      orderDate: "Jul 1, 2025",
-      requiredBy: "Jul 15, 2025",
-      lines: 1,
-      value: 84000,
-      status: "New",
-      lineItems: [
-        {
-          item: "Basmati Rice 25kg",
-          qty: 30,
-          uom: "Kg",
-          unitPrice: 2800,
-          lineTotal: 84000,
-        },
-      ],
-    },
-    {
-      id: "2",
-      poNumber: "PO-20250702-002",
-      entity: "Accor — North India",
-      property: "Novotel Mumbai",
-      orderDate: "Jul 2, 2025",
-      requiredBy: "Jul 18, 2025",
-      lines: 1,
-      value: 49500,
-      status: "Acknowledged",
-      lineItems: [
-        {
-          item: "Sunflower Oil 15L",
-          qty: 30,
-          uom: "Litre",
-          unitPrice: 1650,
-          lineTotal: 49500,
-        },
-      ],
-    },
-    {
-      id: "3",
-      poNumber: "PO-20250703-003",
-      entity: "Accor — North India",
-      property: "Sofitel Delhi",
-      orderDate: "Jul 3, 2025",
-      requiredBy: "Jul 20, 2025",
-      lines: 1,
-      value: 28000,
-      status: "New",
-      lineItems: [
-        {
-          item: "Floor Cleaner 5L",
-          qty: 80,
-          uom: "Litre",
-          unitPrice: 350,
-          lineTotal: 28000,
-        },
-      ],
-    },
-    {
-      id: "4",
-      poNumber: "PO-20250704-004",
-      entity: "Taj Hotels — West",
-      property: "Taj Palace Mumbai",
-      orderDate: "Jul 4, 2025",
-      requiredBy: "Jul 22, 2025",
-      lines: 1,
-      value: 126000,
-      status: "Delivered",
-      lineItems: [
-        {
-          item: "Tomato Ketchup 1kg",
-          qty: 700,
-          uom: "Kg",
-          unitPrice: 180,
-          lineTotal: 126000,
-        },
-      ],
-    },
-  ];
+  get vendorId(): string | null {
+    return this.auth.user()?.vendorId ?? null;
+  }
+  get hasVendor(): boolean {
+    return !!this.vendorId;
+  }
+
+  ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    const vid = this.vendorId;
+    if (!vid) return;
+    this.loading = true;
+    this.loadError = null;
+    this.api.getPurchaseOrders(vid).subscribe({
+      next: (res: any) => {
+        const items = res?.items ?? res ?? [];
+        this.pos = items.map((p: any) => this.mapPo(p));
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        this.loadError = this.extractError(err);
+      },
+    });
+  }
+
+  private mapPo(p: any) {
+    return {
+      id: p.id,
+      poNumber: p.poNumber,
+      entity: p.entityName ?? "—",
+      property: p.propertyName ?? "",
+      orderDate: p.orderDate,
+      requiredBy: p.requiredByDate,
+      lines: p.lineCount ?? 0,
+      value: p.totalValue,
+      status: p.status,
+      lineItems: [] as any[],
+    };
+  }
 
   get filteredPOs() {
     return this.pos.filter(
@@ -535,8 +532,8 @@ export class PurchaseOrdersComponent {
       New: "badge-info",
       Acknowledged: "badge-success",
       Delivered: "badge-muted",
-      "Partially accepted": "badge-warning",
-      "Unable to supply": "badge-error",
+      PartiallyAccepted: "badge-warning",
+      UnableToSupply: "badge-error",
     };
     return map[status] || "badge-muted";
   }
@@ -546,34 +543,108 @@ export class PurchaseOrdersComponent {
       New: "purchaseOrders.statusNew",
       Acknowledged: "purchaseOrders.statusAcknowledged",
       Delivered: "purchaseOrders.statusDelivered",
-      "Partially accepted": "purchaseOrders.statusPartiallyAccepted",
-      "Unable to supply": "purchaseOrders.statusUnableToSupply",
+      PartiallyAccepted: "purchaseOrders.statusPartiallyAccepted",
+      UnableToSupply: "purchaseOrders.statusUnableToSupply",
     };
     return map[status] || status;
   }
 
   openDetail(po: any) {
     this.selectedPO = po;
-    this.acceptedQtys = po.lineItems.map((l: any) => l.qty);
-    this.acceptReasons = po.lineItems.map(() => "");
+    this.showPartialDialog = false;
+    this.showUnableDialog = false;
+    // Fetch full detail (incl. line items) for the drawer.
+    this.api.getPurchaseOrder(po.id).subscribe({
+      next: (d: any) => {
+        const lineItems = (d?.lines ?? []).map((l: any) => ({
+          id: l.id,
+          item: l.itemDescription,
+          qty: l.qtyOrdered,
+          uom: l.uom,
+          unitPrice: l.unitPrice,
+          lineTotal: l.lineTotal,
+        }));
+        this.selectedPO = { ...po, lineItems };
+        this.acceptedQtys = lineItems.map((l: any) => l.qty);
+        this.acceptReasons = lineItems.map(() => "");
+      },
+      error: () => {
+        this.selectedPO = { ...po, lineItems: [] };
+      },
+    });
   }
 
   acknowledgePo() {
-    this.selectedPO.status = "Acknowledged";
-    this.showToast("success", "purchaseOrders.toastAcknowledged");
-    setTimeout(() => (this.selectedPO = null), 1500);
+    if (!this.selectedPO || this.busy) return;
+    this.busy = true;
+    this.api.acknowledgePo(this.selectedPO.id).subscribe({
+      next: () => {
+        this.onActionDone("Acknowledged", "purchaseOrders.toastAcknowledged");
+        setTimeout(() => (this.selectedPO = null), 1200);
+      },
+      error: (err) => this.onActionError(err),
+    });
   }
 
   confirmPartial() {
-    this.selectedPO.status = "Partially accepted";
-    this.showPartialDialog = false;
-    this.showToast("success", "purchaseOrders.toastPartialConfirmed");
+    if (!this.selectedPO || this.busy) return;
+    this.busy = true;
+    const lines = (this.selectedPO.lineItems ?? []).map((l: any, i: number) => ({
+      lineId: l.id,
+      acceptedQty: this.acceptedQtys[i],
+      reason: this.acceptReasons[i] || null,
+    }));
+    this.api.partialAcceptPo(this.selectedPO.id, lines).subscribe({
+      next: () => {
+        this.showPartialDialog = false;
+        this.onActionDone(
+          "PartiallyAccepted",
+          "purchaseOrders.toastPartialConfirmed",
+        );
+      },
+      error: (err) => this.onActionError(err),
+    });
   }
 
   confirmUnable() {
-    this.selectedPO.status = "Unable to supply";
-    this.showUnableDialog = false;
-    this.showToast("success", "purchaseOrders.toastUnableRecorded");
+    if (!this.selectedPO || this.busy) return;
+    this.busy = true;
+    this.api
+      .unableToSupplyPo(this.selectedPO.id, this.unableReason)
+      .subscribe({
+        next: () => {
+          this.showUnableDialog = false;
+          this.onActionDone(
+            "UnableToSupply",
+            "purchaseOrders.toastUnableRecorded",
+          );
+        },
+        error: (err) => this.onActionError(err),
+      });
+  }
+
+  private onActionDone(newStatus: string, messageKey: string) {
+    this.busy = false;
+    if (this.selectedPO) this.selectedPO.status = newStatus;
+    // reflect in the list too
+    const row = this.pos.find((p) => p.id === this.selectedPO?.id);
+    if (row) row.status = newStatus;
+    this.showToast("success", messageKey);
+  }
+
+  private onActionError(err: any) {
+    this.busy = false;
+    this.showToast("error", this.extractError(err));
+  }
+
+  private extractError(err: any): string {
+    return (
+      err?.error?.error?.message ??
+      err?.error?.error ??
+      err?.error?.message ??
+      err?.message ??
+      "Something went wrong. Please try again."
+    );
   }
 
   showToast(type: string, message: string) {
