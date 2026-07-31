@@ -5,6 +5,7 @@ import { DashboardComponent } from "./screens/dashboard/dashboard.component";
 import { CatalogueComponent } from "./screens/catalogue/catalogue.component";
 import { PurchaseOrdersComponent } from "./screens/purchase-orders/purchase-orders.component";
 import { DeliveryNoteBuilderComponent } from "./screens/delivery-note-builder/delivery-note-builder.component";
+import { DeliveryNotesComponent } from "./screens/delivery-notes/delivery-notes.component";
 import { InvoiceSubmitComponent } from "./screens/invoice-submit/invoice-submit.component";
 import { AccountComponent } from "./screens/account/account.component";
 import { NotificationsComponent } from "./screens/notifications/notifications.component";
@@ -20,6 +21,7 @@ export const routes: Routes = [
       { path: "dashboard", component: DashboardComponent },
       { path: "catalogue", component: CatalogueComponent },
       { path: "purchase-orders", component: PurchaseOrdersComponent },
+      { path: "delivery-notes", component: DeliveryNotesComponent },
       {
         path: "purchase-orders/:poId/delivery-note",
         component: DeliveryNoteBuilderComponent,

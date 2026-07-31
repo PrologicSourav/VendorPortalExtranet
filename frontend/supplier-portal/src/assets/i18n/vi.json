@@ -21,10 +21,25 @@
     "dashboard": "Bảng điều khiển",
     "catalogue": "Danh mục",
     "purchaseOrders": "Đơn đặt hàng",
+    "deliveryNotes": "Phiếu giao hàng",
     "invoices": "Hóa đơn",
     "account": "Tài khoản",
+    "companyProfile": "Hồ sơ công ty",
     "notifications": "Thông báo",
     "logout": "Đăng xuất"
+  },
+  "deliveryNotes": {
+    "title": "Phiếu giao hàng",
+    "subtitle": "Lập phiếu giao hàng (ASN) cho một đơn đặt hàng đã xác nhận",
+    "noVendorNotice": "Tài khoản của bạn chưa được liên kết với nhà cung cấp.",
+    "loading": "Đang tải đơn đặt hàng…",
+    "poNumber": "Số PO",
+    "entity": "Đơn vị mua",
+    "requiredBy": "Cần trước",
+    "status": "Trạng thái",
+    "raise": "Lập phiếu giao hàng",
+    "emptyTitle": "Không có gì để giao",
+    "emptyDesc": "Hãy xác nhận một đơn đặt hàng trước, rồi lập phiếu giao hàng tại đây."
   },
   "dashboard": {
     "title": "Bảng điều khiển",

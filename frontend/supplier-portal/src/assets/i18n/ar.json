@@ -21,10 +21,25 @@
     "dashboard": "لوحة التحكم",
     "catalogue": "الفهرس",
     "purchaseOrders": "طلبات الشراء",
+    "deliveryNotes": "إشعارات التسليم",
     "invoices": "الفواتير",
     "account": "الحساب",
+    "companyProfile": "ملف الشركة",
     "notifications": "الإشعارات",
     "logout": "تسجيل الخروج"
+  },
+  "deliveryNotes": {
+    "title": "إشعارات التسليم",
+    "subtitle": "أصدر إشعار تسليم مقابل أمر شراء مؤكَّد",
+    "noVendorNotice": "حسابك غير مرتبط بمورّد بعد.",
+    "loading": "جارٍ تحميل أوامر الشراء…",
+    "poNumber": "رقم أمر الشراء",
+    "entity": "جهة الشراء",
+    "requiredBy": "مطلوب بحلول",
+    "status": "الحالة",
+    "raise": "إصدار إشعار تسليم",
+    "emptyTitle": "لا يوجد ما يُسلَّم",
+    "emptyDesc": "قم بتأكيد أمر شراء أولاً، ثم أصدر إشعار التسليم الخاص به هنا."
   },
   "dashboard": {
     "title": "لوحة التحكم",

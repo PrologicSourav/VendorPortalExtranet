@@ -137,6 +137,14 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
           {{ "nav.purchaseOrders" | translate }}
         </a>
         <a
+          routerLink="/delivery-notes"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">🚚</span> {{ "nav.deliveryNotes" | translate }}
+        </a>
+        <a
           routerLink="/invoices"
           routerLinkActive="active"
           class="nav-item"
@@ -146,11 +154,20 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
         </a>
         <a
           routerLink="/account"
+          [queryParams]="{ tab: 'statement' }"
           routerLinkActive="active"
           class="nav-item"
           (click)="sidebarOpen = false"
         >
           <span class="nav-icon">🏦</span> {{ "nav.account" | translate }}
+        </a>
+        <a
+          routerLink="/account"
+          [queryParams]="{ tab: 'profile' }"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">🏢</span> {{ "nav.companyProfile" | translate }}
         </a>
         <a
           routerLink="/notifications"

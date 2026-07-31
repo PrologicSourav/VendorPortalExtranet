@@ -21,6 +21,19 @@ const TYPE_MAP: Record<number, string> = {
   3: "catalogue",
 };
 
+/**
+ * Notification text stores bare amounts ("84,000", "15/kg"). Prefix the currency
+ * symbol so amounts read correctly, without touching PO codes or dates:
+ *  - comma-grouped numbers (1,234 / 84,000) — clearly monetary
+ *  - per-unit rates (15/kg, 20/unit)
+ */
+function withCurrency(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/(?<![\w./-])(\d{1,3}(?:,\d{3})+(?:\.\d+)?)/g, "₹$1")
+    .replace(/(?<![\w.,/-])(\d+(?:\.\d+)?)(\s*\/\s*(?:kg|g|l|ml|unit|pc|pcs|nos))/gi, "₹$1$2");
+}
+
 function mapBackendNotification(n: any): AppNotification {
   const created = new Date(n.createdAt);
   const diffMs = Date.now() - created.getTime();
@@ -35,8 +48,8 @@ function mapBackendNotification(n: any): AppNotification {
   return {
     id: n.id,
     type: TYPE_MAP[n.type] ?? "po",
-    title: n.title,
-    detail: n.detail ?? "",
+    title: withCurrency(n.title ?? ""),
+    detail: withCurrency(n.detail ?? ""),
     time,
     unread: !n.isRead,
     targetScreen: n.targetScreen ?? undefined,

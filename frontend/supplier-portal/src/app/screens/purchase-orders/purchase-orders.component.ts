@@ -324,7 +324,9 @@ import { AuthService } from "../../services/auth.service";
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.4);
-        z-index: 100;
+        /* Above the fixed topbar (z-index 200) so the drawer header — PO number,
+           status badge and close button — isn't clipped behind it. */
+        z-index: 300;
         display: flex;
         justify-content: flex-end;
       }
@@ -343,6 +345,10 @@ import { AuthService } from "../../services/auth.service";
         display: flex;
         align-items: flex-start;
         gap: 12px;
+        position: sticky;
+        top: 0;
+        background: var(--color-surface);
+        z-index: 1;
         h2 {
           font-size: 18px;
           font-weight: 700;
@@ -351,6 +357,14 @@ import { AuthService } from "../../services/auth.service";
           font-size: 13px;
           color: var(--color-text-secondary);
         }
+      }
+      /* Title block grows so the status badge + close button sit at the right. */
+      .drawer-header > div:first-child {
+        flex: 1;
+      }
+      .drawer-header .btn-sm {
+        font-size: 16px;
+        line-height: 1;
       }
       .drawer-body {
         padding: 20px;

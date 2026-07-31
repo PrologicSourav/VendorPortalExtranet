@@ -236,6 +236,10 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                 placeholder="25kg"
               />
             </div>
+          </div>
+
+          <!-- Rate: price, currency and tax class together on one row -->
+          <div class="form-row rate-row">
             <div class="form-group">
               <label>{{ "catalogue.priceInr" | translate }}</label>
               <input
@@ -256,6 +260,19 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                 <option value="AED">AED</option>
               </select>
             </div>
+            <div class="form-group">
+              <label>{{ "catalogue.taxClass" | translate }}</label>
+              <select class="form-control" [(ngModel)]="formData.taxClass">
+                <option value="GST-5">GST 5%</option>
+                <option value="GST-12">GST 12%</option>
+                <option value="GST-18">GST 18%</option>
+                <option value="GST-0">GST 0%</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Validity: from and to on one row -->
+          <div class="form-row date-row">
             <div class="form-group">
               <label>{{ "catalogue.validFrom" | translate }}</label>
               <input
@@ -280,15 +297,6 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                 class="field-error"
                 >{{ "catalogue.validToValidation" | translate }}</span
               >
-            </div>
-            <div class="form-group">
-              <label>{{ "catalogue.taxClass" | translate }}</label>
-              <select class="form-control" [(ngModel)]="formData.taxClass">
-                <option value="GST-5">GST 5%</option>
-                <option value="GST-12">GST 12%</option>
-                <option value="GST-18">GST 18%</option>
-                <option value="GST-0">GST 0%</option>
-              </select>
             </div>
           </div>
           <p class="form-note">
@@ -420,6 +428,23 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 16px;
+      }
+      .form-row {
+        display: grid;
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .rate-row {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+      .date-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      @media (max-width: 640px) {
+        .rate-row,
+        .date-row {
+          grid-template-columns: 1fr;
+        }
       }
       .field-error {
         color: var(--color-error);

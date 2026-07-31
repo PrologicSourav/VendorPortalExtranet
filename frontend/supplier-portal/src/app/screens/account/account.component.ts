@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { TranslatePipe, TranslateService } from "@ngx-translate/core";
+import { ActivatedRoute } from "@angular/router";
 import { ApiService } from "../../services/api.service";
 import { AuthService } from "../../services/auth.service";
 import { CurrencyService } from "../../services/currency.service";
@@ -400,6 +401,7 @@ export class AccountComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
   private currency = inject(CurrencyService);
+  private route = inject(ActivatedRoute);
 
   activeTab = "profile";
 
@@ -426,6 +428,12 @@ export class AccountComponent implements OnInit {
   toast: { type: string; key: string } | null = null;
 
   ngOnInit(): void {
+    // Open the tab requested by the nav link (Company Profile vs Account/statement).
+    const validTabs = ["profile", "invoices", "payments", "statement"];
+    this.route.queryParams.subscribe((q) => {
+      if (q["tab"] && validTabs.includes(q["tab"])) this.activeTab = q["tab"];
+    });
+
     const vendorId = this.auth.user()?.vendorId;
     if (!vendorId) {
       this.profileLoading = false;

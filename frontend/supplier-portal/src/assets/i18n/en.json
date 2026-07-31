@@ -21,10 +21,25 @@
     "dashboard": "Dashboard",
     "catalogue": "Catalogue",
     "purchaseOrders": "Purchase Orders",
+    "deliveryNotes": "Delivery Notes",
     "invoices": "Invoices",
     "account": "Account",
+    "companyProfile": "Company Profile",
     "notifications": "Notifications",
     "logout": "Logout"
+  },
+  "deliveryNotes": {
+    "title": "Delivery Notes",
+    "subtitle": "Raise a delivery note (ASN) against an acknowledged purchase order",
+    "noVendorNotice": "Your account isn't linked to a vendor yet.",
+    "loading": "Loading purchase orders…",
+    "poNumber": "PO Number",
+    "entity": "Buying Entity",
+    "requiredBy": "Required By",
+    "status": "Status",
+    "raise": "Raise Delivery Note",
+    "emptyTitle": "Nothing to deliver against",
+    "emptyDesc": "Acknowledge a purchase order first, then raise its delivery note here."
   },
   "dashboard": {
     "title": "Dashboard",
