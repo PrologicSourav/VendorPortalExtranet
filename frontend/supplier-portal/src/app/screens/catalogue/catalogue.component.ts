@@ -11,6 +11,7 @@ import { MoneyPipe } from "../../pipes/money.pipe";
 import {
   normalizeForMatch,
   descriptionSimilarity,
+  DESCRIPTION_SIMILARITY_THRESHOLD,
 } from "../../utils/text-similarity";
 import {
   CatalogueExcelRow,
@@ -582,8 +583,6 @@ export class CatalogueComponent implements OnInit {
     );
   }
 
-  readonly DESCRIPTION_SIMILARITY_THRESHOLD = 0.8;
-
   /** The closest existing description that is *similar but not identical* to the
    *  current one (fuzzy bigram match) — used to warn about a probable duplicate
    *  like "Premium Basmati Rice 25kg" vs "Basmati Rice 25kg". Null if none. */
@@ -595,7 +594,7 @@ export class CatalogueComponent implements OnInit {
       if (l === this.editingLine) continue;
       const score = descriptionSimilarity(this.formData.description, l.description);
       if (
-        score >= this.DESCRIPTION_SIMILARITY_THRESHOLD &&
+        score >= DESCRIPTION_SIMILARITY_THRESHOLD &&
         (!best || score > best.score)
       ) {
         best = { text: l.description, score };

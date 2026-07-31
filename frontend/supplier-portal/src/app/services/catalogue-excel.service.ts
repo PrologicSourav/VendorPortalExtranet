@@ -2,11 +2,8 @@ import { Injectable } from "@angular/core";
 import {
   normalizeForMatch,
   descriptionSimilarity,
+  DESCRIPTION_SIMILARITY_THRESHOLD,
 } from "../utils/text-similarity";
-
-/** A description at/above this fuzzy similarity to an existing/earlier one is
- *  flagged as a probable (non-blocking) duplicate. */
-const DESCRIPTION_SIMILARITY_THRESHOLD = 0.8;
 // Type-only import: contributes zero runtime bytes to the main bundle.
 // The real module is loaded on demand (see loadExcelJS()) so the ~320KB
 // exceljs library only downloads when a user actually opens the upload modal.
