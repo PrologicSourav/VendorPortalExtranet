@@ -3,11 +3,12 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { TranslatePipe } from "@ngx-translate/core";
 import { NotificationService } from "../../services/notification.service";
+import { AmountsToCurrencyPipe } from "../../pipes/amounts-to-currency.pipe";
 
 @Component({
   selector: "app-notifications",
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe, AmountsToCurrencyPipe],
   template: `
     <div class="page-header">
       <h1>{{ "notifications.title" | translate }}</h1>
@@ -51,8 +52,8 @@ import { NotificationService } from "../../services/notification.service";
             getIcon(n.type)
           }}</span>
           <div class="notif-body">
-            <div class="notif-title">{{ n.title }}</div>
-            <div class="notif-detail">{{ n.detail }}</div>
+            <div class="notif-title">{{ n.title | amountsToCurrency }}</div>
+            <div class="notif-detail">{{ n.detail | amountsToCurrency }}</div>
           </div>
           <span class="notif-time">{{ n.time }}</span>
           <span *ngIf="n.unread" class="unread-dot"></span>
