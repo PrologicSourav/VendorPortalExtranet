@@ -1,6 +1,8 @@
-import { Component } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { HttpErrorResponse } from "@angular/common/http";
+import { GovApiService } from "../../services/gov-api.service";
 
 @Component({
   selector: "app-kyc-review",
@@ -21,7 +23,7 @@ import { FormsModule } from "@angular/forms";
         [class.active]="tab === 'pending'"
         (click)="tab = 'pending'"
       >
-        Pending <span class="count-badge">4</span>
+        Pending <span class="count-badge">{{ pendingCount }}</span>
       </div>
       <div
         class="tab"
@@ -46,15 +48,15 @@ import { FormsModule } from "@angular/forms";
     <div class="kpi-grid" style="margin-top: 16px">
       <div class="kpi-card" style="border-left: 4px solid var(--color-warning)">
         <div class="kpi-label">Pending Review</div>
-        <div class="kpi-value">4</div>
+        <div class="kpi-value">{{ pendingCount }}</div>
       </div>
       <div class="kpi-card" style="border-left: 4px solid var(--color-success)">
-        <div class="kpi-label">Validated This Month</div>
-        <div class="kpi-value">12</div>
+        <div class="kpi-label">Validated</div>
+        <div class="kpi-value">{{ validatedCount }}</div>
       </div>
       <div class="kpi-card" style="border-left: 4px solid var(--color-error)">
         <div class="kpi-label">Blocked</div>
-        <div class="kpi-value">2</div>
+        <div class="kpi-value">{{ blockedCount }}</div>
       </div>
     </div>
 
@@ -319,68 +321,67 @@ import { FormsModule } from "@angular/forms";
     `,
   ],
 })
-export class KycReviewComponent {
+export class KycReviewComponent implements OnInit {
+  private api = inject(GovApiService);
+
   tab = "pending";
   selectedVendor: any = null;
   toast: any = null;
+  vendors: any[] = [];
+  busy = false;
 
-  vendors = [
-    {
-      id: 1,
-      name: "Mumbai Fresh Foods",
-      contact: "Rajesh Kumar",
-      gstin: "27AAACM1234A1Z5",
-      city: "Mumbai",
-      submittedBy: "Sanjay M",
-      entity: "Accor — North India",
-      status: "Pending",
-      panMatch: true,
-    },
-    {
-      id: 2,
-      name: "Green Valley Farms",
-      contact: "Priya Nair",
-      gstin: "29AABCG5678B1Z3",
-      city: "Bangalore",
-      submittedBy: "Sanjay M",
-      entity: "Accor — North India",
-      status: "Pending",
-      panMatch: true,
-    },
-    {
-      id: 3,
-      name: "Delhi Spice Traders",
-      contact: "Amit Sharma",
-      gstin: "07AADCD9012C1Z1",
-      city: "Delhi",
-      submittedBy: "Anita D",
-      entity: "Taj Hotels — West",
-      status: "Pending",
-      panMatch: false,
-    },
-    {
-      id: 4,
-      name: "Coastal Seafood Exports",
-      contact: "Meera Rao",
-      gstin: "29AABCM3456D1Z7",
-      city: "Mangalore",
-      submittedBy: "Sanjay M",
-      entity: "Accor — North India",
-      status: "Pending",
-      panMatch: true,
-    },
-    {
-      id: 5,
-      name: "Apex Chemical Supplies",
-      contact: "Vikram Patel",
-      gstin: "24AABCA7890E1Z5",
-      city: "Ahmedabad",
-      submittedBy: "Anita D",
-      entity: "Taj Hotels — West",
-      status: "Validated",
-      panMatch: true,
-    },
-  ];
+  ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    // Full vendor master, so the pending/validated/blocked/all tabs all work.
+    this.api.getVendors().subscribe({
+      next: (res) => {
+        this.vendors = (res?.items ?? []).map((v) => ({
+          id: v.id,
+          name: v.legalName,
+          contact: v.contactEmail || v.contactPhone || "—",
+          gstin: v.gstin || "—",
+          city: v.city || "—",
+          submittedBy: "—",
+          entity: "—",
+          status: this.mapKyc(v.kycStatus),
+          panMatch: true,
+        }));
+      },
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 401 || err.status === 403)
+          this.showToast("error", "Authentication required — open from the host app.");
+        else this.showToast("error", "Could not load vendors.");
+      },
+    });
+  }
+
+  private mapKyc(kycStatus: string): string {
+    switch (kycStatus) {
+      case "Incomplete":
+        return "Pending";
+      case "Validated":
+        return "Validated";
+      case "Blocked":
+        return "Blocked";
+      case "Expired":
+        return "Expired";
+      default:
+        return kycStatus;
+    }
+  }
+
+  get pendingCount(): number {
+    return this.vendors.filter((v) => v.status === "Pending").length;
+  }
+  get validatedCount(): number {
+    return this.vendors.filter((v) => v.status === "Validated").length;
+  }
+  get blockedCount(): number {
+    return this.vendors.filter((v) => v.status === "Blocked").length;
+  }
 
   documents = [
     {
@@ -429,18 +430,39 @@ export class KycReviewComponent {
   }
 
   validateVendor() {
-    this.selectedVendor.status = "Validated";
-    this.showToast(
-      "success",
-      `${this.selectedVendor.name} validated successfully`,
-    );
-    setTimeout(() => (this.selectedVendor = null), 1500);
+    if (!this.selectedVendor || this.busy) return;
+    const v = this.selectedVendor;
+    this.busy = true;
+    this.api.validateKyc(v.id).subscribe({
+      next: () => {
+        this.busy = false;
+        v.status = "Validated";
+        this.showToast("success", `${v.name} validated successfully`);
+        setTimeout(() => (this.selectedVendor = null), 1200);
+      },
+      error: () => {
+        this.busy = false;
+        this.showToast("error", `Could not validate ${v.name}`);
+      },
+    });
   }
 
   blockVendor() {
-    this.selectedVendor.status = "Blocked";
-    this.showToast("error", `${this.selectedVendor.name} has been blocked`);
-    setTimeout(() => (this.selectedVendor = null), 1500);
+    if (!this.selectedVendor || this.busy) return;
+    const v = this.selectedVendor;
+    this.busy = true;
+    this.api.blockKyc(v.id).subscribe({
+      next: () => {
+        this.busy = false;
+        v.status = "Blocked";
+        this.showToast("error", `${v.name} has been blocked`);
+        setTimeout(() => (this.selectedVendor = null), 1200);
+      },
+      error: () => {
+        this.busy = false;
+        this.showToast("error", `Could not block ${v.name}`);
+      },
+    });
   }
 
   showToast(type: string, message: string) {

@@ -1,6 +1,8 @@
-import { Component } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { HttpErrorResponse } from "@angular/common/http";
+import { GovApiService } from "../../services/gov-api.service";
 
 @Component({
   selector: "app-kyc-change-approvals",
@@ -177,51 +179,72 @@ import { FormsModule } from "@angular/forms";
     `,
   ],
 })
-export class KycChangeApprovalsComponent {
+export class KycChangeApprovalsComponent implements OnInit {
+  private api = inject(GovApiService);
+
   selectedReq: any = null;
   notes = "";
   toast: any = null;
+  requests: any[] = [];
+  busy = false;
 
-  requests = [
-    {
-      id: 1,
-      supplier: "Mumbai Fresh Foods",
-      changeType: "Bank Update",
-      field: "Bank Account",
-      from: "****4521 (HDFC)",
-      to: "****7832 (ICICI)",
-      submitted: "Jul 3, 2025",
-    },
-    {
-      id: 2,
-      supplier: "Green Valley Farms",
-      changeType: "Address Update",
-      field: "Registered Address",
-      from: "HSR Layout, Bangalore",
-      to: "Koramangala, Bangalore 560034",
-      submitted: "Jul 5, 2025",
-    },
-    {
-      id: 3,
-      supplier: "Delhi Spice Traders",
-      changeType: "Tax Update",
-      field: "GSTIN",
-      from: "07AADCD9012C1Z1",
-      to: "07AADCD9012C1Z4",
-      submitted: "Jul 6, 2025",
-    },
-  ];
+  ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.api.getPendingChangeRequests().subscribe({
+      next: (reqs) => {
+        this.requests = (reqs ?? []).map((r) => ({
+          id: r.id,
+          supplier: r.vendorId ? "Vendor " + r.vendorId.substring(0, 8) : "—",
+          changeType: r.fieldChanged,
+          field: r.fieldChanged,
+          from: r.oldValue ?? "—",
+          to: r.newValue ?? "—",
+          submitted: r.requestedAt,
+        }));
+      },
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 401 || err.status === 403)
+          this.showToast("error", "Authentication required — open from the host app.");
+        else this.showToast("error", "Could not load change requests.");
+      },
+    });
+  }
 
   approve(req: any) {
-    this.requests = this.requests.filter((r) => r !== req);
-    this.selectedReq = null;
-    this.showToast("success", `Change request approved for ${req.supplier}`);
+    if (this.busy) return;
+    this.busy = true;
+    this.api.approveChangeRequest(req.id).subscribe({
+      next: () => {
+        this.busy = false;
+        this.requests = this.requests.filter((r) => r.id !== req.id);
+        this.selectedReq = null;
+        this.showToast("success", `Change request approved for ${req.supplier}`);
+      },
+      error: () => {
+        this.busy = false;
+        this.showToast("error", "Could not approve the change request.");
+      },
+    });
   }
 
   reject(req: any) {
-    this.requests = this.requests.filter((r) => r !== req);
-    this.selectedReq = null;
-    this.showToast("error", `Change request rejected for ${req.supplier}`);
+    if (this.busy) return;
+    this.busy = true;
+    this.api.rejectChangeRequest(req.id).subscribe({
+      next: () => {
+        this.busy = false;
+        this.requests = this.requests.filter((r) => r.id !== req.id);
+        this.selectedReq = null;
+        this.showToast("error", `Change request rejected for ${req.supplier}`);
+      },
+      error: () => {
+        this.busy = false;
+        this.showToast("error", "Could not reject the change request.");
+      },
+    });
   }
 
   openDetail(req: any) {
