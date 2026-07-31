@@ -22,15 +22,16 @@ const TYPE_MAP: Record<number, string> = {
 };
 
 /**
- * Notification text stores bare amounts ("84,000", "15/kg"). Prefix the currency
- * symbol so amounts read correctly, without touching PO codes or dates:
- *  - comma-grouped numbers (1,234 / 84,000) — clearly monetary
+ * Notification text stores bare amounts ("84,000", "1,89,500", "15/kg"). Prefix
+ * the currency symbol so amounts read correctly, without touching PO codes/dates:
+ *  - comma-grouped numbers, both Western (84,000) and Indian lakh (1,89,500)
+ *    formatting — the comma group allows 2 or 3 digits
  *  - per-unit rates (15/kg, 20/unit)
  */
 function withCurrency(text: string): string {
   if (!text) return text;
   return text
-    .replace(/(?<![\w./-])(\d{1,3}(?:,\d{3})+(?:\.\d+)?)/g, "₹$1")
+    .replace(/(?<![\w./-])(\d{1,3}(?:,\d{2,3})+(?:\.\d+)?)/g, "₹$1")
     .replace(/(?<![\w.,/-])(\d+(?:\.\d+)?)(\s*\/\s*(?:kg|g|l|ml|unit|pc|pcs|nos))/gi, "₹$1$2");
 }
 
