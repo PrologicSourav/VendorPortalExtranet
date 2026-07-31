@@ -9,6 +9,10 @@ import {
 } from "../../components/excel-upload-modal/excel-upload-modal.component";
 import { MoneyPipe } from "../../pipes/money.pipe";
 import {
+  normalizeForMatch,
+  diceCoefficient,
+} from "../../utils/text-similarity";
+import {
   CatalogueExcelRow,
   CatalogueExcelService,
   MAX_DESCRIPTION_LENGTH,
@@ -231,6 +235,14 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                 *ngIf="formData.description.trim() && isDescriptionDuplicate"
                 class="field-error"
                 >{{ "catalogue.descriptionDuplicate" | translate }}</span
+              >
+              <span
+                *ngIf="!isDescriptionDuplicate && similarDescription"
+                class="field-warning"
+                >{{
+                  "catalogue.descriptionSimilar"
+                    | translate: { desc: similarDescription }
+                }}</span
               >
             </div>
             <div class="form-group">
@@ -458,6 +470,12 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         margin-top: 4px;
         display: block;
       }
+      .field-warning {
+        color: var(--color-warning);
+        font-size: 11px;
+        margin-top: 4px;
+        display: block;
+      }
       .form-note {
         font-size: 12px;
         color: var(--color-text-muted);
@@ -553,14 +571,37 @@ export class CatalogueComponent implements OnInit {
     );
   }
 
-  /** True when the current description already exists on another line (case-insensitive) —
-   *  the same item published twice under different codes. */
+  /** True when the current description matches another line after normalization
+   *  (case/space/punctuation-insensitive) — e.g. "Basmati Rice 25kg" vs
+   *  "basmati rice 25 kg". Treated as a hard duplicate. */
   get isDescriptionDuplicate(): boolean {
-    const desc = this.formData.description.trim().toLowerCase();
+    const desc = normalizeForMatch(this.formData.description);
     if (!desc) return false;
     return this.lines.some(
-      (l) => l !== this.editingLine && (l.description ?? "").trim().toLowerCase() === desc,
+      (l) => l !== this.editingLine && normalizeForMatch(l.description) === desc,
     );
+  }
+
+  readonly DESCRIPTION_SIMILARITY_THRESHOLD = 0.8;
+
+  /** The closest existing description that is *similar but not identical* to the
+   *  current one (fuzzy bigram match) — used to warn about a probable duplicate
+   *  like "Premium Basmati Rice 25kg" vs "Basmati Rice 25kg". Null if none. */
+  get similarDescription(): string | null {
+    const desc = normalizeForMatch(this.formData.description);
+    if (desc.length < 3 || this.isDescriptionDuplicate) return null;
+    let best: { text: string; score: number } | null = null;
+    for (const l of this.lines) {
+      if (l === this.editingLine) continue;
+      const score = diceCoefficient(desc, normalizeForMatch(l.description));
+      if (
+        score >= this.DESCRIPTION_SIMILARITY_THRESHOLD &&
+        (!best || score > best.score)
+      ) {
+        best = { text: l.description, score };
+      }
+    }
+    return best?.text ?? null;
   }
 
   validateExcelFile = (file: File) => this.excelService.validateFile(file);

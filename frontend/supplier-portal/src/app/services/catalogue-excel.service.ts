@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { normalizeForMatch } from "../utils/text-similarity";
 // Type-only import: contributes zero runtime bytes to the main bundle.
 // The real module is loaded on demand (see loadExcelJS()) so the ~320KB
 // exceljs library only downloads when a user actually opens the upload modal.
@@ -135,9 +136,9 @@ export class CatalogueExcelService {
       existingItemCodes.map((c) => c.trim().toLowerCase()).filter(Boolean),
     );
     const seenInFile = new Set<string>();
-    // Descriptions are also matched case-insensitively for duplicate detection.
+    // Descriptions are matched on a normalized form (case/space/punctuation-insensitive).
     const existingDescs = new Set(
-      existingDescriptions.map((d) => d.trim().toLowerCase()).filter(Boolean),
+      existingDescriptions.map((d) => normalizeForMatch(d)).filter(Boolean),
     );
     const seenDescInFile = new Set<string>();
 
@@ -184,7 +185,7 @@ export class CatalogueExcelService {
       }
 
       // Duplicate description — already in the catalogue, or repeated in this file.
-      const descKey = parsed.description.trim().toLowerCase();
+      const descKey = normalizeForMatch(parsed.description);
       if (descKey) {
         if (existingDescs.has(descKey) || seenDescInFile.has(descKey)) {
           parsed.errors.push("excelUpload.rowErrorDescriptionDuplicate");

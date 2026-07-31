@@ -201,6 +201,7 @@
     "itemCodeValidation": "Item code may only contain letters, numbers, and dashes",
     "itemCodeDuplicate": "This item code is already in your catalogue",
     "descriptionDuplicate": "This description is already in your catalogue",
+    "descriptionSimilar": "Similar to an existing item: {{desc}} — is it a duplicate?",
     "descriptionValidation": "Description must be {{max}} characters or fewer",
     "validToValidation": "Valid-to must be after valid-from",
     "formNote": "Lines are submitted for buyer approval before becoming orderable.",

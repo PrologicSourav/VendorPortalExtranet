@@ -112,15 +112,17 @@ public class CataloguesController : ControllerBase
                 message = $"Duplicate item code(s): {string.Join(", ", duplicates)}. Each item code must be unique within a catalogue."
             });
 
-        // Descriptions must also be unique within a catalogue (the same item published twice).
+        // Descriptions must also be unique within a catalogue (the same item published
+        // twice). Matched on a normalized form (case/space/punctuation-insensitive) so
+        // "Basmati Rice 25kg" and "basmati rice 25 kg" collide.
         var existingDescriptions = catalogue.Lines
-            .Select(l => l.Description.Trim().ToLowerInvariant())
+            .Select(l => NormalizeForMatch(l.Description))
             .ToHashSet();
         var duplicateDescriptions = request.Lines
-            .Select(l => l.Description.Trim())
-            .GroupBy(d => d.ToLowerInvariant())
+            .Select(l => new { Raw = l.Description.Trim(), Key = NormalizeForMatch(l.Description) })
+            .GroupBy(x => x.Key)
             .Where(g => !string.IsNullOrEmpty(g.Key) && (g.Count() > 1 || existingDescriptions.Contains(g.Key)))
-            .Select(g => g.First())
+            .Select(g => g.First().Raw)
             .ToList();
         if (duplicateDescriptions.Count > 0)
             return BadRequest(new
@@ -201,6 +203,11 @@ public class CataloguesController : ControllerBase
         var updated = await _catRepo.UpdateAsync(catalogue);
         return Ok(updated);
     }
+
+    /// <summary>Lowercases and strips everything but letters/digits, so descriptions
+    /// that differ only by case, spacing or punctuation are treated as the same.</summary>
+    private static string NormalizeForMatch(string? value) =>
+        System.Text.RegularExpressions.Regex.Replace((value ?? string.Empty).ToLowerInvariant(), "[^a-z0-9]", "");
 }
 
 public class RejectRequest { public string Reason { get; set; } = string.Empty; }
