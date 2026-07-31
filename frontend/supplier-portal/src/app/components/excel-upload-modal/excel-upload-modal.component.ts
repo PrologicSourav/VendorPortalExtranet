@@ -11,6 +11,7 @@ export interface ExcelUploadRow {
   rowNumber: number;
   valid: boolean;
   errors: string[];
+  warnings?: string[];
   [key: string]: unknown;
 }
 
@@ -161,6 +162,14 @@ export interface ExcelUploadParseResult {
                         >
                           <li *ngFor="let err of row.errors">
                             {{ err | translate }}
+                          </li>
+                        </ul>
+                        <ul
+                          *ngIf="row.warnings?.length"
+                          class="row-warnings"
+                        >
+                          <li *ngFor="let warn of row.warnings">
+                            ⚠ {{ warn | translate }}
                           </li>
                         </ul>
                       </td>
@@ -334,6 +343,12 @@ export interface ExcelUploadParseResult {
         padding-left: 16px;
         font-size: 11px;
         color: var(--color-error);
+      }
+      .row-warnings {
+        margin: 4px 0 0;
+        padding-left: 16px;
+        font-size: 11px;
+        color: var(--color-warning);
       }
 
       @media (max-width: 640px) {

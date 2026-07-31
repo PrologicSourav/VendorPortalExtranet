@@ -322,6 +322,7 @@
     "rowErrorItemCodeAlphanumeric": "Item Code must be alphanumeric.",
     "rowErrorItemCodeDuplicate": "Duplicate item code (already in the catalogue or repeated in this file).",
     "rowErrorDescriptionDuplicate": "Duplicate description (already in the catalogue or repeated in this file).",
+    "rowWarnDescriptionSimilar": "Possible duplicate — similar description already in the catalogue or file.",
     "rowErrorDescriptionRequired": "Description is required.",
     "rowErrorDescriptionTooLong": "Description must be 255 characters or fewer.",
     "rowErrorPackUomRequired": "Pack / UOM is required.",

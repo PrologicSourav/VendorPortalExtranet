@@ -10,7 +10,7 @@ import {
 import { MoneyPipe } from "../../pipes/money.pipe";
 import {
   normalizeForMatch,
-  diceCoefficient,
+  descriptionSimilarity,
 } from "../../utils/text-similarity";
 import {
   CatalogueExcelRow,
@@ -593,7 +593,7 @@ export class CatalogueComponent implements OnInit {
     let best: { text: string; score: number } | null = null;
     for (const l of this.lines) {
       if (l === this.editingLine) continue;
-      const score = diceCoefficient(desc, normalizeForMatch(l.description));
+      const score = descriptionSimilarity(this.formData.description, l.description);
       if (
         score >= this.DESCRIPTION_SIMILARITY_THRESHOLD &&
         (!best || score > best.score)

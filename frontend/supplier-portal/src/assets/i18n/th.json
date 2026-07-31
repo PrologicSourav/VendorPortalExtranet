@@ -322,6 +322,7 @@
     "rowErrorItemCodeAlphanumeric": "รหัสสินค้าต้องเป็นตัวอักษรและตัวเลข",
     "rowErrorItemCodeDuplicate": "รหัสสินค้าซ้ำ (มีอยู่แล้วในแคตตาล็อกหรือซ้ำในไฟล์นี้)",
     "rowErrorDescriptionDuplicate": "คำอธิบายซ้ำ (มีอยู่แล้วในแคตตาล็อกหรือซ้ำในไฟล์นี้)",
+    "rowWarnDescriptionSimilar": "อาจซ้ำ — มีคำอธิบายที่คล้ายกันอยู่แล้วในแคตตาล็อกหรือไฟล์",
     "rowErrorDescriptionRequired": "ต้องระบุรายละเอียด",
     "rowErrorDescriptionTooLong": "รายละเอียดต้องมีความยาวไม่เกิน 255 ตัวอักษร",
     "rowErrorPackUomRequired": "ต้องระบุบรรจุภัณฑ์ / หน่วยนับ",

@@ -322,6 +322,7 @@
     "rowErrorItemCodeAlphanumeric": "يجب أن يكون رمز الصنف أبجديًا رقميًا.",
     "rowErrorItemCodeDuplicate": "رمز صنف مكرر (موجود بالفعل في الفهرس أو متكرر في هذا الملف).",
     "rowErrorDescriptionDuplicate": "وصف مكرر (موجود بالفعل في الفهرس أو متكرر في هذا الملف).",
+    "rowWarnDescriptionSimilar": "احتمال تكرار — يوجد وصف مشابه بالفعل في الفهرس أو الملف.",
     "rowErrorDescriptionRequired": "الوصف مطلوب.",
     "rowErrorDescriptionTooLong": "يجب ألا يتجاوز الوصف 255 حرفًا.",
     "rowErrorPackUomRequired": "العبوة / وحدة القياس مطلوبة.",

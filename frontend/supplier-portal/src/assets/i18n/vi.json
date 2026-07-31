@@ -322,6 +322,7 @@
     "rowErrorItemCodeAlphanumeric": "Mã mặt hàng phải là chữ và số.",
     "rowErrorItemCodeDuplicate": "Mã mặt hàng bị trùng (đã có trong danh mục hoặc lặp lại trong tệp này).",
     "rowErrorDescriptionDuplicate": "Mô tả bị trùng (đã có trong danh mục hoặc lặp lại trong tệp này).",
+    "rowWarnDescriptionSimilar": "Có thể trùng — mô tả tương tự đã có trong danh mục hoặc tệp.",
     "rowErrorDescriptionRequired": "Mô tả là bắt buộc.",
     "rowErrorDescriptionTooLong": "Mô tả phải có tối đa 255 ký tự.",
     "rowErrorPackUomRequired": "Quy cách / Đơn vị tính là bắt buộc.",

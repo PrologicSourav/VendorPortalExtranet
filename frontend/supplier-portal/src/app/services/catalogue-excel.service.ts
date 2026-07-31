@@ -1,5 +1,12 @@
 import { Injectable } from "@angular/core";
-import { normalizeForMatch } from "../utils/text-similarity";
+import {
+  normalizeForMatch,
+  descriptionSimilarity,
+} from "../utils/text-similarity";
+
+/** A description at/above this fuzzy similarity to an existing/earlier one is
+ *  flagged as a probable (non-blocking) duplicate. */
+const DESCRIPTION_SIMILARITY_THRESHOLD = 0.8;
 // Type-only import: contributes zero runtime bytes to the main bundle.
 // The real module is loaded on demand (see loadExcelJS()) so the ~320KB
 // exceljs library only downloads when a user actually opens the upload modal.
@@ -46,6 +53,9 @@ export interface CatalogueExcelRow {
   taxClass: string;
   valid: boolean;
   errors: string[];
+  /** Non-blocking advisories (e.g. a probable fuzzy-duplicate description). The
+   *  row still imports. */
+  warnings: string[];
   // Satisfies ExcelUploadRow's generic contract (excel-upload-modal.component.ts)
   // so this concrete row type can be passed anywhere that interface is expected.
   [key: string]: unknown;
@@ -141,6 +151,8 @@ export class CatalogueExcelService {
       existingDescriptions.map((d) => normalizeForMatch(d)).filter(Boolean),
     );
     const seenDescInFile = new Set<string>();
+    // Raw descriptions (existing + already seen in this file) for fuzzy comparison.
+    const fuzzyCandidates: string[] = [...existingDescriptions];
 
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // header
@@ -171,6 +183,7 @@ export class CatalogueExcelService {
         taxClass: raw["taxClass"].toUpperCase(),
         valid: true,
         errors: [],
+        warnings: [],
       };
 
       parsed.errors = this.validateRow(parsed, raw["price"]);
@@ -184,13 +197,24 @@ export class CatalogueExcelService {
         seenInFile.add(codeKey);
       }
 
-      // Duplicate description — already in the catalogue, or repeated in this file.
+      // Description duplicates: a normalized exact match blocks the row; a fuzzy
+      // near-match (typo / word order / extra words) is a non-blocking warning.
       const descKey = normalizeForMatch(parsed.description);
       if (descKey) {
         if (existingDescs.has(descKey) || seenDescInFile.has(descKey)) {
           parsed.errors.push("excelUpload.rowErrorDescriptionDuplicate");
+        } else {
+          let bestScore = 0;
+          for (const candidate of fuzzyCandidates) {
+            const score = descriptionSimilarity(parsed.description, candidate);
+            if (score > bestScore) bestScore = score;
+          }
+          if (bestScore >= DESCRIPTION_SIMILARITY_THRESHOLD) {
+            parsed.warnings.push("excelUpload.rowWarnDescriptionSimilar");
+          }
         }
         seenDescInFile.add(descKey);
+        fuzzyCandidates.push(parsed.description);
       }
 
       parsed.valid = parsed.errors.length === 0;
