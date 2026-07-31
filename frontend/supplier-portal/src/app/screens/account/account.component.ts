@@ -46,13 +46,6 @@ import { MoneyPipe } from "../../pipes/money.pipe";
     <div class="tabs" *ngIf="!profileOnly">
       <div
         class="tab"
-        [class.active]="activeTab === 'profile'"
-        (click)="activeTab = 'profile'"
-      >
-        {{ "account.tabProfile" | translate }}
-      </div>
-      <div
-        class="tab"
         [class.active]="activeTab === 'invoices'"
         (click)="activeTab = 'invoices'"
       >
@@ -407,7 +400,9 @@ export class AccountComponent implements OnInit {
   private currency = inject(CurrencyService);
   private route = inject(ActivatedRoute);
 
-  activeTab = "profile";
+  // Default tab for the Account view (Profile is now its own menu item);
+  // Company Profile mode overrides this to "profile" in ngOnInit.
+  activeTab = "invoices";
   profileOnly = false;
 
   // KPI figures (base currency INR; displayed via the money pipe/converter).
