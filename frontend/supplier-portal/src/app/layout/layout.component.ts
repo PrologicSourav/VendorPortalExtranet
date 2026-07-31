@@ -163,7 +163,7 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
         </a>
         <a
           routerLink="/account"
-          [queryParams]="{ tab: 'profile' }"
+          [queryParams]="{ only: 'profile' }"
           class="nav-item"
           (click)="sidebarOpen = false"
         >

@@ -14,12 +14,16 @@ import { MoneyPipe } from "../../pipes/money.pipe";
   imports: [CommonModule, FormsModule, TranslatePipe, MoneyPipe],
   template: `
     <div class="page-header">
-      <h1>{{ "account.title" | translate }}</h1>
-      <p class="page-subtitle">{{ "account.subtitle" | translate }}</p>
+      <h1>
+        {{ (profileOnly ? "nav.companyProfile" : "account.title") | translate }}
+      </h1>
+      <p class="page-subtitle" *ngIf="!profileOnly">
+        {{ "account.subtitle" | translate }}
+      </p>
     </div>
 
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
+    <!-- KPI Cards (account view only) -->
+    <div class="kpi-grid" *ngIf="!profileOnly">
       <div class="kpi-card">
         <div class="kpi-label">{{ "account.totalOutstanding" | translate }}</div>
         <div class="kpi-value">{{ totalOutstanding | money }}</div>
@@ -38,8 +42,8 @@ import { MoneyPipe } from "../../pipes/money.pipe";
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="tabs">
+    <!-- Tabs (hidden in Company Profile view) -->
+    <div class="tabs" *ngIf="!profileOnly">
       <div
         class="tab"
         [class.active]="activeTab === 'profile'"
@@ -404,6 +408,7 @@ export class AccountComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   activeTab = "profile";
+  profileOnly = false;
 
   // KPI figures (base currency INR; displayed via the money pipe/converter).
   readonly totalOutstanding = 189500;
@@ -428,10 +433,16 @@ export class AccountComponent implements OnInit {
   toast: { type: string; key: string } | null = null;
 
   ngOnInit(): void {
-    // Open the tab requested by the nav link (Company Profile vs Account/statement).
+    // The "Company Profile" menu opens this screen in profile-only mode (no KPIs
+    // or tabs); the "Account" menu opens the full tabbed view on a given tab.
     const validTabs = ["profile", "invoices", "payments", "statement"];
     this.route.queryParams.subscribe((q) => {
-      if (q["tab"] && validTabs.includes(q["tab"])) this.activeTab = q["tab"];
+      this.profileOnly = q["only"] === "profile";
+      if (this.profileOnly) {
+        this.activeTab = "profile";
+      } else if (q["tab"] && validTabs.includes(q["tab"])) {
+        this.activeTab = q["tab"];
+      }
     });
 
     const vendorId = this.auth.user()?.vendorId;
