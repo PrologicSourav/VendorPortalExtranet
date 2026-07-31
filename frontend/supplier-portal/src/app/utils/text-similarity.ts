@@ -12,10 +12,13 @@
  * All measures return 0..1; the weighted sum is the fuzzy score.
  */
 
-const W_LEVENSHTEIN = 0.3;
-const W_JARO_WINKLER = 0.3;
-const W_TOKEN_SORT = 0.2;
-const W_TOKEN_SET = 0.2;
+// Token ratios (order-independent) are weighted higher than the position-sensitive
+// character measures so word-order swaps ("Rice Basmati" vs "Basmati Rice") still
+// clear the threshold instead of being dragged down by Levenshtein/Jaro-Winkler.
+const W_LEVENSHTEIN = 0.2;
+const W_JARO_WINKLER = 0.2;
+const W_TOKEN_SORT = 0.3;
+const W_TOKEN_SET = 0.3;
 
 /** Fuzzy score at/above which two descriptions are flagged as a probable
  *  (non-blocking) duplicate. Tunable. */
