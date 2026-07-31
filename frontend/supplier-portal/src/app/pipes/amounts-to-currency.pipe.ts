@@ -32,6 +32,7 @@ export class AmountsToCurrencyPipe implements PipeTransform {
         return new Intl.NumberFormat(locale, {
           style: "currency",
           currency: code,
+          currencyDisplay: "code", // show the ISO code (INR/USD), not the symbol
           minimumFractionDigits: digits,
           maximumFractionDigits: digits,
         }).format(value);
