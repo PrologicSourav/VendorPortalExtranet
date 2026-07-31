@@ -119,6 +119,10 @@ export class ApiService {
     return this.http.post(`${API}/catalogues/${catalogueId}/lines`, { lines });
   }
 
+  deleteCatalogueLine(catalogueId: string, lineId: string): Observable<any> {
+    return this.http.delete(`${API}/catalogues/${catalogueId}/lines/${lineId}`);
+  }
+
   submitCatalogue(id: string): Observable<any> {
     return this.http.put(`${API}/catalogues/${id}/submit`, {});
   }

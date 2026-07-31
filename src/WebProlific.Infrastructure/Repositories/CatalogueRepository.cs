@@ -57,6 +57,16 @@ public class CatalogueRepository : ICatalogueRepository
         return list;
     }
 
+    public async Task<bool> DeleteLineAsync(Guid catalogueId, Guid lineId)
+    {
+        var line = await _db.CatalogueLines
+            .FirstOrDefaultAsync(l => l.Id == lineId && l.CatalogueId == catalogueId);
+        if (line is null) return false;
+        _db.CatalogueLines.Remove(line);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<Guid?> GetDefaultBuyingEntityIdAsync() =>
         await _db.BuyingEntities
             .Where(b => b.IsActive)

@@ -146,6 +146,20 @@ public class CataloguesController : ControllerBase
         return Ok(created);
     }
 
+    [HttpDelete("{id:guid}/lines/{lineId:guid}")]
+    public async Task<IActionResult> DeleteLine(Guid id, Guid lineId)
+    {
+        var catalogue = await _catRepo.GetByIdAsync(id);
+        if (catalogue is null) return NotFound();
+        if (!User.CanAccessVendor(catalogue.VendorId)) return Forbid();
+        if (catalogue.Status != CatalogueStatus.Draft)
+            return BadRequest(new { message = "Lines can only be removed while the catalogue is in Draft status." });
+
+        var removed = await _catRepo.DeleteLineAsync(id, lineId);
+        if (!removed) return NotFound(new { message = "Line not found in this catalogue." });
+        return NoContent();
+    }
+
     [HttpPut("{id:guid}/submit")]
     public async Task<IActionResult> Submit(Guid id)
     {

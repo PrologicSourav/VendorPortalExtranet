@@ -20,6 +20,8 @@ public interface ICatalogueRepository
     Task<Catalogue> CreateAsync(Catalogue catalogue);
     Task<Catalogue> UpdateAsync(Catalogue catalogue);
     Task<IEnumerable<CatalogueLine>> AddLinesAsync(Guid catalogueId, IEnumerable<CatalogueLine> lines);
+    /// <summary>Removes a line from a catalogue. Returns false if the line isn't found on it.</summary>
+    Task<bool> DeleteLineAsync(Guid catalogueId, Guid lineId);
     /// <summary>First active buying entity in the system, used to default new catalogues
     /// when the caller doesn't specify one (no real entity-picker UI exists yet — VP-02).</summary>
     Task<Guid?> GetDefaultBuyingEntityIdAsync();

@@ -648,9 +648,20 @@ export class CatalogueComponent implements OnInit {
   }
 
   deleteLine(line: any) {
-    // Local-only for now — there's no DELETE /catalogues/{id}/lines/{lineId} endpoint yet,
-    // so this only affects the current view and won't survive a reload.
-    this.lines = this.lines.filter((l) => l !== line);
+    // A line that hasn't been persisted yet (no id) is just dropped from the view.
+    if (!line.id || !this.catalogueId) {
+      this.lines = this.lines.filter((l) => l !== line);
+      return;
+    }
+    this.api.deleteCatalogueLine(this.catalogueId, line.id).subscribe({
+      next: () => {
+        this.lines = this.lines.filter((l) => l !== line);
+        this.showToast("success", "catalogue.toastLineDeleted");
+      },
+      error: (err) => {
+        this.showToast("error", undefined, undefined, this.extractErrorMessage(err));
+      },
+    });
   }
 
   saveLine(): void {

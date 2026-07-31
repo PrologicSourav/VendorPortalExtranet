@@ -171,6 +171,7 @@
     "noVendorNotice": "Quản lý danh mục chỉ dành cho tài khoản nhà cung cấp. Bạn đang đăng nhập bằng tài khoản nhân viên nội bộ, không có nhà cung cấp — vui lòng đăng nhập bằng tài khoản nhà cung cấp để quản lý danh mục.",
     "saveError": "Không thể lưu mục này:",
     "toastSubmitted": "Đã gửi danh mục để phê duyệt",
+    "toastLineDeleted": "Đã xóa dòng khỏi danh mục",
     "toastSubmitError": "Gửi danh mục thất bại. Vui lòng thử lại.",
     "submitTooltip": "Gửi danh mục của bạn để bên mua phê duyệt",
     "submitForApproval": "Gửi để phê duyệt",

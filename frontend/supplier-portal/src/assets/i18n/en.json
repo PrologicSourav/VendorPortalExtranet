@@ -171,6 +171,7 @@
     "noVendorNotice": "Catalogue management is available to supplier accounts only. You're signed in as internal staff, which has no vendor — please sign in with a supplier account to manage a catalogue.",
     "saveError": "Could not save this line:",
     "toastSubmitted": "Catalogue submitted for approval",
+    "toastLineDeleted": "Line removed from catalogue",
     "toastSubmitError": "Failed to submit catalogue. Please try again.",
     "submitTooltip": "Submit your catalogue for buyer approval",
     "submitForApproval": "Submit for Approval",
