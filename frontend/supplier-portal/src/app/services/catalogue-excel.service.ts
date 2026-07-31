@@ -107,6 +107,7 @@ export class CatalogueExcelService {
   async parseAndValidate(
     file: File,
     existingItemCodes: string[] = [],
+    existingDescriptions: string[] = [],
   ): Promise<CatalogueExcelParseResult> {
     const buffer = await file.arrayBuffer();
     const ExcelJS = await loadExcelJS();
@@ -134,6 +135,11 @@ export class CatalogueExcelService {
       existingItemCodes.map((c) => c.trim().toLowerCase()).filter(Boolean),
     );
     const seenInFile = new Set<string>();
+    // Descriptions are also matched case-insensitively for duplicate detection.
+    const existingDescs = new Set(
+      existingDescriptions.map((d) => d.trim().toLowerCase()).filter(Boolean),
+    );
+    const seenDescInFile = new Set<string>();
 
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // header
@@ -175,6 +181,15 @@ export class CatalogueExcelService {
           parsed.errors.push("excelUpload.rowErrorItemCodeDuplicate");
         }
         seenInFile.add(codeKey);
+      }
+
+      // Duplicate description — already in the catalogue, or repeated in this file.
+      const descKey = parsed.description.trim().toLowerCase();
+      if (descKey) {
+        if (existingDescs.has(descKey) || seenDescInFile.has(descKey)) {
+          parsed.errors.push("excelUpload.rowErrorDescriptionDuplicate");
+        }
+        seenDescInFile.add(descKey);
       }
 
       parsed.valid = parsed.errors.length === 0;

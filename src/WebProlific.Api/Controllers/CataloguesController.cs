@@ -112,6 +112,22 @@ public class CataloguesController : ControllerBase
                 message = $"Duplicate item code(s): {string.Join(", ", duplicates)}. Each item code must be unique within a catalogue."
             });
 
+        // Descriptions must also be unique within a catalogue (the same item published twice).
+        var existingDescriptions = catalogue.Lines
+            .Select(l => l.Description.Trim().ToLowerInvariant())
+            .ToHashSet();
+        var duplicateDescriptions = request.Lines
+            .Select(l => l.Description.Trim())
+            .GroupBy(d => d.ToLowerInvariant())
+            .Where(g => !string.IsNullOrEmpty(g.Key) && (g.Count() > 1 || existingDescriptions.Contains(g.Key)))
+            .Select(g => g.First())
+            .ToList();
+        if (duplicateDescriptions.Count > 0)
+            return BadRequest(new
+            {
+                message = $"Duplicate description(s): {string.Join(", ", duplicateDescriptions)}. Each description must be unique within a catalogue."
+            });
+
         var lines = request.Lines.Select(l => new CatalogueLine
         {
             Id = Guid.NewGuid(),

@@ -227,6 +227,11 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                     | translate: { max: maxDescriptionLength }
                 }}</span
               >
+              <span
+                *ngIf="formData.description.trim() && isDescriptionDuplicate"
+                class="field-error"
+                >{{ "catalogue.descriptionDuplicate" | translate }}</span
+              >
             </div>
             <div class="form-group">
               <label>{{ "catalogue.packUom" | translate }}</label>
@@ -319,6 +324,7 @@ const CATALOGUE_UPLOAD_COLUMNS = [
               isItemCodeDuplicate ||
               !formData.description ||
               formData.description.length > maxDescriptionLength ||
+              isDescriptionDuplicate ||
               formData.price <= 0 ||
               saving
             "
@@ -547,11 +553,22 @@ export class CatalogueComponent implements OnInit {
     );
   }
 
+  /** True when the current description already exists on another line (case-insensitive) —
+   *  the same item published twice under different codes. */
+  get isDescriptionDuplicate(): boolean {
+    const desc = this.formData.description.trim().toLowerCase();
+    if (!desc) return false;
+    return this.lines.some(
+      (l) => l !== this.editingLine && (l.description ?? "").trim().toLowerCase() === desc,
+    );
+  }
+
   validateExcelFile = (file: File) => this.excelService.validateFile(file);
   parseExcelFile = (file: File) =>
     this.excelService.parseAndValidate(
       file,
       this.lines.map((l) => l.itemCode ?? ""),
+      this.lines.map((l) => l.description ?? ""),
     );
   downloadExcelTemplate = () => this.excelService.buildTemplate();
   buildExcelErrorReport = (rows: ExcelUploadRow[]) =>
