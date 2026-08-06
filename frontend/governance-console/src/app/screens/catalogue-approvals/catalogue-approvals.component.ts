@@ -1,6 +1,17 @@
-import { Component } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import {
+  CatalogueReview,
+  GovApiService,
+} from "../../services/gov-api.service";
+
+/** Maps a UI tab to the catalogue status it lists. */
+const TAB_STATUS: Record<string, string> = {
+  pending: "Submitted",
+  approved: "Approved",
+  rejected: "Rejected",
+};
 
 @Component({
   selector: "app-catalogue-approvals",
@@ -18,33 +29,41 @@ import { FormsModule } from "@angular/forms";
       <div
         class="tab"
         [class.active]="tab === 'pending'"
-        (click)="tab = 'pending'"
+        (click)="switchTab('pending')"
       >
-        Pending <span class="count-badge">2</span>
+        Pending
+        <span class="count-badge" *ngIf="tab === 'pending' && catalogues.length"
+          >{{ catalogues.length }}</span
+        >
       </div>
       <div
         class="tab"
         [class.active]="tab === 'approved'"
-        (click)="tab = 'approved'"
+        (click)="switchTab('approved')"
       >
         Approved
       </div>
       <div
         class="tab"
         [class.active]="tab === 'rejected'"
-        (click)="tab = 'rejected'"
+        (click)="switchTab('rejected')"
       >
         Rejected
       </div>
     </div>
 
+    <div *ngIf="loading" class="loading-state">Loading catalogues…</div>
+    <div *ngIf="loadError" class="load-error" role="alert">
+      Failed to load catalogues. Please try again.
+    </div>
+
     <div
-      *ngFor="let cat of filteredCatalogues"
+      *ngFor="let cat of catalogues"
       class="card"
       style="margin-top: 16px"
     >
       <div class="card-header">
-        {{ cat.supplier }} — {{ cat.lines }} items
+        {{ cat.supplierName }} — {{ cat.lineCount }} items
         <span
           class="badge"
           [ngClass]="getStatusBadge(cat.status)"
@@ -52,13 +71,12 @@ import { FormsModule } from "@angular/forms";
           >{{ cat.status }}</span
         >
         <span class="badge badge-muted" style="margin-left: 4px"
-          >v{{ cat.version }}</span
+          >{{ cat.versionLabel }}</span
         >
       </div>
       <div class="card-body">
         <div class="catalogue-meta">
-          <span>Submitted: {{ cat.submitted }}</span>
-          <span>Entity: {{ cat.entity }}</span>
+          <span>Submitted: {{ cat.submittedDate ? (cat.submittedDate | date: "mediumDate") : "—" }}</span>
         </div>
 
         <table class="data-table" style="margin-top: 12px">
@@ -69,46 +87,49 @@ import { FormsModule } from "@angular/forms";
               <th>Price</th>
               <th>Contract Price</th>
               <th>Deviation</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let line of cat.lineItems">
+            <tr *ngFor="let line of cat.lines">
               <td>
-                <code>{{ line.code }}</code>
+                <code>{{ line.itemCode }}</code>
               </td>
               <td>{{ line.description }}</td>
-              <td>₹{{ line.price | number: "1.2-2" }}</td>
-              <td>₹{{ line.contractPrice | number: "1.2-2" }}</td>
+              <td>{{ line.currency }} {{ line.price | number: "1.2-2" }}</td>
               <td>
-                <span
-                  [class.deviation-high]="line.deviation > 5"
-                  [class.deviation-ok]="line.deviation <= 5"
-                >
-                  {{ line.deviation > 0 ? "+" : "" }}{{ line.deviation }}%
-                </span>
+                {{
+                  line.contractPrice != null
+                    ? line.currency + " " + (line.contractPrice | number: "1.2-2")
+                    : "—"
+                }}
               </td>
               <td>
                 <span
-                  class="badge"
-                  [ngClass]="
-                    line.status === 'On contract'
-                      ? 'badge-success'
-                      : 'badge-warning'
-                  "
+                  *ngIf="line.deviationPercent != null; else noDeviation"
+                  [class.deviation-high]="line.deviationPercent > 5"
+                  [class.deviation-ok]="line.deviationPercent <= 5"
                 >
-                  {{ line.status }}
+                  {{ line.deviationPercent > 0 ? "+" : "" }}{{ line.deviationPercent | number: "1.0-2" }}%
                 </span>
+                <ng-template #noDeviation>—</ng-template>
               </td>
             </tr>
           </tbody>
         </table>
 
-        <div *ngIf="cat.status === 'Pending'" class="catalogue-actions">
-          <button class="btn btn-primary" (click)="approve(cat)">
+        <div *ngIf="cat.status === 'Submitted'" class="catalogue-actions">
+          <button
+            class="btn btn-primary"
+            [disabled]="actingId === cat.id"
+            (click)="approve(cat)"
+          >
             ✅ Approve All
           </button>
-          <button class="btn btn-secondary" (click)="reject(cat)">
+          <button
+            class="btn btn-secondary"
+            [disabled]="actingId === cat.id"
+            (click)="reject(cat)"
+          >
             ❌ Reject
           </button>
         </div>
@@ -116,7 +137,7 @@ import { FormsModule } from "@angular/forms";
     </div>
 
     <div
-      *ngIf="filteredCatalogues.length === 0"
+      *ngIf="!loading && !loadError && catalogues.length === 0"
       class="card"
       style="margin-top: 16px"
     >
@@ -153,6 +174,20 @@ import { FormsModule } from "@angular/forms";
         border-radius: 99px;
         margin-left: 6px;
       }
+      .loading-state {
+        padding: 40px;
+        text-align: center;
+        color: var(--color-text-secondary);
+        font-size: 13px;
+      }
+      .load-error {
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 8px;
+        background: var(--color-error-soft-bg, #fde8e8);
+        color: var(--color-error);
+        font-size: 13px;
+      }
       code {
         background: var(--color-surface-alt);
         padding: 2px 6px;
@@ -182,100 +217,82 @@ import { FormsModule } from "@angular/forms";
     `,
   ],
 })
-export class CatalogueApprovalsComponent {
+export class CatalogueApprovalsComponent implements OnInit {
+  private govApi = inject(GovApiService);
+
   tab = "pending";
-  toast: any = null;
+  catalogues: CatalogueReview[] = [];
+  loading = false;
+  loadError = false;
+  actingId: string | null = null;
+  toast: { type: string; message: string } | null = null;
 
-  catalogues = [
-    {
-      id: 1,
-      supplier: "Mumbai Fresh Foods",
-      lines: 3,
-      version: "3",
-      entity: "Accor — North India",
-      submitted: "Jul 6, 2025",
-      status: "Pending",
-      lineItems: [
-        {
-          code: "FOOD-001",
-          description: "Basmati Rice 25kg",
-          price: 2968,
-          contractPrice: 2800,
-          deviation: 6,
-          status: "Above contract",
-        },
-        {
-          code: "FOOD-002",
-          description: "Sunflower Oil 15L",
-          price: 1650,
-          contractPrice: 1650,
-          deviation: 0,
-          status: "On contract",
-        },
-        {
-          code: "FOOD-003",
-          description: "Tomato Ketchup 1kg",
-          price: 195,
-          contractPrice: 180,
-          deviation: 8.33,
-          status: "Above contract",
-        },
-      ],
-    },
-    {
-      id: 2,
-      supplier: "Green Valley Farms",
-      lines: 2,
-      version: "2",
-      entity: "Accor — North India",
-      submitted: "Jul 5, 2025",
-      status: "Pending",
-      lineItems: [
-        {
-          code: "FOOD-004",
-          description: "Fresh Paneer 1kg",
-          price: 420,
-          contractPrice: 420,
-          deviation: 0,
-          status: "On contract",
-        },
-        {
-          code: "FOOD-005",
-          description: "Amul Butter 500g",
-          price: 280,
-          contractPrice: 275,
-          deviation: 1.82,
-          status: "On contract",
-        },
-      ],
-    },
-  ];
+  ngOnInit(): void {
+    this.load();
+  }
 
-  get filteredCatalogues() {
-    if (this.tab === "all") return this.catalogues;
-    return this.catalogues.filter((c) => c.status.toLowerCase() === this.tab);
+  switchTab(tab: string): void {
+    if (this.tab === tab) return;
+    this.tab = tab;
+    this.load();
+  }
+
+  private load(): void {
+    this.loading = true;
+    this.loadError = false;
+    this.govApi.getCataloguesForReview(TAB_STATUS[this.tab]).subscribe({
+      next: (rows) => {
+        this.catalogues = rows ?? [];
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.loadError = true;
+      },
+    });
   }
 
   getStatusBadge(status: string): string {
     const map: Record<string, string> = {
-      Pending: "badge-warning",
+      Submitted: "badge-warning",
       Approved: "badge-success",
       Rejected: "badge-error",
     };
     return map[status] || "badge-muted";
   }
 
-  approve(cat: any) {
-    cat.status = "Approved";
-    this.showToast("success", `${cat.supplier} catalogue approved`);
+  approve(cat: CatalogueReview): void {
+    this.actingId = cat.id;
+    this.govApi.approveCatalogue(cat.id).subscribe({
+      next: () => {
+        this.actingId = null;
+        this.showToast("success", `${cat.supplierName} catalogue approved`);
+        this.load();
+      },
+      error: () => {
+        this.actingId = null;
+        this.showToast("error", "Could not approve the catalogue. Please try again.");
+      },
+    });
   }
 
-  reject(cat: any) {
-    cat.status = "Rejected";
-    this.showToast("error", `${cat.supplier} catalogue rejected`);
+  reject(cat: CatalogueReview): void {
+    const reason = (window.prompt("Reason for rejection (optional):") ?? "").trim();
+    this.actingId = cat.id;
+    this.govApi.rejectCatalogue(cat.id, reason).subscribe({
+      next: () => {
+        this.actingId = null;
+        this.showToast("error", `${cat.supplierName} catalogue rejected`);
+        this.load();
+      },
+      error: () => {
+        this.actingId = null;
+        this.showToast("error", "Could not reject the catalogue. Please try again.");
+      },
+    });
   }
 
-  showToast(type: string, message: string) {
+  private showToast(type: string, message: string): void {
     this.toast = { type, message };
     setTimeout(() => (this.toast = null), 3000);
   }

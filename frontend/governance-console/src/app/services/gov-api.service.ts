@@ -27,6 +27,27 @@ export interface GovVendor {
   createdAt: string;
 }
 
+export interface CatalogueReviewLine {
+  itemCode: string;
+  description: string;
+  packUom: string;
+  price: number;
+  currency: string;
+  contractPrice?: number | null;
+  deviationPercent?: number | null;
+}
+
+export interface CatalogueReview {
+  id: string;
+  vendorId: string;
+  supplierName: string;
+  versionLabel: string;
+  status: string;
+  submittedDate?: string | null;
+  lineCount: number;
+  lines: CatalogueReviewLine[];
+}
+
 export interface KycChangeRequest {
   id: string;
   vendorId: string;
@@ -77,6 +98,21 @@ export class GovApiService {
 
   rejectChangeRequest(id: string): Observable<unknown> {
     return this.http.put(`${this.api}/makerchecker/${id}/reject`, {});
+  }
+
+  // ─── Catalogue approvals ─────────────────────────────────
+  getCataloguesForReview(status?: string): Observable<CatalogueReview[]> {
+    let params = new HttpParams();
+    if (status) params = params.set("status", status);
+    return this.http.get<CatalogueReview[]>(`${this.api}/catalogues`, { params });
+  }
+
+  approveCatalogue(id: string): Observable<unknown> {
+    return this.http.put(`${this.api}/catalogues/${id}/approve`, {});
+  }
+
+  rejectCatalogue(id: string, reason: string): Observable<unknown> {
+    return this.http.put(`${this.api}/catalogues/${id}/reject`, { reason });
   }
 
   // ─── Supplier accounts (vendor master) ───────────────────

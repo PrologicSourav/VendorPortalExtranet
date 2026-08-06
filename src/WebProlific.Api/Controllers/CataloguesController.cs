@@ -24,6 +24,36 @@ public class CataloguesController : ControllerBase
         return Ok(catalogues);
     }
 
+    /// <summary>Cross-vendor catalogue list for the governance review queue. Internal
+    /// reviewers only — suppliers use the vendor-scoped endpoint above.</summary>
+    [HttpGet]
+    [Authorize(Policy = "InternalOnly")]
+    public async Task<IActionResult> GetForReview([FromQuery] string? status)
+    {
+        var catalogues = await _catRepo.GetByStatusAsync(status);
+        var result = catalogues.Select(c => new CatalogueReviewDto
+        {
+            Id = c.Id,
+            VendorId = c.VendorId,
+            SupplierName = c.Vendor?.TradingName ?? c.Vendor?.LegalName ?? "Unknown supplier",
+            VersionLabel = c.VersionLabel,
+            Status = c.Status.ToString(),
+            SubmittedDate = c.SubmittedDate,
+            LineCount = c.Lines.Count,
+            Lines = c.Lines.Select(l => new CatalogueReviewLineDto
+            {
+                ItemCode = l.ItemCode,
+                Description = l.Description,
+                PackUom = l.PackUom,
+                Price = l.Price,
+                Currency = l.Currency,
+                ContractPrice = l.ContractPrice,
+                DeviationPercent = l.DeviationPercent,
+            }).ToList(),
+        });
+        return Ok(result);
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -211,6 +241,29 @@ public class CataloguesController : ControllerBase
 }
 
 public class RejectRequest { public string Reason { get; set; } = string.Empty; }
+
+public class CatalogueReviewDto
+{
+    public Guid Id { get; set; }
+    public Guid VendorId { get; set; }
+    public string SupplierName { get; set; } = string.Empty;
+    public string VersionLabel { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTime? SubmittedDate { get; set; }
+    public int LineCount { get; set; }
+    public List<CatalogueReviewLineDto> Lines { get; set; } = new();
+}
+
+public class CatalogueReviewLineDto
+{
+    public string ItemCode { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string PackUom { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public string Currency { get; set; } = "INR";
+    public decimal? ContractPrice { get; set; }
+    public decimal? DeviationPercent { get; set; }
+}
 
 public class CreateCatalogueRequest
 {

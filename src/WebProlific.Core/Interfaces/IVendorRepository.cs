@@ -17,6 +17,9 @@ public interface ICatalogueRepository
 {
     Task<Catalogue?> GetByIdAsync(Guid id);
     Task<IEnumerable<Catalogue>> GetByVendorAsync(Guid vendorId, string? status);
+    /// <summary>All vendors' catalogues at a given status (or every status when null),
+    /// including the owning vendor and lines. Used by the governance review queue.</summary>
+    Task<IEnumerable<Catalogue>> GetByStatusAsync(string? status);
     Task<Catalogue> CreateAsync(Catalogue catalogue);
     Task<Catalogue> UpdateAsync(Catalogue catalogue);
     Task<IEnumerable<CatalogueLine>> AddLinesAsync(Guid catalogueId, IEnumerable<CatalogueLine> lines);

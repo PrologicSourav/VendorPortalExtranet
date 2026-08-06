@@ -31,6 +31,20 @@ public class CatalogueRepository : ICatalogueRepository
         return await query.OrderByDescending(c => c.CreatedAt).ToListAsync();
     }
 
+    public async Task<IEnumerable<Catalogue>> GetByStatusAsync(string? status)
+    {
+        var query = _db.Catalogues
+            .Include(c => c.Vendor)
+            .Include(c => c.Lines)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<CatalogueStatus>(status, true, out var catStatus))
+            query = query.Where(c => c.Status == catStatus);
+
+        // Most recently submitted first (fall back to creation time for anything unsubmitted).
+        return await query.OrderByDescending(c => c.SubmittedDate ?? c.CreatedAt).ToListAsync();
+    }
+
     public async Task<Catalogue> CreateAsync(Catalogue catalogue)
     {
         _db.Catalogues.Add(catalogue);
