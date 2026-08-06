@@ -7,9 +7,12 @@
  *   Levenshtein ratio .. typing mistakes                    weight 0.30
  *   Jaro-Winkler ....... similar names / shared prefix      weight 0.30
  *   Token Sort Ratio ... different word order               weight 0.20
- *   Token Set Ratio .... extra / missing words              weight 0.20
+ *   Token Set Ratio .... extra / missing words (fuzzy-word) weight 0.20
  *
- * All measures return 0..1; the weighted sum is the fuzzy score.
+ * All measures return 0..1. The final score is the MAX of the weighted ensemble
+ * and the two token ratios, so a single strong signal (word-order swap or a
+ * subset of words, even with a typo inside one word) can trigger on its own
+ * instead of being diluted by the sum.
  */
 
 // Token ratios (order-independent) are weighted higher than the position-sensitive
@@ -37,6 +40,10 @@ function clean(value: string | null | undefined): string {
 function tokens(value: string | null | undefined): string[] {
   return clean(value).split(" ").filter(Boolean);
 }
+
+/** Two individual words count as "the same word" at/above this similarity, so a
+ *  mistyped token ("rce" vs "rice") still pairs up in the token-set intersection. */
+const TOKEN_MATCH_THRESHOLD = 0.8;
 
 // ─── Levenshtein ────────────────────────────────────────────
 function levenshtein(a: string, b: string): number {
@@ -121,17 +128,49 @@ export function tokenSortRatio(a: string, b: string): number {
   return levenshteinRatio(sa, sb);
 }
 
-/** Compare the shared words against each side's remainder — tolerant of extra words. */
-export function tokenSetRatio(a: string, b: string): number {
-  const A = new Set(tokens(a));
-  const B = new Set(tokens(b));
-  const intersection = [...A].filter((t) => B.has(t)).sort();
-  const restA = [...A].filter((t) => !B.has(t)).sort();
-  const restB = [...B].filter((t) => !A.has(t)).sort();
+/** Per-word similarity used to decide whether two tokens are "the same word". */
+function tokenSimilarity(x: string, y: string): number {
+  return Math.max(levenshteinRatio(x, y), jaroWinkler(x, y));
+}
 
+/**
+ * Compare the shared words against each side's remainder — tolerant of extra
+ * words AND of typos *within* a word. Instead of an exact set intersection, each
+ * word of A is greedily paired with its best-matching still-unpaired word of B
+ * when they are similar enough (>= TOKEN_MATCH_THRESHOLD), so "rce" pairs with
+ * "rice". Paired words form the shared set; the rest are each side's remainder.
+ */
+export function tokenSetRatio(a: string, b: string): number {
+  const A = tokens(a);
+  const B = tokens(b);
+  const usedB = new Array(B.length).fill(false);
+  const shared: string[] = [];
+  const restA: string[] = [];
+
+  for (const ta of A) {
+    let bestJ = -1;
+    let bestScore = 0;
+    for (let j = 0; j < B.length; j++) {
+      if (usedB[j]) continue;
+      const s = tokenSimilarity(ta, B[j]);
+      if (s >= TOKEN_MATCH_THRESHOLD && s > bestScore) {
+        bestScore = s;
+        bestJ = j;
+      }
+    }
+    if (bestJ >= 0) {
+      usedB[bestJ] = true;
+      shared.push(B[bestJ]);
+    } else {
+      restA.push(ta);
+    }
+  }
+  const restB = B.filter((_, j) => !usedB[j]);
+
+  const intersection = shared.sort();
   const t0 = intersection.join(" ");
-  const t1 = [...intersection, ...restA].join(" ");
-  const t2 = [...intersection, ...restB].join(" ");
+  const t1 = [...intersection, ...restA.sort()].join(" ");
+  const t2 = [...intersection, ...restB.sort()].join(" ");
 
   return Math.max(
     levenshteinRatio(t0, t1),
@@ -155,10 +194,17 @@ export function descriptionSimilarity(a: string, b: string): number {
 
   const cA = clean(a);
   const cB = clean(b);
-  return (
+  const tsort = tokenSortRatio(a, b);
+  const tset = tokenSetRatio(a, b);
+  const ensemble =
     W_LEVENSHTEIN * levenshteinRatio(cA, cB) +
     W_JARO_WINKLER * jaroWinkler(cA, cB) +
-    W_TOKEN_SORT * tokenSortRatio(a, b) +
-    W_TOKEN_SET * tokenSetRatio(a, b)
-  );
+    W_TOKEN_SORT * tsort +
+    W_TOKEN_SET * tset;
+
+  // A weighted sum dilutes strong single signals: "rice basmati" vs
+  // "Basmati Rice 25kg" scores 1.0 on token-set (same words, one extra) but the
+  // sum drags it under threshold. Let word-order (token-sort) or extra/missing
+  // words (token-set) trigger on their own by taking the max.
+  return Math.max(ensemble, tsort, tset);
 }
