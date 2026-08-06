@@ -206,7 +206,9 @@
     "validToValidation": "Valid-to must be after valid-from",
     "formNote": "Lines are submitted for buyer approval before becoming orderable.",
     "cancel": "Cancel",
-    "update": "Update"
+    "update": "Update",
+    "readOnlyNotice": "You are viewing your {{status}} catalogue — it is read-only. Switch to Draft to make changes.",
+    "viewSelectLabel": "Choose which catalogue to view"
   },
   "invoiceSubmit": {
     "noVendorNotice": "Your account isn't linked to a vendor yet, so there are no invoices to submit.",

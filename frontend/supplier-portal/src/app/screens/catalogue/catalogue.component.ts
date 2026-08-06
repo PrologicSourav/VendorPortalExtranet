@@ -54,15 +54,12 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         <p class="page-subtitle">{{ "catalogue.subtitle" | translate }}</p>
       </div>
       <div class="header-actions">
-        <span
-          class="badge"
-          [ngClass]="catalogueStatus === 'Draft' ? 'badge-warning' : 'badge-success'"
-        >
+        <span class="badge" [ngClass]="statusBadgeClass">
           {{ ("catalogue.status" + catalogueStatus) | translate }}
         </span>
         <button
           class="btn btn-primary"
-          [disabled]="lines.length === 0 || catalogueStatus !== 'Draft' || submitting || !hasVendor"
+          [disabled]="lines.length === 0 || !isEditable || submitting || !hasVendor"
           [title]="'catalogue.submitTooltip' | translate"
           (click)="submitForApproval()"
         >
@@ -90,25 +87,41 @@ const CATALOGUE_UPLOAD_COLUMNS = [
           [placeholder]="'catalogue.searchPlaceholder' | translate"
           [(ngModel)]="searchTerm"
         />
-        <select class="form-control filter-select" [(ngModel)]="statusFilter">
-          <option value="">{{ "catalogue.allStatus" | translate }}</option>
-          <option value="Draft">{{ "catalogue.statusDraft" | translate }}</option>
-          <option value="Approved">{{ "catalogue.statusApproved" | translate }}</option>
+        <select
+          class="form-control filter-select"
+          [ngModel]="viewStatus"
+          (ngModelChange)="selectView($event)"
+          [title]="'catalogue.viewSelectLabel' | translate"
+        >
+          <option *ngFor="let s of availableViews" [value]="s">
+            {{ ("catalogue.status" + s) | translate }}
+          </option>
         </select>
         <button
           class="btn btn-primary"
-          [disabled]="catalogueStatus !== 'Draft' || !hasVendor"
+          [disabled]="!isEditable || !hasVendor"
           (click)="openAddDialog()"
         >
           + {{ "catalogue.addLine" | translate }}
         </button>
         <button
           class="btn btn-secondary"
-          [disabled]="catalogueStatus !== 'Draft' || !hasVendor"
+          [disabled]="!isEditable || !hasVendor"
           (click)="showUploadModal = true"
         >
           📤 {{ "excelUpload.uploadButton" | translate }}
         </button>
+      </div>
+
+      <div
+        *ngIf="hasVendor && !isEditable"
+        class="read-only-notice"
+        role="status"
+      >
+        {{
+          "catalogue.readOnlyNotice"
+            | translate: { status: ("catalogue.status" + catalogueStatus | translate) }
+        }}
       </div>
 
     <!-- Data Table -->
@@ -154,19 +167,24 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                 >
               </td>
               <td>
-                <button
-                  class="btn btn-secondary btn-sm"
-                  (click)="editLine(line)"
-                >
-                  {{ "catalogue.edit" | translate }}
-                </button>
-                <button
-                  class="btn btn-sm"
-                  style="color: var(--color-error)"
-                  (click)="deleteLine(line)"
-                >
-                  {{ "catalogue.delete" | translate }}
-                </button>
+                <ng-container *ngIf="isEditable; else readOnlyActions">
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    (click)="editLine(line)"
+                  >
+                    {{ "catalogue.edit" | translate }}
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    style="color: var(--color-error)"
+                    (click)="deleteLine(line)"
+                  >
+                    {{ "catalogue.delete" | translate }}
+                  </button>
+                </ng-container>
+                <ng-template #readOnlyActions>
+                  <span class="muted-dash">—</span>
+                </ng-template>
               </td>
             </tr>
           </tbody>
@@ -416,6 +434,18 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         font-size: 13px;
         margin-bottom: 16px;
       }
+      .read-only-notice {
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: var(--color-surface-alt);
+        color: var(--color-text-secondary);
+        border: 1px solid var(--color-border);
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+      .muted-dash {
+        color: var(--color-text-muted);
+      }
 
       .toolbar {
         display: flex;
@@ -532,12 +562,16 @@ export class CatalogueComponent implements OnInit {
   private translate = inject(TranslateService);
 
   searchTerm = "";
-  statusFilter = "";
   showAddDialog = false;
   editingLine: any = null;
 
   showUploadModal = false;
   uploadColumns = CATALOGUE_UPLOAD_COLUMNS;
+
+  /** Every catalogue this vendor owns, across all statuses (newest first). */
+  catalogues: any[] = [];
+  /** Which status the user is currently viewing (drives the toolbar dropdown). */
+  viewStatus = "Draft";
 
   catalogueId: string | null = null;
   catalogueStatus = "Draft";
@@ -553,6 +587,35 @@ export class CatalogueComponent implements OnInit {
    *  a POST with a null vendor that the backend rejects with a confusing FK error. */
   get hasVendor(): boolean {
     return !!this.auth.user()?.vendorId;
+  }
+
+  /** Only a Draft catalogue is editable — Submitted/Approved/Rejected are read-only views. */
+  get isEditable(): boolean {
+    return this.catalogueStatus === "Draft";
+  }
+
+  /** Status options offered in the view switcher. Draft is always available (it's the
+   *  editable workspace, even before one exists); the rest appear only if the vendor
+   *  actually has a catalogue in that state. Ordered by lifecycle. */
+  get availableViews(): string[] {
+    const present = new Set(this.catalogues.map((c) => c.status));
+    return ["Draft", "Submitted", "Approved", "Rejected"].filter(
+      (s) => s === "Draft" || present.has(s),
+    );
+  }
+
+  /** Badge colour for the current catalogue status. */
+  get statusBadgeClass(): string {
+    switch (this.catalogueStatus) {
+      case "Approved":
+        return "badge-success";
+      case "Rejected":
+        return "badge-error";
+      case "Submitted":
+        return "badge-info";
+      default:
+        return "badge-warning"; // Draft
+    }
   }
 
   readonly maxDescriptionLength = MAX_DESCRIPTION_LENGTH;
@@ -637,14 +700,12 @@ export class CatalogueComponent implements OnInit {
       this.loading = false;
       return;
     }
-    this.api.getCatalogues(vendorId, "Draft").subscribe({
+    // Load every catalogue this vendor owns (all statuses) so approved/submitted
+    // price lists remain visible, not just the editable Draft.
+    this.api.getCatalogues(vendorId).subscribe({
       next: (catalogues: any[]) => {
-        const draft = catalogues?.[0];
-        if (draft) {
-          this.catalogueId = draft.id;
-          this.catalogueStatus = draft.status ?? "Draft";
-          this.lines = (draft.lines ?? []).map((l: any) => this.mapServerLine(l));
-        }
+        this.catalogues = catalogues ?? [];
+        this.initView();
         this.loading = false;
       },
       error: () => {
@@ -654,13 +715,44 @@ export class CatalogueComponent implements OnInit {
     });
   }
 
+  /** Pick the default view: the editable Draft if one exists, otherwise the most
+   *  recent catalogue (so an approved price list shows instead of an empty page). */
+  private initView(): void {
+    const hasDraft = this.catalogues.some((c) => c.status === "Draft");
+    const fallback = this.catalogues[0]?.status ?? "Draft";
+    this.selectView(hasDraft ? "Draft" : fallback);
+  }
+
+  /** Switch which catalogue (by status) is shown. Draft with no persisted catalogue
+   *  yet becomes an empty, editable workspace. */
+  selectView(status: string): void {
+    this.viewStatus = status;
+    const cat = this.catalogues.find((c) => c.status === status) ?? null;
+    this.catalogueId = cat?.id ?? null;
+    this.catalogueStatus = status;
+    this.lines = (cat?.lines ?? []).map((l: any) => this.mapServerLine(l));
+  }
+
+  /** Reload all catalogues from the server and re-show the given status view. Used
+   *  after mutations so the in-memory state stays consistent with the backend. */
+  private refresh(status: string): void {
+    const vendorId = this.auth.user()?.vendorId;
+    if (!vendorId) return;
+    this.api.getCatalogues(vendorId).subscribe({
+      next: (catalogues: any[]) => {
+        this.catalogues = catalogues ?? [];
+        const present = this.catalogues.some((c) => c.status === status);
+        this.selectView(present || status === "Draft" ? status : (this.catalogues[0]?.status ?? "Draft"));
+      },
+    });
+  }
+
   get filteredLines() {
     return this.lines.filter(
       (l) =>
-        (!this.searchTerm ||
-          l.description.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-          l.itemCode.toLowerCase().includes(this.searchTerm.toLowerCase())) &&
-        (!this.statusFilter || l.status === this.statusFilter),
+        !this.searchTerm ||
+        l.description.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        l.itemCode.toLowerCase().includes(this.searchTerm.toLowerCase()),
     );
   }
 
@@ -697,6 +789,7 @@ export class CatalogueComponent implements OnInit {
       next: () => {
         this.lines = this.lines.filter((l) => l !== line);
         this.showToast("success", "catalogue.toastLineDeleted");
+        this.refresh("Draft");
       },
       error: (err) => {
         this.showToast("error", undefined, undefined, this.extractErrorMessage(err));
@@ -728,6 +821,7 @@ export class CatalogueComponent implements OnInit {
           this.lines.push(...created.map((l) => this.mapServerLine(l)));
           this.saving = false;
           this.closeAddDialog();
+          this.refresh("Draft");
         },
         error: (err) => {
           this.saving = false;
@@ -761,6 +855,7 @@ export class CatalogueComponent implements OnInit {
           this.lines.push(...created.map((l) => this.mapServerLine(l)));
           this.showUploadModal = false;
           this.showToast("success", "excelUpload.successToast", { count: created.length });
+          this.refresh("Draft");
         },
         error: (err) => {
           this.showToast("error", undefined, undefined, this.extractErrorMessage(err));
@@ -773,9 +868,11 @@ export class CatalogueComponent implements OnInit {
     this.submitting = true;
     this.api.submitCatalogue(this.catalogueId).subscribe({
       next: () => {
-        this.catalogueStatus = "Submitted";
         this.submitting = false;
         this.showToast("success", "catalogue.toastSubmitted");
+        // The Draft is now Submitted — reload and switch to the Submitted view so
+        // the just-submitted list stays visible (read-only) instead of vanishing.
+        this.refresh("Submitted");
       },
       error: () => {
         this.submitting = false;

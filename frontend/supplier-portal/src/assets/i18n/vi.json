@@ -206,7 +206,9 @@
     "validToValidation": "Ngày hết hiệu lực phải sau ngày bắt đầu hiệu lực",
     "formNote": "Các dòng được gửi để bên mua phê duyệt trước khi có thể đặt hàng.",
     "cancel": "Hủy",
-    "update": "Cập nhật"
+    "update": "Cập nhật",
+    "readOnlyNotice": "Bạn đang xem danh mục {{status}} — chỉ đọc. Chuyển sang Bản nháp để chỉnh sửa.",
+    "viewSelectLabel": "Chọn danh mục để xem"
   },
   "invoiceSubmit": {
     "noVendorNotice": "Tài khoản của bạn chưa được liên kết với nhà cung cấp nên không có hóa đơn nào để gửi.",
