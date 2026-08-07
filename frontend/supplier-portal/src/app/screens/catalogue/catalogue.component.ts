@@ -716,18 +716,31 @@ export class CatalogueComponent implements OnInit {
   }
 
   /** Pick the default view: the editable Draft if one exists, otherwise the most
-   *  recent catalogue (so an approved price list shows instead of an empty page). */
+   *  recently active catalogue (so an approved price list shows instead of an empty page). */
   private initView(): void {
     const hasDraft = this.catalogues.some((c) => c.status === "Draft");
-    const fallback = this.catalogues[0]?.status ?? "Draft";
+    const fallback = this.mostRecent(this.catalogues)?.status ?? "Draft";
     this.selectView(hasDraft ? "Draft" : fallback);
+  }
+
+  /** The most recently *active* catalogue in a set — the one whose latest lifecycle
+   *  event (approved > submitted > updated > created) is newest. Used so a vendor
+   *  with several catalogues at one status sees the current one (e.g. the price list
+   *  approved most recently, not just the one created most recently). */
+  private mostRecent(list: any[]): any | null {
+    const ts = (c: any) =>
+      new Date(c.approvedDate ?? c.submittedDate ?? c.updatedAt ?? c.createdAt ?? 0).getTime();
+    return list.reduce(
+      (best, c) => (best === null || ts(c) > ts(best) ? c : best),
+      null as any,
+    );
   }
 
   /** Switch which catalogue (by status) is shown. Draft with no persisted catalogue
    *  yet becomes an empty, editable workspace. */
   selectView(status: string): void {
     this.viewStatus = status;
-    const cat = this.catalogues.find((c) => c.status === status) ?? null;
+    const cat = this.mostRecent(this.catalogues.filter((c) => c.status === status));
     this.catalogueId = cat?.id ?? null;
     this.catalogueStatus = status;
     this.lines = (cat?.lines ?? []).map((l: any) => this.mapServerLine(l));
@@ -742,7 +755,11 @@ export class CatalogueComponent implements OnInit {
       next: (catalogues: any[]) => {
         this.catalogues = catalogues ?? [];
         const present = this.catalogues.some((c) => c.status === status);
-        this.selectView(present || status === "Draft" ? status : (this.catalogues[0]?.status ?? "Draft"));
+        this.selectView(
+          present || status === "Draft"
+            ? status
+            : (this.mostRecent(this.catalogues)?.status ?? "Draft"),
+        );
       },
     });
   }
