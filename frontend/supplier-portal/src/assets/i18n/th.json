@@ -208,7 +208,15 @@
     "cancel": "ยกเลิก",
     "update": "อัปเดต",
     "readOnlyNotice": "คุณกำลังดูแคตตาล็อก {{status}} — อ่านอย่างเดียว สลับไปที่ฉบับร่างเพื่อแก้ไข",
-    "viewSelectLabel": "เลือกแคตตาล็อกที่จะดู"
+    "viewSelectLabel": "เลือกแคตตาล็อกที่จะดู",
+    "mappedItem": "รายการ Web Prol’IFIC",
+    "unmapped": "ยังไม่จับคู่",
+    "mapItemLabel": "รายการ Web Prol’IFIC (การจับคู่)",
+    "mapSearchPlaceholder": "ค้นหาในรายการสินค้าหลัก…",
+    "mapSuggest": "แนะนำจากคำอธิบาย",
+    "mapChange": "เปลี่ยน",
+    "mapNoResults": "ไม่พบสินค้าหลักที่ตรงกัน",
+    "mapOptionalHint": "ไม่บังคับ — เชื่อมโยงบรรทัดนี้กับสินค้าหลักเพื่อให้ผู้ซื้อจับคู่ได้"
   },
   "invoiceSubmit": {
     "noVendorNotice": "บัญชีของคุณยังไม่ได้เชื่อมโยงกับผู้ขาย จึงไม่มีใบแจ้งหนี้ให้ส่ง",

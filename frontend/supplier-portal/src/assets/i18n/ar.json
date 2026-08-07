@@ -208,7 +208,15 @@
     "cancel": "إلغاء",
     "update": "تحديث",
     "readOnlyNotice": "أنت تعرض كتالوج {{status}} — للقراءة فقط. انتقل إلى المسودة لإجراء تغييرات.",
-    "viewSelectLabel": "اختر الكتالوج المراد عرضه"
+    "viewSelectLabel": "اختر الكتالوج المراد عرضه",
+    "mappedItem": "صنف Web Prol’IFIC",
+    "unmapped": "غير مرتبط",
+    "mapItemLabel": "صنف Web Prol’IFIC (الربط)",
+    "mapSearchPlaceholder": "ابحث في قائمة الأصناف الرئيسية…",
+    "mapSuggest": "اقتراح من الوصف",
+    "mapChange": "تغيير",
+    "mapNoResults": "لا توجد أصناف رئيسية مطابقة.",
+    "mapOptionalHint": "اختياري — اربط هذا السطر بصنف رئيسي ليتمكن المشترون من مطابقته."
   },
   "invoiceSubmit": {
     "noVendorNotice": "حسابك غير مرتبط بمورّد بعد، لذا لا توجد فواتير لتقديمها.",

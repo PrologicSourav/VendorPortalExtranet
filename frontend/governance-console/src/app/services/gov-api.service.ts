@@ -35,6 +35,9 @@ export interface CatalogueReviewLine {
   currency: string;
   contractPrice?: number | null;
   deviationPercent?: number | null;
+  mappedItemId?: string | null;
+  mappedItemCode?: string | null;
+  mappedItemDescription?: string | null;
 }
 
 export interface CatalogueReview {

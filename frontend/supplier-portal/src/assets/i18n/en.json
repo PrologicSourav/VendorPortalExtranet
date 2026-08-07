@@ -208,7 +208,15 @@
     "cancel": "Cancel",
     "update": "Update",
     "readOnlyNotice": "You are viewing your {{status}} catalogue — it is read-only. Switch to Draft to make changes.",
-    "viewSelectLabel": "Choose which catalogue to view"
+    "viewSelectLabel": "Choose which catalogue to view",
+    "mappedItem": "Web Prol’IFIC Item",
+    "unmapped": "Unmapped",
+    "mapItemLabel": "Web Prol’IFIC Item (mapping)",
+    "mapSearchPlaceholder": "Search the master item list…",
+    "mapSuggest": "Suggest from description",
+    "mapChange": "Change",
+    "mapNoResults": "No matching master items found.",
+    "mapOptionalHint": "Optional — link this line to a master item so buyers can match it."
   },
   "invoiceSubmit": {
     "noVendorNotice": "Your account isn't linked to a vendor yet, so there are no invoices to submit.",

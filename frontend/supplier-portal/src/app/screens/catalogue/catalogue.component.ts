@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { TranslatePipe, TranslateService } from "@ngx-translate/core";
-import { of, switchMap } from "rxjs";
+import { of, switchMap, Subject, debounceTime, distinctUntilChanged } from "rxjs";
 import {
   ExcelUploadModalComponent,
   ExcelUploadRow,
@@ -139,6 +139,7 @@ const CATALOGUE_UPLOAD_COLUMNS = [
               <th>{{ "catalogue.validTo" | translate }}</th>
               <th>{{ "catalogue.taxClass" | translate }}</th>
               <th>{{ "catalogue.contractDeviation" | translate }}</th>
+              <th>{{ "catalogue.mappedItem" | translate }}</th>
               <th>{{ "catalogue.actions" | translate }}</th>
             </tr>
           </thead>
@@ -165,6 +166,18 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                 <span *ngIf="line.deviation === 0" class="badge badge-success"
                   >{{ "catalogue.onContract" | translate }}</span
                 >
+              </td>
+              <td>
+                <span
+                  *ngIf="line.itemId; else unmapped"
+                  class="badge badge-info"
+                  [title]="line.mappedItemDescription"
+                >
+                  {{ line.mappedItemCode }}
+                </span>
+                <ng-template #unmapped>
+                  <span class="badge badge-muted">{{ "catalogue.unmapped" | translate }}</span>
+                </ng-template>
               </td>
               <td>
                 <ng-container *ngIf="isEditable; else readOnlyActions">
@@ -271,6 +284,58 @@ const CATALOGUE_UPLOAD_COLUMNS = [
                 [(ngModel)]="formData.packUom"
                 placeholder="25kg"
               />
+            </div>
+          </div>
+
+          <!-- Map this line to a Web Prol'IFIC master item -->
+          <div class="form-group item-map">
+            <label>{{ "catalogue.mapItemLabel" | translate }}</label>
+
+            <div *ngIf="formData.itemId" class="mapped-item">
+              <span class="mapped-chip">
+                <code>{{ formData.mappedItemCode }}</code>
+                {{ formData.mappedItemDescription }}
+              </span>
+              <button type="button" class="btn btn-sm btn-secondary" (click)="clearMappedItem()">
+                {{ "catalogue.mapChange" | translate }}
+              </button>
+            </div>
+
+            <div *ngIf="!formData.itemId" class="item-search">
+              <div class="item-search-row">
+                <input
+                  class="form-control"
+                  [ngModel]="itemSearchTerm"
+                  (ngModelChange)="onItemSearchInput($event)"
+                  [placeholder]="'catalogue.mapSearchPlaceholder' | translate"
+                />
+                <button
+                  type="button"
+                  class="btn btn-sm btn-secondary"
+                  (click)="suggestItemMatches()"
+                  [disabled]="!formData.description.trim()"
+                >
+                  {{ "catalogue.mapSuggest" | translate }}
+                </button>
+              </div>
+              <div class="item-results" *ngIf="itemResults.length">
+                <button
+                  type="button"
+                  class="item-result"
+                  *ngFor="let it of itemResults"
+                  (click)="selectMappedItem(it)"
+                >
+                  <code>{{ it.itemCode }}</code>
+                  <span class="item-result-desc">{{ it.description }}</span>
+                  <span class="item-result-meta">{{ it.category }} · {{ it.baseUom }}</span>
+                </button>
+              </div>
+              <span
+                *ngIf="itemSearchTerm.trim() && !searchingItems && itemResults.length === 0"
+                class="field-hint"
+                >{{ "catalogue.mapNoResults" | translate }}</span
+              >
+              <span class="field-hint">{{ "catalogue.mapOptionalHint" | translate }}</span>
             </div>
           </div>
 
@@ -507,6 +572,73 @@ const CATALOGUE_UPLOAD_COLUMNS = [
         margin-top: 4px;
         display: block;
       }
+      .field-hint {
+        color: var(--color-text-muted);
+        font-size: 11px;
+        margin-top: 4px;
+        display: block;
+      }
+      .item-map {
+        margin-top: 16px;
+      }
+      .item-search-row {
+        display: flex;
+        gap: 8px;
+      }
+      .item-search-row .form-control {
+        flex: 1;
+      }
+      .item-results {
+        margin-top: 6px;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        max-height: 190px;
+        overflow-y: auto;
+        background: var(--color-surface);
+      }
+      .item-result {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        width: 100%;
+        text-align: left;
+        padding: 8px 10px;
+        background: none;
+        border: none;
+        border-bottom: 1px solid var(--color-border-light);
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .item-result:last-child {
+        border-bottom: none;
+      }
+      .item-result:hover {
+        background: var(--color-surface-alt);
+      }
+      .item-result-desc {
+        flex: 1;
+        color: var(--color-heading);
+      }
+      .item-result-meta {
+        font-size: 11px;
+        color: var(--color-text-muted);
+      }
+      .mapped-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .mapped-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--color-surface-alt);
+        border: 1px solid var(--color-border);
+        font-size: 13px;
+      }
       .form-note {
         font-size: 12px;
         color: var(--color-text-muted);
@@ -679,20 +811,38 @@ export class CatalogueComponent implements OnInit {
       rows as unknown as CatalogueExcelRow[],
     );
 
-  formData = {
-    itemCode: "",
-    description: "",
-    packUom: "",
-    price: 0,
-    currency: "INR",
-    validFrom: "",
-    validTo: "",
-    taxClass: "GST-5",
-  };
+  formData: any = this.emptyForm();
+
+  /** Item-mapping picker state (maps a line to a Web Prol'IFIC master item). */
+  itemSearchTerm = "";
+  itemResults: any[] = [];
+  searchingItems = false;
+  private itemSearch$ = new Subject<string>();
+
+  private emptyForm() {
+    return {
+      itemId: null as string | null,
+      mappedItemCode: null as string | null,
+      mappedItemDescription: null as string | null,
+      itemCode: "",
+      description: "",
+      packUom: "",
+      price: 0,
+      currency: "INR",
+      validFrom: "",
+      validTo: "",
+      taxClass: "GST-5",
+    };
+  }
 
   lines: any[] = [];
 
   ngOnInit(): void {
+    // Debounced master-item search for the line-mapping picker.
+    this.itemSearch$
+      .pipe(debounceTime(250), distinctUntilChanged())
+      .subscribe((term) => this.runItemSearch(term));
+
     const vendorId = this.auth.user()?.vendorId;
     if (!vendorId) {
       // No vendor context (e.g. internal staff account) — not a load failure.
@@ -776,23 +926,16 @@ export class CatalogueComponent implements OnInit {
   openAddDialog(): void {
     this.editingLine = null;
     this.saveError = null;
-    this.formData = {
-      itemCode: "",
-      description: "",
-      packUom: "",
-      price: 0,
-      currency: "INR",
-      validFrom: "",
-      validTo: "",
-      taxClass: "GST-5",
-    };
+    this.formData = this.emptyForm();
+    this.resetItemSearch();
     this.showAddDialog = true;
   }
 
   editLine(line: any) {
     this.editingLine = line;
-    this.formData = { ...line };
+    this.formData = { ...this.emptyForm(), ...line };
     this.saveError = null;
+    this.resetItemSearch();
     this.showAddDialog = true;
   }
 
@@ -812,6 +955,59 @@ export class CatalogueComponent implements OnInit {
         this.showToast("error", undefined, undefined, this.extractErrorMessage(err));
       },
     });
+  }
+
+  // ─── Item mapping (link a line to a Web Prol'IFIC master item) ───────────
+  /** Fired on every keystroke in the mapping search box; feeds the debounced stream. */
+  onItemSearchInput(term: string): void {
+    this.itemSearchTerm = term;
+    this.itemSearch$.next(term.trim());
+  }
+
+  /** Pre-fill the picker from the line's description to suggest likely matches. */
+  suggestItemMatches(): void {
+    const seed = (this.formData.description || "").trim();
+    this.itemSearchTerm = seed;
+    this.runItemSearch(seed);
+  }
+
+  private runItemSearch(term: string): void {
+    if (!term) {
+      this.itemResults = [];
+      this.searchingItems = false;
+      return;
+    }
+    this.searchingItems = true;
+    this.api.searchItems(term).subscribe({
+      next: (items: any[]) => {
+        this.itemResults = items ?? [];
+        this.searchingItems = false;
+      },
+      error: () => {
+        this.itemResults = [];
+        this.searchingItems = false;
+      },
+    });
+  }
+
+  selectMappedItem(item: any): void {
+    this.formData.itemId = item.id;
+    this.formData.mappedItemCode = item.itemCode;
+    this.formData.mappedItemDescription = item.description;
+    this.itemResults = [];
+    this.itemSearchTerm = "";
+  }
+
+  clearMappedItem(): void {
+    this.formData.itemId = null;
+    this.formData.mappedItemCode = null;
+    this.formData.mappedItemDescription = null;
+  }
+
+  private resetItemSearch(): void {
+    this.itemSearchTerm = "";
+    this.itemResults = [];
+    this.searchingItems = false;
   }
 
   saveLine(): void {
@@ -926,6 +1122,10 @@ export class CatalogueComponent implements OnInit {
       taxClass: line.taxClass,
       deviation: line.deviationPercent ?? 0,
       status: line.status ?? "Draft",
+      // Mapping to a Web Prol'IFIC master item (line.item is the included navigation).
+      itemId: line.itemId ?? null,
+      mappedItemCode: line.item?.itemCode ?? null,
+      mappedItemDescription: line.item?.description ?? null,
     };
   }
 
@@ -951,16 +1151,8 @@ export class CatalogueComponent implements OnInit {
     this.showAddDialog = false;
     this.editingLine = null;
     this.saveError = null;
-    this.formData = {
-      itemCode: "",
-      description: "",
-      packUom: "",
-      price: 0,
-      currency: "INR",
-      validFrom: "",
-      validTo: "",
-      taxClass: "GST-5",
-    };
+    this.formData = this.emptyForm();
+    this.resetItemSearch();
   }
 
   private showToast(type: string, key?: string, params?: any, text?: string): void {

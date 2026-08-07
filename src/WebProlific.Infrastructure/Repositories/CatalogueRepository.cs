@@ -14,6 +14,7 @@ public class CatalogueRepository : ICatalogueRepository
     public async Task<Catalogue?> GetByIdAsync(Guid id) =>
         await _db.Catalogues
             .Include(c => c.Lines)
+                .ThenInclude(l => l.Item)
             .Include(c => c.Vendor)
             .Include(c => c.BuyingEntity)
             .FirstOrDefaultAsync(c => c.Id == id);
@@ -23,6 +24,7 @@ public class CatalogueRepository : ICatalogueRepository
         var query = _db.Catalogues
             .Include(c => c.BuyingEntity)
             .Include(c => c.Lines)
+                .ThenInclude(l => l.Item)
             .Where(c => c.VendorId == vendorId);
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<CatalogueStatus>(status, true, out var catStatus))
@@ -36,6 +38,7 @@ public class CatalogueRepository : ICatalogueRepository
         var query = _db.Catalogues
             .Include(c => c.Vendor)
             .Include(c => c.Lines)
+                .ThenInclude(l => l.Item)
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<CatalogueStatus>(status, true, out var catStatus))

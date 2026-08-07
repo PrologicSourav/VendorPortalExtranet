@@ -27,11 +27,11 @@ public class ItemRepository : IItemRepository
         if (!string.IsNullOrEmpty(category))
             query = query.Where(i => i.Category == category);
 
-        return await query
-            .OrderBy(i => i.ItemCode)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var ordered = query.OrderBy(i => i.ItemCode);
+        // SQL Server 2008 R2 (local dev) has no OFFSET/FETCH; only page beyond the first
+        // needs a Skip, so the common typeahead case (page 1) stays on a plain TOP.
+        var paged = page > 1 ? ordered.Skip((page - 1) * pageSize) : (IQueryable<Item>)ordered;
+        return await paged.Take(pageSize).ToListAsync();
     }
 
     public async Task<Item> CreateAsync(Item item)

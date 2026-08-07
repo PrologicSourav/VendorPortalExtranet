@@ -119,6 +119,14 @@ export class ApiService {
     return this.http.post(`${API}/catalogues/${catalogueId}/lines`, { lines });
   }
 
+  // Master items (Web Prol'IFIC item list) — used to map catalogue lines.
+  searchItems(search: string, category?: string): Observable<any> {
+    let params: any = { page: 1, pageSize: 20 };
+    if (search) params.search = search;
+    if (category) params.category = category;
+    return this.http.get(`${API}/items`, { params });
+  }
+
   deleteCatalogueLine(catalogueId: string, lineId: string): Observable<any> {
     return this.http.delete(`${API}/catalogues/${catalogueId}/lines/${lineId}`);
   }

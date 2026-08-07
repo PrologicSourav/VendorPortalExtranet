@@ -208,7 +208,15 @@
     "cancel": "Hủy",
     "update": "Cập nhật",
     "readOnlyNotice": "Bạn đang xem danh mục {{status}} — chỉ đọc. Chuyển sang Bản nháp để chỉnh sửa.",
-    "viewSelectLabel": "Chọn danh mục để xem"
+    "viewSelectLabel": "Chọn danh mục để xem",
+    "mappedItem": "Mặt hàng Web Prol’IFIC",
+    "unmapped": "Chưa liên kết",
+    "mapItemLabel": "Mặt hàng Web Prol’IFIC (liên kết)",
+    "mapSearchPlaceholder": "Tìm trong danh mục mặt hàng gốc…",
+    "mapSuggest": "Gợi ý theo mô tả",
+    "mapChange": "Thay đổi",
+    "mapNoResults": "Không tìm thấy mặt hàng gốc phù hợp.",
+    "mapOptionalHint": "Tùy chọn — liên kết dòng này với mặt hàng gốc để bên mua đối chiếu."
   },
   "invoiceSubmit": {
     "noVendorNotice": "Tài khoản của bạn chưa được liên kết với nhà cung cấp nên không có hóa đơn nào để gửi.",

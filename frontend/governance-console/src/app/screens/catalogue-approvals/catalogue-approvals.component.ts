@@ -87,6 +87,7 @@ const TAB_STATUS: Record<string, string> = {
               <th>Price</th>
               <th>Contract Price</th>
               <th>Deviation</th>
+              <th>Web Prol'IFIC Item</th>
             </tr>
           </thead>
           <tbody>
@@ -112,6 +113,18 @@ const TAB_STATUS: Record<string, string> = {
                   {{ line.deviationPercent > 0 ? "+" : "" }}{{ line.deviationPercent | number: "1.0-2" }}%
                 </span>
                 <ng-template #noDeviation>—</ng-template>
+              </td>
+              <td>
+                <span
+                  *ngIf="line.mappedItemCode; else notMapped"
+                  class="badge badge-success"
+                  [title]="line.mappedItemDescription || ''"
+                >
+                  {{ line.mappedItemCode }}
+                </span>
+                <ng-template #notMapped>
+                  <span class="badge badge-muted">Unmapped</span>
+                </ng-template>
               </td>
             </tr>
           </tbody>

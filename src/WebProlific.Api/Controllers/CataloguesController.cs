@@ -49,6 +49,9 @@ public class CataloguesController : ControllerBase
                 Currency = l.Currency,
                 ContractPrice = l.ContractPrice,
                 DeviationPercent = l.DeviationPercent,
+                MappedItemId = l.ItemId,
+                MappedItemCode = l.Item != null ? l.Item.ItemCode : null,
+                MappedItemDescription = l.Item != null ? l.Item.Description : null,
             }).ToList(),
         });
         return Ok(result);
@@ -163,6 +166,7 @@ public class CataloguesController : ControllerBase
         var lines = request.Lines.Select(l => new CatalogueLine
         {
             Id = Guid.NewGuid(),
+            ItemId = l.ItemId,
             ItemCode = l.ItemCode.Trim(),
             Description = l.Description.Trim(),
             PackUom = l.PackUom.Trim(),
@@ -263,6 +267,10 @@ public class CatalogueReviewLineDto
     public string Currency { get; set; } = "INR";
     public decimal? ContractPrice { get; set; }
     public decimal? DeviationPercent { get; set; }
+    /// <summary>The Web Prol'IFIC master item this line is mapped to (null = unmapped).</summary>
+    public Guid? MappedItemId { get; set; }
+    public string? MappedItemCode { get; set; }
+    public string? MappedItemDescription { get; set; }
 }
 
 public class CreateCatalogueRequest
@@ -273,6 +281,8 @@ public class CreateCatalogueRequest
 
 public class CatalogueLineInput
 {
+    /// <summary>Optional link to a Web Prol'IFIC master item this line maps to.</summary>
+    public Guid? ItemId { get; set; }
     public string ItemCode { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string PackUom { get; set; } = string.Empty;
