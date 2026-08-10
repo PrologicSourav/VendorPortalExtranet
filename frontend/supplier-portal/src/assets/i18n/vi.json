@@ -2,7 +2,7 @@
   "app": {
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "Cổng thông tin nhà cung cấp",
-    "entity": "Thực thể:",
+    "entity": "Khách sạn / Cơ sở",
     "toggleTheme": "Chuyển giao diện sáng / tối"
   },
   "profile": {
@@ -34,7 +34,7 @@
     "noVendorNotice": "Tài khoản của bạn chưa được liên kết với nhà cung cấp.",
     "loading": "Đang tải đơn đặt hàng…",
     "poNumber": "Số PO",
-    "entity": "Đơn vị mua",
+    "entity": "Khách sạn / Cơ sở",
     "requiredBy": "Cần trước",
     "status": "Trạng thái",
     "raise": "Lập phiếu giao hàng",
@@ -161,7 +161,7 @@
   },
   "catalogue": {
     "title": "Danh mục của tôi",
-    "subtitle": "Quản lý bảng giá của bạn cho nhóm mua hàng",
+    "subtitle": "Quản lý bảng giá của bạn cho khách sạn / cơ sở",
     "statusDraft": "Bản nháp",
     "statusSubmitted": "Đã gửi",
     "statusApproved": "Đã duyệt",
@@ -268,7 +268,7 @@
     "filterDelivered": "Đã giao",
     "searchPlaceholder": "Tìm kiếm đơn đặt hàng...",
     "poNumber": "Số đơn đặt hàng",
-    "buyingEntity": "Đơn vị mua hàng",
+    "buyingEntity": "Khách sạn / Cơ sở",
     "orderDate": "Ngày đặt hàng",
     "requiredBy": "Yêu cầu trước ngày",
     "lines": "Số dòng",

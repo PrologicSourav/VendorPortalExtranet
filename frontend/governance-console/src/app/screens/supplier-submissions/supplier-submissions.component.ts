@@ -45,7 +45,7 @@ import { FormsModule } from "@angular/forms";
             <tr>
               <th>Supplier</th>
               <th>Submission Type</th>
-              <th>Entity</th>
+              <th>Hotel / Property</th>
               <th>Submitted</th>
               <th>Status</th>
               <th>Actions</th>
@@ -120,7 +120,7 @@ import { FormsModule } from "@angular/forms";
               }}</span>
             </div>
             <div class="detail-item">
-              <label>Entity</label><span>{{ selectedSub.entity }}</span>
+              <label>Hotel / Property</label><span>{{ selectedSub.entity }}</span>
             </div>
             <div class="detail-item">
               <label>Submitted</label><span>{{ selectedSub.submitted }}</span>
