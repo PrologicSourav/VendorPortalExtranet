@@ -21,7 +21,7 @@ const TAB_STATUS: Record<string, string> = {
     <div class="page-header">
       <h1>Catalogue Approvals</h1>
       <p class="page-subtitle">
-        Review and approve supplier catalogue submissions for the hotel / property
+        Review and approve supplier catalogue submissions for the property
       </p>
     </div>
 

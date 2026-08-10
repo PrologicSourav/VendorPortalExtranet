@@ -12,7 +12,7 @@ import { GovApiService } from "../../services/gov-api.service";
     <div class="page-header">
       <h1>KYC Review</h1>
       <p class="page-subtitle">
-        Review and validate vendor KYC submissions from the hotel / property
+        Review and validate vendor KYC submissions from the property
       </p>
     </div>
 
@@ -70,7 +70,7 @@ import { GovApiService } from "../../services/gov-api.service";
               <th>GSTIN</th>
               <th>City</th>
               <th>Submitted By</th>
-              <th>Hotel / Property</th>
+              <th>Property</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>

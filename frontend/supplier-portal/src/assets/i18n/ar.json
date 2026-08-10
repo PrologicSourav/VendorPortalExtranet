@@ -2,7 +2,7 @@
   "app": {
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "بوابة الموردين",
-    "entity": "الفندق / العقار",
+    "entity": "العقار",
     "toggleTheme": "تبديل المظهر الفاتح / الداكن"
   },
   "profile": {
@@ -34,7 +34,7 @@
     "noVendorNotice": "حسابك غير مرتبط بمورّد بعد.",
     "loading": "جارٍ تحميل أوامر الشراء…",
     "poNumber": "رقم أمر الشراء",
-    "entity": "الفندق / العقار",
+    "entity": "العقار",
     "requiredBy": "مطلوب بحلول",
     "status": "الحالة",
     "raise": "إصدار إشعار تسليم",
@@ -161,7 +161,7 @@
   },
   "catalogue": {
     "title": "الفهرس الخاص بي",
-    "subtitle": "إدارة قائمة الأسعار الخاصة بك للفندق / العقار",
+    "subtitle": "إدارة قائمة الأسعار الخاصة بك للعقار",
     "statusDraft": "مسودة",
     "statusSubmitted": "تم الإرسال",
     "statusApproved": "معتمد",
@@ -268,7 +268,7 @@
     "filterDelivered": "تم التسليم",
     "searchPlaceholder": "بحث عن طلبات الشراء...",
     "poNumber": "رقم طلب الشراء",
-    "buyingEntity": "الفندق / العقار",
+    "buyingEntity": "العقار",
     "orderDate": "تاريخ الطلب",
     "requiredBy": "مطلوب بحلول",
     "lines": "البنود",

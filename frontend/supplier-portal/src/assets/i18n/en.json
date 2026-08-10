@@ -2,7 +2,7 @@
   "app": {
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "Supplier Portal",
-    "entity": "Hotel / Property",
+    "entity": "Property",
     "toggleTheme": "Toggle light / dark theme"
   },
   "profile": {
@@ -34,7 +34,7 @@
     "noVendorNotice": "Your account isn't linked to a vendor yet.",
     "loading": "Loading purchase orders…",
     "poNumber": "PO Number",
-    "entity": "Hotel / Property",
+    "entity": "Property",
     "requiredBy": "Required By",
     "status": "Status",
     "raise": "Raise Delivery Note",
@@ -161,7 +161,7 @@
   },
   "catalogue": {
     "title": "My Catalogue",
-    "subtitle": "Manage your price list for the hotel / property",
+    "subtitle": "Manage your price list for the property",
     "statusDraft": "Draft",
     "statusSubmitted": "Submitted",
     "statusApproved": "Approved",
@@ -268,7 +268,7 @@
     "filterDelivered": "Delivered",
     "searchPlaceholder": "Search POs...",
     "poNumber": "PO Number",
-    "buyingEntity": "Hotel / Property",
+    "buyingEntity": "Property",
     "orderDate": "Order Date",
     "requiredBy": "Required By",
     "lines": "Lines",
