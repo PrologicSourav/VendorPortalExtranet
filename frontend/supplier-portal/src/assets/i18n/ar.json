@@ -3,7 +3,8 @@
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "بوابة الموردين",
     "entity": "العقار",
-    "toggleTheme": "تبديل المظهر الفاتح / الداكن"
+    "toggleTheme": "تبديل المظهر الفاتح / الداكن",
+    "allProperties": "جميع العقارات"
   },
   "profile": {
     "changePassword": "تغيير كلمة المرور",

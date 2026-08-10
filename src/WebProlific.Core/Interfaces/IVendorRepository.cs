@@ -34,10 +34,13 @@ public interface IPurchaseOrderRepository
 {
     Task<PurchaseOrder?> GetByIdAsync(Guid id);
     Task<PurchaseOrder?> GetByPoNumberAsync(string poNumber);
-    Task<IEnumerable<PurchaseOrder>> GetByVendorAsync(Guid vendorId, string? status, int page, int pageSize);
-    Task<int> GetVendorPoCountAsync(Guid vendorId, string? status);
+    Task<IEnumerable<PurchaseOrder>> GetByVendorAsync(Guid vendorId, string? status, Guid? propertyId, int page, int pageSize);
+    Task<int> GetVendorPoCountAsync(Guid vendorId, string? status, Guid? propertyId);
     Task<PurchaseOrder> CreateAsync(PurchaseOrder po);
     Task<PurchaseOrder> UpdateAsync(PurchaseOrder po);
+    /// <summary>Distinct properties this vendor has at least one purchase order for —
+    /// used to populate the supplier portal's property switcher.</summary>
+    Task<IEnumerable<Property>> GetPropertiesForVendorAsync(Guid vendorId);
 }
 
 public interface IDeliveryNoteRepository

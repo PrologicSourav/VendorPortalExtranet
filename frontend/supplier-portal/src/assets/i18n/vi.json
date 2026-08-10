@@ -3,7 +3,8 @@
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "Cổng thông tin nhà cung cấp",
     "entity": "Cơ sở",
-    "toggleTheme": "Chuyển giao diện sáng / tối"
+    "toggleTheme": "Chuyển giao diện sáng / tối",
+    "allProperties": "Tất cả cơ sở"
   },
   "profile": {
     "changePassword": "Đổi mật khẩu",

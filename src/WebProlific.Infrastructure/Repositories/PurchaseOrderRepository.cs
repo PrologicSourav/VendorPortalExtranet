@@ -22,7 +22,7 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
     public async Task<PurchaseOrder?> GetByPoNumberAsync(string poNumber) =>
         await _db.PurchaseOrders.FirstOrDefaultAsync(po => po.PoNumber == poNumber);
 
-    public async Task<IEnumerable<PurchaseOrder>> GetByVendorAsync(Guid vendorId, string? status, int page, int pageSize)
+    public async Task<IEnumerable<PurchaseOrder>> GetByVendorAsync(Guid vendorId, string? status, Guid? propertyId, int page, int pageSize)
     {
         var query = _db.PurchaseOrders
             .Include(po => po.BuyingEntity)
@@ -32,6 +32,9 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<PoStatus>(status, true, out var poStatus))
             query = query.Where(po => po.Status == poStatus);
+
+        if (propertyId.HasValue)
+            query = query.Where(po => po.PropertyId == propertyId.Value);
 
         var ordered = query.OrderByDescending(po => po.OrderDate);
         // Page 1 uses TOP (SELECT TOP n) rather than OFFSET/FETCH, which the SQL
@@ -43,14 +46,30 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
         return await paged.Take(pageSize).ToListAsync();
     }
 
-    public async Task<int> GetVendorPoCountAsync(Guid vendorId, string? status)
+    public async Task<int> GetVendorPoCountAsync(Guid vendorId, string? status, Guid? propertyId)
     {
         var query = _db.PurchaseOrders.Where(po => po.VendorId == vendorId);
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<PoStatus>(status, true, out var poStatus))
             query = query.Where(po => po.Status == poStatus);
 
+        if (propertyId.HasValue)
+            query = query.Where(po => po.PropertyId == propertyId.Value);
+
         return await query.CountAsync();
+    }
+
+    public async Task<IEnumerable<Property>> GetPropertiesForVendorAsync(Guid vendorId)
+    {
+        // A plain join translates to a normal SQL JOIN; a two-step materialize-then-
+        // List<Guid>.Contains() would have EF Core 8 emit an OPENJSON-based IN clause,
+        // which the local SQL Server 2008 R2 dev instance doesn't support.
+        return await _db.PurchaseOrders
+            .Where(po => po.VendorId == vendorId && po.PropertyId.HasValue)
+            .Select(po => po.Property!)
+            .Distinct()
+            .OrderBy(p => p.Name)
+            .ToListAsync();
     }
 
     public async Task<PurchaseOrder> CreateAsync(PurchaseOrder po)

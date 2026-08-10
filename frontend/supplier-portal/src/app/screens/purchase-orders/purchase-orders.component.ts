@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from "@angular/core";
+import { Component, effect, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router, RouterModule } from "@angular/router";
@@ -6,6 +6,7 @@ import { TranslatePipe } from "@ngx-translate/core";
 import { MoneyPipe } from "../../pipes/money.pipe";
 import { ApiService } from "../../services/api.service";
 import { AuthService } from "../../services/auth.service";
+import { PropertyContextService } from "../../services/property-context.service";
 
 @Component({
   selector: "app-purchase-orders",
@@ -77,7 +78,7 @@ import { AuthService } from "../../services/auth.service";
               <td>
                 <code>{{ po.poNumber }}</code>
               </td>
-              <td>{{ po.entity }}</td>
+              <td>{{ po.property || po.entity }}</td>
               <td>{{ po.orderDate | date: "mediumDate" }}</td>
               <td>{{ po.requiredBy | date: "mediumDate" }}</td>
               <td>{{ po.lines }}</td>
@@ -465,6 +466,7 @@ import { AuthService } from "../../services/auth.service";
 export class PurchaseOrdersComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private propertyCtx = inject(PropertyContextService);
 
   searchTerm = "";
   statusFilter = "";
@@ -495,16 +497,24 @@ export class PurchaseOrdersComponent implements OnInit {
     return !!this.vendorId;
   }
 
-  ngOnInit(): void {
-    this.load();
+  constructor() {
+    // Re-load whenever the topbar property switcher changes (including the initial
+    // value), so "one property selected" immediately scopes the PO list to it.
+    effect(() => {
+      this.propertyCtx.selectedPropertyId();
+      this.load();
+    });
   }
+
+  ngOnInit(): void {}
 
   load(): void {
     const vid = this.vendorId;
     if (!vid) return;
     this.loading = true;
     this.loadError = null;
-    this.api.getPurchaseOrders(vid).subscribe({
+    const propertyId = this.propertyCtx.selectedPropertyId();
+    this.api.getPurchaseOrders(vid, undefined, 1, propertyId).subscribe({
       next: (res: any) => {
         const items = res?.items ?? res ?? [];
         this.pos = items.map((p: any) => this.mapPo(p));

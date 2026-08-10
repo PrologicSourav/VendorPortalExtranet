@@ -70,12 +70,18 @@ export class ApiService {
     vendorId: string,
     status?: string,
     page = 1,
+    propertyId?: string | null,
   ): Observable<any> {
     let params: any = { page, pageSize: 20 };
     if (status) params.status = status;
+    if (propertyId) params.propertyId = propertyId;
     return this.http.get(`${API}/purchaseorders/vendor/${vendorId}`, {
       params,
     });
+  }
+
+  getVendorProperties(vendorId: string): Observable<any> {
+    return this.http.get(`${API}/purchaseorders/vendor/${vendorId}/properties`);
   }
 
   getPurchaseOrder(id: string): Observable<any> {

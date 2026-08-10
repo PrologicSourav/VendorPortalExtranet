@@ -14,6 +14,7 @@ import { ThemeService } from "../services/theme.service";
 import { ApiService } from "../services/api.service";
 import { IdleService } from "../services/idle.service";
 import { CurrencyService } from "../services/currency.service";
+import { PropertyContextService } from "../services/property-context.service";
 import { LanguageSelectorComponent } from "../components/language-selector/language-selector.component";
 import { CurrencySelectorComponent } from "../components/currency-selector/currency-selector.component";
 
@@ -50,12 +51,17 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
         <currency-selector></currency-selector>
       </div>
       <div class="topbar-right">
-        <div class="entity-switcher">
+        <div class="entity-switcher" *ngIf="propertyCtx.properties().length">
           <span class="entity-label">{{ "app.entity" | translate }}:</span>
-          <select class="entity-select">
-            <option>Accor — North India</option>
-            <option>Accor — South India</option>
-            <option>Taj Hotels — West</option>
+          <select
+            class="entity-select"
+            [ngModel]="propertyCtx.selectedPropertyId()"
+            (ngModelChange)="propertyCtx.selectProperty($event || null)"
+          >
+            <option [ngValue]="null">{{ "app.allProperties" | translate }}</option>
+            <option *ngFor="let p of propertyCtx.properties()" [ngValue]="p.id">
+              {{ p.name }}
+            </option>
           </select>
         </div>
         <button
@@ -604,11 +610,17 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private idle = inject(IdleService);
   private router = inject(Router);
   private currency = inject(CurrencyService);
+  propertyCtx = inject(PropertyContextService);
   sidebarOpen = false;
 
   ngOnInit(): void {
     // Load currency list + exchange rates now that the user is authenticated.
     this.currency.loadReferenceData();
+
+    // Populate the property switcher with this vendor's properties (internal/staff
+    // accounts have no vendorId, so the switcher stays hidden for them).
+    const vendorId = this.auth.user()?.vendorId;
+    if (vendorId) this.propertyCtx.loadForVendor(vendorId);
 
     // Auto-logout after 10 minutes of inactivity while inside the app.
     this.idle.start(() => {

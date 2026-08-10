@@ -3,7 +3,8 @@
     "title": "Web Prol'IFIC — Supplier Portal",
     "portal": "Supplier Portal",
     "entity": "Property",
-    "toggleTheme": "Toggle light / dark theme"
+    "toggleTheme": "Toggle light / dark theme",
+    "allProperties": "All Properties"
   },
   "profile": {
     "changePassword": "Change Password",

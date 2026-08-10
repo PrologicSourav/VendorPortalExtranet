@@ -25,14 +25,14 @@ public class PurchaseOrdersController : ControllerBase
     }
 
     [HttpGet("vendor/{vendorId:guid}")]
-    public async Task<IActionResult> GetByVendor(Guid vendorId, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetByVendor(Guid vendorId, [FromQuery] string? status, [FromQuery] Guid? propertyId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (!User.CanAccessVendor(vendorId)) return Forbid();
 
-        var pos = await _poRepo.GetByVendorAsync(vendorId, status, page, pageSize);
+        var pos = await _poRepo.GetByVendorAsync(vendorId, status, propertyId, page, pageSize);
         // Resolve user's preferred currency (set by middleware)
         var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
-        var total = await _poRepo.GetVendorPoCountAsync(vendorId, status);
+        var total = await _poRepo.GetVendorPoCountAsync(vendorId, status, propertyId);
         var items = new List<object>();
         foreach (var po in pos)
         {
@@ -60,6 +60,18 @@ public class PurchaseOrdersController : ControllerBase
             });
         }
         return Ok(new { items, total, page, pageSize });
+    }
+
+    /// <summary>Distinct properties this vendor has received purchase orders for —
+    /// populates the supplier portal's property switcher.</summary>
+    [HttpGet("vendor/{vendorId:guid}/properties")]
+    public async Task<IActionResult> GetVendorProperties(Guid vendorId)
+    {
+        if (!User.CanAccessVendor(vendorId)) return Forbid();
+
+        var properties = await _poRepo.GetPropertiesForVendorAsync(vendorId);
+        var result = properties.Select(p => new { p.Id, p.Name, p.Code, p.City });
+        return Ok(result);
     }
 
     [HttpGet("{id:guid}")]
