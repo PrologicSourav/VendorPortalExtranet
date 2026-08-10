@@ -302,7 +302,9 @@
     "statusUnableToSupply": "Unable to supply",
     "toastAcknowledged": "PO acknowledged successfully",
     "toastPartialConfirmed": "Partial acceptance confirmed",
-    "toastUnableRecorded": "Unable to supply recorded"
+    "toastUnableRecorded": "Unable to supply recorded",
+    "topItems": "Top Items",
+    "topItemsMore": "+{{count}} more"
   },
   "excelUpload": {
     "uploadButton": "Upload Excel",

@@ -302,7 +302,9 @@
     "statusUnableToSupply": "تعذر التوريد",
     "toastAcknowledged": "تم الإقرار بطلب الشراء بنجاح",
     "toastPartialConfirmed": "تم تأكيد القبول الجزئي",
-    "toastUnableRecorded": "تم تسجيل تعذر التوريد"
+    "toastUnableRecorded": "تم تسجيل تعذر التوريد",
+    "topItems": "أهم الأصناف",
+    "topItemsMore": "+{{count}} أخرى"
   },
   "excelUpload": {
     "uploadButton": "رفع ملف إكسل",

@@ -302,7 +302,9 @@
     "statusUnableToSupply": "Không thể cung cấp",
     "toastAcknowledged": "Đã xác nhận đơn đặt hàng thành công",
     "toastPartialConfirmed": "Đã xác nhận chấp nhận một phần",
-    "toastUnableRecorded": "Đã ghi nhận không thể cung cấp"
+    "toastUnableRecorded": "Đã ghi nhận không thể cung cấp",
+    "topItems": "Mặt hàng nổi bật",
+    "topItemsMore": "+{{count}} khác"
   },
   "excelUpload": {
     "uploadButton": "Tải lên Excel",

@@ -302,7 +302,9 @@
     "statusUnableToSupply": "ไม่สามารถจัดหาได้",
     "toastAcknowledged": "ยืนยันใบสั่งซื้อสำเร็จแล้ว",
     "toastPartialConfirmed": "ยืนยันการยอมรับบางส่วนแล้ว",
-    "toastUnableRecorded": "บันทึกการไม่สามารถจัดหาได้แล้ว"
+    "toastUnableRecorded": "บันทึกการไม่สามารถจัดหาได้แล้ว",
+    "topItems": "รายการหลัก",
+    "topItemsMore": "+{{count}} รายการ"
   },
   "excelUpload": {
     "uploadButton": "อัปโหลด Excel",

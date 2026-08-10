@@ -61,6 +61,7 @@ import { PropertyContextService } from "../../services/property-context.service"
           <thead>
             <tr>
               <th>{{ "purchaseOrders.poNumber" | translate }}</th>
+              <th>{{ "purchaseOrders.topItems" | translate }}</th>
               <th>{{ "purchaseOrders.buyingEntity" | translate }}</th>
               <th>{{ "purchaseOrders.orderDate" | translate }}</th>
               <th>{{ "purchaseOrders.requiredBy" | translate }}</th>
@@ -77,6 +78,15 @@ import { PropertyContextService } from "../../services/property-context.service"
             >
               <td>
                 <code>{{ po.poNumber }}</code>
+              </td>
+              <td class="top-items" [title]="po.topItemsSummary">
+                <span *ngIf="po.topItems.length; else noItems">
+                  {{ po.topItemsSummary }}
+                  <span *ngIf="po.lines > po.topItems.length" class="more-count">
+                    {{ "purchaseOrders.topItemsMore" | translate: { count: po.lines - po.topItems.length } }}
+                  </span>
+                </span>
+                <ng-template #noItems>—</ng-template>
               </td>
               <td>{{ po.property || po.entity }}</td>
               <td>{{ po.orderDate | date: "mediumDate" }}</td>
@@ -310,6 +320,17 @@ import { PropertyContextService } from "../../services/property-context.service"
       .clickable {
         cursor: pointer;
       }
+      .top-items {
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+        color: var(--color-text-secondary);
+      }
+      .more-count {
+        color: var(--color-text-muted);
+      }
       code {
         background: var(--color-surface-alt);
         padding: 2px 6px;
@@ -528,6 +549,10 @@ export class PurchaseOrdersComponent implements OnInit {
   }
 
   private mapPo(p: any) {
+    const topItems = (p.topItems ?? []).map((l: any) => ({
+      description: l.itemDescription,
+      lineTotal: l.lineTotal,
+    }));
     return {
       id: p.id,
       poNumber: p.poNumber,
@@ -536,6 +561,8 @@ export class PurchaseOrdersComponent implements OnInit {
       orderDate: p.orderDate,
       requiredBy: p.requiredByDate,
       lines: p.lineCount ?? 0,
+      topItems,
+      topItemsSummary: topItems.map((t: any) => t.description).join(", "),
       value: p.totalValue,
       status: p.status,
       lineItems: [] as any[],

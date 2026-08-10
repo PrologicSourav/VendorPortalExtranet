@@ -49,6 +49,13 @@ public class PurchaseOrdersController : ControllerBase
                 po.OrderDate,
                 po.RequiredByDate,
                 LineCount = po.Lines?.Count ?? 0,
+                // The 3 highest-value line items — lets the list give a sense of
+                // what's actually on the PO without opening the detail drawer.
+                TopItems = (po.Lines ?? new List<PurchaseOrderLine>())
+                    .OrderByDescending(l => l.LineTotal)
+                    .Take(3)
+                    .Select(l => new { l.ItemDescription, l.LineTotal })
+                    .ToList(),
                 TotalValue = po.TotalValue,
                 TransactionCurrencyCode = po.Currency,
                 po.Status,
