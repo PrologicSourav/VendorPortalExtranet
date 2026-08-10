@@ -305,7 +305,12 @@
     "toastUnableRecorded": "Đã ghi nhận không thể cung cấp",
     "topItems": "Mặt hàng nổi bật",
     "topItemsMore": "+{{count}} khác",
-    "toastDocumentError": "Không thể tải tài liệu PO. Vui lòng thử lại."
+    "toastDocumentError": "Không thể tải tài liệu PO. Vui lòng thử lại.",
+    "tax": "Thuế",
+    "taxTotal": "Tổng thuế",
+    "remarks": "Ghi chú",
+    "dispatchInstructions": "Hướng dẫn giao hàng",
+    "packingInstructions": "Hướng dẫn đóng gói"
   },
   "excelUpload": {
     "uploadButton": "Tải lên Excel",

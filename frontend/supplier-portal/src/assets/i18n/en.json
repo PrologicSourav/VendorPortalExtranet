@@ -305,7 +305,12 @@
     "toastUnableRecorded": "Unable to supply recorded",
     "topItems": "Top Items",
     "topItemsMore": "+{{count}} more",
-    "toastDocumentError": "Could not load the PO document. Please try again."
+    "toastDocumentError": "Could not load the PO document. Please try again.",
+    "tax": "Tax",
+    "taxTotal": "Tax Total",
+    "remarks": "Remarks",
+    "dispatchInstructions": "Dispatch Instructions",
+    "packingInstructions": "Packing Instructions"
   },
   "excelUpload": {
     "uploadButton": "Upload Excel",

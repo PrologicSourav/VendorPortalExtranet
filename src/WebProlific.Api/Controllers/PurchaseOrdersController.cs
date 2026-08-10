@@ -132,6 +132,9 @@ public class PurchaseOrdersController : ControllerBase
             TransactionCurrencyCode = po.Currency,
             po.Status,
             po.AcknowledgmentReason,
+            po.Remarks,
+            po.DispatchInstructions,
+            po.PackingInstructions,
             po.HasPrintedDocument,
             po.PrintedDocumentFileName,
             po.PrintedDocumentUploadedAt,
@@ -139,6 +142,7 @@ public class PurchaseOrdersController : ControllerBase
             po.UpdatedAt,
             DisplayValue = displayValue,
             DisplayCurrencyCode = displayValue.HasValue ? preferredCurrency : null,
+            TaxTotal = po.Lines.Sum(l => l.TaxAmount),
             Lines = po.Lines.Select(l => new
             {
                 l.Id,
@@ -147,7 +151,9 @@ public class PurchaseOrdersController : ControllerBase
                 l.QtyAccepted,
                 l.Uom,
                 l.UnitPrice,
-                l.LineTotal
+                l.LineTotal,
+                l.TaxClass,
+                l.TaxAmount
             })
         });
     }

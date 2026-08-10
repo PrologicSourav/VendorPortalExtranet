@@ -305,7 +305,12 @@
     "toastUnableRecorded": "บันทึกการไม่สามารถจัดหาได้แล้ว",
     "topItems": "รายการหลัก",
     "topItemsMore": "+{{count}} รายการ",
-    "toastDocumentError": "ไม่สามารถโหลดเอกสาร PO ได้ กรุณาลองใหม่อีกครั้ง"
+    "toastDocumentError": "ไม่สามารถโหลดเอกสาร PO ได้ กรุณาลองใหม่อีกครั้ง",
+    "tax": "ภาษี",
+    "taxTotal": "ภาษีรวม",
+    "remarks": "หมายเหตุ",
+    "dispatchInstructions": "คำแนะนำการจัดส่ง",
+    "packingInstructions": "คำแนะนำการบรรจุ"
   },
   "excelUpload": {
     "uploadButton": "อัปโหลด Excel",

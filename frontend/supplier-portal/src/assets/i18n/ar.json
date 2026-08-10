@@ -305,7 +305,12 @@
     "toastUnableRecorded": "تم تسجيل تعذر التوريد",
     "topItems": "أهم الأصناف",
     "topItemsMore": "+{{count}} أخرى",
-    "toastDocumentError": "تعذر تحميل مستند أمر الشراء. يرجى المحاولة مرة أخرى."
+    "toastDocumentError": "تعذر تحميل مستند أمر الشراء. يرجى المحاولة مرة أخرى.",
+    "tax": "الضريبة",
+    "taxTotal": "إجمالي الضريبة",
+    "remarks": "ملاحظات",
+    "dispatchInstructions": "تعليمات الشحن",
+    "packingInstructions": "تعليمات التعبئة"
   },
   "excelUpload": {
     "uploadButton": "رفع ملف إكسل",

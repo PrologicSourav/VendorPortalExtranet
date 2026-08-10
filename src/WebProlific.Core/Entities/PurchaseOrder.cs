@@ -14,6 +14,10 @@ public class PurchaseOrder
     public PoStatus Status { get; set; } = PoStatus.New;
     public string? AcknowledgmentReason { get; set; }
 
+    public string? Remarks { get; set; }
+    public string? DispatchInstructions { get; set; }
+    public string? PackingInstructions { get; set; }
+
     // The printed PO document (PDF) as produced by the hotel/property — uploaded by
     // internal staff via the governance console. Only lightweight metadata lives on
     // this row; the file bytes live in the related PurchaseOrderDocument row so that
@@ -59,6 +63,11 @@ public class PurchaseOrderLine
     public decimal UnitPrice { get; set; }
     public decimal LineTotal { get; set; }
     public string? AcceptanceReason { get; set; }
+
+    /// <summary>GST slab this line was taxed at — same convention as
+    /// CatalogueLine.TaxClass ("GST-5", "GST-12", "GST-18", "GST-0").</summary>
+    public string? TaxClass { get; set; }
+    public decimal TaxAmount { get; set; }
 
     // Navigation
     public PurchaseOrder PurchaseOrder { get; set; } = null!;

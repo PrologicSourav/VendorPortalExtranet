@@ -152,6 +152,7 @@ import { PropertyContextService } from "../../services/property-context.service"
                 <th>{{ "purchaseOrders.qty" | translate }}</th>
                 <th>{{ "purchaseOrders.uom" | translate }}</th>
                 <th>{{ "purchaseOrders.unitPrice" | translate }}</th>
+                <th>{{ "purchaseOrders.tax" | translate }}</th>
                 <th>{{ "purchaseOrders.lineTotal" | translate }}</th>
               </tr>
             </thead>
@@ -161,10 +162,42 @@ import { PropertyContextService } from "../../services/property-context.service"
                 <td>{{ line.qty }}</td>
                 <td>{{ line.uom }}</td>
                 <td>{{ line.unitPrice | money }}</td>
+                <td>
+                  <span *ngIf="line.taxAmount; else noTax">
+                    {{ line.taxAmount | money }}
+                    <span class="tax-class" *ngIf="line.taxClass">({{ line.taxClass }})</span>
+                  </span>
+                  <ng-template #noTax>—</ng-template>
+                </td>
                 <td>{{ line.lineTotal | money }}</td>
               </tr>
             </tbody>
+            <tfoot *ngIf="selectedPO.taxTotal">
+              <tr class="tax-total-row">
+                <td colspan="4">{{ "purchaseOrders.taxTotal" | translate }}</td>
+                <td>{{ selectedPO.taxTotal | money }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
           </table>
+
+          <div
+            class="po-instructions"
+            *ngIf="selectedPO.remarks || selectedPO.dispatchInstructions || selectedPO.packingInstructions"
+          >
+            <div class="instruction-block" *ngIf="selectedPO.remarks">
+              <h4>{{ "purchaseOrders.remarks" | translate }}</h4>
+              <p>{{ selectedPO.remarks }}</p>
+            </div>
+            <div class="instruction-block" *ngIf="selectedPO.dispatchInstructions">
+              <h4>{{ "purchaseOrders.dispatchInstructions" | translate }}</h4>
+              <p>{{ selectedPO.dispatchInstructions }}</p>
+            </div>
+            <div class="instruction-block" *ngIf="selectedPO.packingInstructions">
+              <h4>{{ "purchaseOrders.packingInstructions" | translate }}</h4>
+              <p>{{ selectedPO.packingInstructions }}</p>
+            </div>
+          </div>
 
           <!-- Actions -->
           <div *ngIf="selectedPO.status === 'New'" class="action-zone">
@@ -418,6 +451,34 @@ import { PropertyContextService } from "../../services/property-context.service"
         color: var(--color-text-secondary);
         font-weight: 400;
       }
+      .tax-class {
+        color: var(--color-text-muted);
+        font-size: 11px;
+      }
+      .tax-total-row td {
+        font-weight: 600;
+        border-top: 2px solid var(--color-border);
+      }
+      .po-instructions {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .instruction-block h4 {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        margin-bottom: 4px;
+      }
+      .instruction-block p {
+        font-size: 13px;
+        white-space: pre-wrap;
+      }
       h3 {
         font-size: 14px;
         font-weight: 600;
@@ -637,8 +698,17 @@ export class PurchaseOrdersComponent implements OnInit {
           uom: l.uom,
           unitPrice: l.unitPrice,
           lineTotal: l.lineTotal,
+          taxClass: l.taxClass ?? null,
+          taxAmount: l.taxAmount ?? 0,
         }));
-        this.selectedPO = { ...po, lineItems };
+        this.selectedPO = {
+          ...po,
+          lineItems,
+          taxTotal: d?.taxTotal ?? 0,
+          remarks: d?.remarks ?? null,
+          dispatchInstructions: d?.dispatchInstructions ?? null,
+          packingInstructions: d?.packingInstructions ?? null,
+        };
         this.acceptedQtys = lineItems.map((l: any) => l.qty);
         this.acceptReasons = lineItems.map(() => "");
       },
