@@ -304,7 +304,8 @@
     "toastPartialConfirmed": "Đã xác nhận chấp nhận một phần",
     "toastUnableRecorded": "Đã ghi nhận không thể cung cấp",
     "topItems": "Mặt hàng nổi bật",
-    "topItemsMore": "+{{count}} khác"
+    "topItemsMore": "+{{count}} khác",
+    "toastDocumentError": "Không thể tải tài liệu PO. Vui lòng thử lại."
   },
   "excelUpload": {
     "uploadButton": "Tải lên Excel",

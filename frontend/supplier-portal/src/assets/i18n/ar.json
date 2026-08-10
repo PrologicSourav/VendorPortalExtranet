@@ -304,7 +304,8 @@
     "toastPartialConfirmed": "تم تأكيد القبول الجزئي",
     "toastUnableRecorded": "تم تسجيل تعذر التوريد",
     "topItems": "أهم الأصناف",
-    "topItemsMore": "+{{count}} أخرى"
+    "topItemsMore": "+{{count}} أخرى",
+    "toastDocumentError": "تعذر تحميل مستند أمر الشراء. يرجى المحاولة مرة أخرى."
   },
   "excelUpload": {
     "uploadButton": "رفع ملف إكسل",

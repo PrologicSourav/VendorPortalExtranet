@@ -304,7 +304,8 @@
     "toastPartialConfirmed": "ยืนยันการยอมรับบางส่วนแล้ว",
     "toastUnableRecorded": "บันทึกการไม่สามารถจัดหาได้แล้ว",
     "topItems": "รายการหลัก",
-    "topItemsMore": "+{{count}} รายการ"
+    "topItemsMore": "+{{count}} รายการ",
+    "toastDocumentError": "ไม่สามารถโหลดเอกสาร PO ได้ กรุณาลองใหม่อีกครั้ง"
   },
   "excelUpload": {
     "uploadButton": "อัปโหลด Excel",

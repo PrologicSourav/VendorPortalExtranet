@@ -13,6 +13,15 @@ public class PurchaseOrder
     public string Currency { get; set; } = "INR";
     public PoStatus Status { get; set; } = PoStatus.New;
     public string? AcknowledgmentReason { get; set; }
+
+    // The printed PO document (PDF) as produced by the hotel/property — uploaded by
+    // internal staff via the governance console. Only lightweight metadata lives on
+    // this row; the file bytes live in the related PurchaseOrderDocument row so that
+    // listing/loading a PO never pulls a multi-MB blob along with it.
+    public bool HasPrintedDocument { get; set; }
+    public string? PrintedDocumentFileName { get; set; }
+    public DateTime? PrintedDocumentUploadedAt { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
@@ -23,6 +32,18 @@ public class PurchaseOrder
     public ICollection<PurchaseOrderLine> Lines { get; set; } = new List<PurchaseOrderLine>();
     public ICollection<DeliveryNote> DeliveryNotes { get; set; } = new List<DeliveryNote>();
     public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    public PurchaseOrderDocument? Document { get; set; }
+}
+
+/// <summary>The actual bytes of a PO's uploaded printed document, split from
+/// PurchaseOrder so ordinary PO reads/lists never load the blob.</summary>
+public class PurchaseOrderDocument
+{
+    public Guid Id { get; set; }
+    public Guid PurchaseOrderId { get; set; }
+    public byte[] Content { get; set; } = Array.Empty<byte>();
+
+    public PurchaseOrder PurchaseOrder { get; set; } = null!;
 }
 
 public class PurchaseOrderLine

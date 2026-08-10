@@ -59,6 +59,62 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
         return await query.CountAsync();
     }
 
+    public async Task<IEnumerable<PurchaseOrder>> SearchAsync(string? search, int page, int pageSize)
+    {
+        var query = _db.PurchaseOrders
+            .Include(po => po.Vendor)
+            .Include(po => po.Property)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+            query = query.Where(po => po.PoNumber.Contains(search) || po.Vendor.LegalName.Contains(search));
+
+        var ordered = query.OrderByDescending(po => po.CreatedAt);
+        IQueryable<PurchaseOrder> paged = page > 1 ? ordered.Skip((page - 1) * pageSize) : ordered;
+        return await paged.Take(pageSize).ToListAsync();
+    }
+
+    public async Task<int> SearchCountAsync(string? search)
+    {
+        var query = _db.PurchaseOrders.AsQueryable();
+        if (!string.IsNullOrEmpty(search))
+            query = query.Where(po => po.PoNumber.Contains(search) || po.Vendor.LegalName.Contains(search));
+        return await query.CountAsync();
+    }
+
+    public async Task<bool> SetDocumentAsync(Guid purchaseOrderId, byte[] content, string fileName)
+    {
+        var po = await _db.PurchaseOrders.FirstOrDefaultAsync(p => p.Id == purchaseOrderId);
+        if (po is null) return false;
+
+        var existing = await _db.PurchaseOrderDocuments
+            .FirstOrDefaultAsync(d => d.PurchaseOrderId == purchaseOrderId);
+        if (existing is null)
+        {
+            _db.PurchaseOrderDocuments.Add(new PurchaseOrderDocument
+            {
+                Id = Guid.NewGuid(),
+                PurchaseOrderId = purchaseOrderId,
+                Content = content,
+            });
+        }
+        else
+        {
+            existing.Content = content;
+        }
+
+        po.HasPrintedDocument = true;
+        po.PrintedDocumentFileName = fileName;
+        po.PrintedDocumentUploadedAt = DateTime.UtcNow;
+        po.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<PurchaseOrderDocument?> GetDocumentAsync(Guid purchaseOrderId) =>
+        await _db.PurchaseOrderDocuments.FirstOrDefaultAsync(d => d.PurchaseOrderId == purchaseOrderId);
+
     public async Task<IEnumerable<Property>> GetPropertiesForVendorAsync(Guid vendorId)
     {
         // A plain join translates to a normal SQL JOIN; a two-step materialize-then-

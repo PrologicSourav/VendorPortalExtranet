@@ -131,6 +131,19 @@ import { PropertyContextService } from "../../services/property-context.service"
             </div>
           </div>
 
+          <div class="po-document" *ngIf="selectedPO.hasDocument">
+            <button
+              class="btn btn-secondary"
+              [disabled]="loadingDocument"
+              (click)="viewDocument(selectedPO)"
+            >
+              📄 {{ loadingDocument ? "Loading…" : "View PO Document" }}
+              <span class="doc-filename" *ngIf="selectedPO.documentFileName">
+                ({{ selectedPO.documentFileName }})
+              </span>
+            </button>
+          </div>
+
           <h3>{{ "purchaseOrders.lineItems" | translate }}</h3>
           <table class="data-table">
             <thead>
@@ -398,6 +411,13 @@ import { PropertyContextService } from "../../services/property-context.service"
         margin-bottom: 24px;
         font-size: 13px;
       }
+      .po-document {
+        margin-bottom: 24px;
+      }
+      .doc-filename {
+        color: var(--color-text-secondary);
+        font-weight: 400;
+      }
       h3 {
         font-size: 14px;
         font-weight: 600;
@@ -502,6 +522,7 @@ export class PurchaseOrdersComponent implements OnInit {
   loading = false;
   loadError: string | null = null;
   busy = false;
+  loadingDocument = false;
   pos: any[] = [];
 
   filters = [
@@ -565,6 +586,8 @@ export class PurchaseOrdersComponent implements OnInit {
       topItemsSummary: topItems.map((t: any) => t.description).join(", "),
       value: p.totalValue,
       status: p.status,
+      hasDocument: !!p.hasPrintedDocument,
+      documentFileName: p.printedDocumentFileName ?? null,
       lineItems: [] as any[],
     };
   }
@@ -621,6 +644,25 @@ export class PurchaseOrdersComponent implements OnInit {
       },
       error: () => {
         this.selectedPO = { ...po, lineItems: [] };
+      },
+    });
+  }
+
+  /** Opens the property's uploaded PO PDF in a new tab. Fetched as a blob (not a
+   *  plain link) because the request needs the Bearer auth header. */
+  viewDocument(po: any) {
+    if (!po?.id || this.loadingDocument) return;
+    this.loadingDocument = true;
+    this.api.getPoDocument(po.id).subscribe({
+      next: (blob: Blob) => {
+        this.loadingDocument = false;
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      },
+      error: () => {
+        this.loadingDocument = false;
+        this.showToast("error", "purchaseOrders.toastDocumentError");
       },
     });
   }

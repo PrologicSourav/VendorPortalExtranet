@@ -60,12 +60,40 @@ public class PurchaseOrdersController : ControllerBase
                 TransactionCurrencyCode = po.Currency,
                 po.Status,
                 po.AcknowledgmentReason,
+                po.HasPrintedDocument,
+                po.PrintedDocumentFileName,
+                po.PrintedDocumentUploadedAt,
                 po.CreatedAt,
                 po.UpdatedAt,
                 DisplayValue = displayValue,
                 DisplayCurrencyCode = displayValue.HasValue ? preferredCurrency : null
             });
         }
+        return Ok(new { items, total, page, pageSize });
+    }
+
+    /// <summary>Cross-vendor PO lookup for internal staff — used by the governance
+    /// console to find a PO and attach its printed document.</summary>
+    [HttpGet]
+    [Authorize(Policy = "InternalOnly")]
+    public async Task<IActionResult> Search([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var pos = await _poRepo.SearchAsync(search, page, pageSize);
+        var total = await _poRepo.SearchCountAsync(search);
+        var items = pos.Select(po => new
+        {
+            po.Id,
+            po.PoNumber,
+            VendorName = po.Vendor?.LegalName,
+            PropertyName = po.Property?.Name,
+            po.OrderDate,
+            po.Status,
+            po.TotalValue,
+            TransactionCurrencyCode = po.Currency,
+            po.HasPrintedDocument,
+            po.PrintedDocumentFileName,
+            po.PrintedDocumentUploadedAt,
+        });
         return Ok(new { items, total, page, pageSize });
     }
 
@@ -104,6 +132,9 @@ public class PurchaseOrdersController : ControllerBase
             TransactionCurrencyCode = po.Currency,
             po.Status,
             po.AcknowledgmentReason,
+            po.HasPrintedDocument,
+            po.PrintedDocumentFileName,
+            po.PrintedDocumentUploadedAt,
             po.CreatedAt,
             po.UpdatedAt,
             DisplayValue = displayValue,
@@ -120,6 +151,45 @@ public class PurchaseOrdersController : ControllerBase
             })
         });
     }
+
+    /// <summary>Uploads (or replaces) the printed PO document — the actual PDF the
+    /// property produced, so vendors see exactly what was printed. Internal staff only.</summary>
+    [HttpPost("{id:guid}/document")]
+    [Authorize(Policy = "InternalOnly")]
+    [RequestSizeLimit(MaxDocumentBytes)]
+    public async Task<IActionResult> UploadDocument(Guid id, IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { message = "No file was uploaded." });
+        if (file.Length > MaxDocumentBytes)
+            return BadRequest(new { message = "File is too large (max 15 MB)." });
+        var isPdf = file.ContentType == "application/pdf"
+            || string.Equals(Path.GetExtension(file.FileName), ".pdf", StringComparison.OrdinalIgnoreCase);
+        if (!isPdf)
+            return BadRequest(new { message = "Only PDF files are accepted." });
+
+        using var stream = new MemoryStream();
+        await file.CopyToAsync(stream);
+        var stored = await _poRepo.SetDocumentAsync(id, stream.ToArray(), file.FileName);
+        if (!stored) return NotFound();
+        return Ok(new { message = "Document uploaded." });
+    }
+
+    /// <summary>Streams the uploaded PO document back — vendors (their own PO only)
+    /// and internal staff can both view/download it.</summary>
+    [HttpGet("{id:guid}/document")]
+    public async Task<IActionResult> GetDocument(Guid id)
+    {
+        var po = await _poRepo.GetByIdAsync(id);
+        if (po is null) return NotFound();
+        if (!User.CanAccessVendor(po.VendorId)) return Forbid();
+
+        var doc = await _poRepo.GetDocumentAsync(id);
+        if (doc is null) return NotFound();
+        return File(doc.Content, "application/pdf", po.PrintedDocumentFileName ?? "purchase-order.pdf");
+    }
+
+    private const long MaxDocumentBytes = 15 * 1024 * 1024;
 
     [HttpPost]
     [Authorize(Policy = "InternalOnly")]

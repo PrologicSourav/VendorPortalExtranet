@@ -36,11 +36,22 @@ public interface IPurchaseOrderRepository
     Task<PurchaseOrder?> GetByPoNumberAsync(string poNumber);
     Task<IEnumerable<PurchaseOrder>> GetByVendorAsync(Guid vendorId, string? status, Guid? propertyId, int page, int pageSize);
     Task<int> GetVendorPoCountAsync(Guid vendorId, string? status, Guid? propertyId);
+    /// <summary>Cross-vendor PO search (by PO number or vendor name) for internal
+    /// staff — used by the governance console's document-upload lookup.</summary>
+    Task<IEnumerable<PurchaseOrder>> SearchAsync(string? search, int page, int pageSize);
+    Task<int> SearchCountAsync(string? search);
     Task<PurchaseOrder> CreateAsync(PurchaseOrder po);
     Task<PurchaseOrder> UpdateAsync(PurchaseOrder po);
     /// <summary>Distinct properties this vendor has at least one purchase order for —
     /// used to populate the supplier portal's property switcher.</summary>
     Task<IEnumerable<Property>> GetPropertiesForVendorAsync(Guid vendorId);
+
+    /// <summary>Stores (or replaces) the printed PO document. Returns false if no PO
+    /// with that id exists.</summary>
+    Task<bool> SetDocumentAsync(Guid purchaseOrderId, byte[] content, string fileName);
+    /// <summary>The uploaded document's bytes, or null if none was uploaded / the PO
+    /// doesn't exist.</summary>
+    Task<PurchaseOrderDocument?> GetDocumentAsync(Guid purchaseOrderId);
 }
 
 public interface IDeliveryNoteRepository

@@ -84,6 +84,10 @@ export class ApiService {
     return this.http.get(`${API}/purchaseorders/vendor/${vendorId}/properties`);
   }
 
+  getPoDocument(id: string): Observable<Blob> {
+    return this.http.get(`${API}/purchaseorders/${id}/document`, { responseType: "blob" });
+  }
+
   getPurchaseOrder(id: string): Observable<any> {
     return this.http.get(`${API}/purchaseorders/${id}`);
   }

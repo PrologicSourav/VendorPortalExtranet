@@ -304,7 +304,8 @@
     "toastPartialConfirmed": "Partial acceptance confirmed",
     "toastUnableRecorded": "Unable to supply recorded",
     "topItems": "Top Items",
-    "topItemsMore": "+{{count}} more"
+    "topItemsMore": "+{{count}} more",
+    "toastDocumentError": "Could not load the PO document. Please try again."
   },
   "excelUpload": {
     "uploadButton": "Upload Excel",

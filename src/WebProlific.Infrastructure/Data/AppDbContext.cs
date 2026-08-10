@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<Catalogue> Catalogues => Set<Catalogue>();
     public DbSet<CatalogueLine> CatalogueLines => Set<CatalogueLine>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+    public DbSet<PurchaseOrderDocument> PurchaseOrderDocuments => Set<PurchaseOrderDocument>();
     public DbSet<PurchaseOrderLine> PurchaseOrderLines => Set<PurchaseOrderLine>();
     public DbSet<DeliveryNote> DeliveryNotes => Set<DeliveryNote>();
     public DbSet<DeliveryNoteLine> DeliveryNoteLines => Set<DeliveryNoteLine>();
@@ -109,6 +110,15 @@ public class AppDbContext : DbContext
             e.HasOne(pol => pol.PurchaseOrder).WithMany(po => po.Lines).HasForeignKey(pol => pol.PurchaseOrderId);
             e.HasOne(pol => pol.Item).WithMany(i => i.PurchaseOrderLines).HasForeignKey(pol => pol.ItemId).IsRequired(false);
             _logger.LogDebug("Configured PurchaseOrderLine entity relationships");
+        });
+
+        // 1:1, split from PurchaseOrder so listing/loading a PO never pulls the PDF bytes.
+        modelBuilder.Entity<PurchaseOrderDocument>(e =>
+        {
+            e.HasOne(d => d.PurchaseOrder).WithOne(po => po.Document)
+                .HasForeignKey<PurchaseOrderDocument>(d => d.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+            _logger.LogDebug("Configured PurchaseOrderDocument 1:1 relationship");
         });
 
         // Delivery Note — use Restrict on Vendor FK to avoid multiple cascade paths

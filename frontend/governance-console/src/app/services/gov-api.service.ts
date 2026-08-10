@@ -51,6 +51,20 @@ export interface CatalogueReview {
   lines: CatalogueReviewLine[];
 }
 
+export interface PurchaseOrderSummary {
+  id: string;
+  poNumber: string;
+  vendorName?: string | null;
+  propertyName?: string | null;
+  orderDate: string;
+  status: string;
+  totalValue: number;
+  transactionCurrencyCode: string;
+  hasPrintedDocument: boolean;
+  printedDocumentFileName?: string | null;
+  printedDocumentUploadedAt?: string | null;
+}
+
 export interface KycChangeRequest {
   id: string;
   vendorId: string;
@@ -116,6 +130,19 @@ export class GovApiService {
 
   rejectCatalogue(id: string, reason: string): Observable<unknown> {
     return this.http.put(`${this.api}/catalogues/${id}/reject`, { reason });
+  }
+
+  // ─── Purchase order documents ─────────────────────────────
+  searchPurchaseOrders(search?: string): Observable<PagedResult<PurchaseOrderSummary>> {
+    let params = new HttpParams();
+    if (search) params = params.set("search", search);
+    return this.http.get<PagedResult<PurchaseOrderSummary>>(`${this.api}/purchaseorders`, { params });
+  }
+
+  uploadPoDocument(poId: string, file: File): Observable<unknown> {
+    const form = new FormData();
+    form.append("file", file, file.name);
+    return this.http.post(`${this.api}/purchaseorders/${poId}/document`, form);
   }
 
   // ─── Supplier accounts (vendor master) ───────────────────
