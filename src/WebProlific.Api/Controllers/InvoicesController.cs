@@ -13,12 +13,15 @@ namespace WebProlific.Api.Controllers;
 public class InvoicesController : ControllerBase
 {
     private readonly IInvoiceRepository _invRepo;
+    private readonly IPaymentRepository _paymentRepo;
     private readonly AppDbContext _db;
     private readonly ICurrencyConversionService _currencyConverter;
 
-    public InvoicesController(IInvoiceRepository invRepo, AppDbContext db, ICurrencyConversionService currencyConverter)
+    public InvoicesController(
+        IInvoiceRepository invRepo, IPaymentRepository paymentRepo, AppDbContext db, ICurrencyConversionService currencyConverter)
     {
         _invRepo = invRepo;
+        _paymentRepo = paymentRepo;
         _db = db;
         _currencyConverter = currencyConverter;
     }
@@ -66,12 +69,14 @@ public class InvoicesController : ControllerBase
         if (!User.CanAccessVendor(invoice.VendorId)) return Forbid();
         var preferredCurrency = HttpContext.Items["UserCurrency"] as string ?? "INR";
         var displayTotal = await _currencyConverter.ConvertAsync(invoice.TotalAmount, invoice.Currency, preferredCurrency);
+        var payments = await _paymentRepo.GetByInvoiceAsync(id);
         return Ok(new
         {
             invoice.Id,
             invoice.InvoiceNumber,
             invoice.VendorId,
             invoice.PurchaseOrderId,
+            PoNumber = invoice.PurchaseOrder?.PoNumber,
             invoice.InvoiceDate,
             TransactionCurrencyCode = invoice.Currency,
             invoice.SubTotal,
@@ -83,7 +88,28 @@ public class InvoicesController : ControllerBase
             invoice.InvoicePdfUrl,
             invoice.CreatedAt,
             DisplayTotal = displayTotal,
-            DisplayCurrencyCode = displayTotal.HasValue ? preferredCurrency : null
+            DisplayCurrencyCode = displayTotal.HasValue ? preferredCurrency : null,
+            Lines = invoice.Lines.Select(l => new
+            {
+                l.Id,
+                l.ItemDescription,
+                l.InvoicedQty,
+                l.InvoicedUnitPrice,
+                l.ExpectedQty,
+                l.ExpectedUnitPrice,
+                l.LineTotal
+            }),
+            // Payments made/scheduled against this invoice — the invoice's "adjustments".
+            Payments = payments.Select(p => new
+            {
+                p.Id,
+                p.PaymentReference,
+                p.Amount,
+                p.Currency,
+                p.Status,
+                p.ScheduledDate,
+                p.PaidDate,
+            })
         });
     }
 

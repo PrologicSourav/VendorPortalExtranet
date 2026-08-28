@@ -168,12 +168,12 @@ import { MoneyPipe } from "../../pipes/money.pipe";
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let inv of invoices">
+            <tr *ngFor="let inv of invoices" class="clickable" (click)="openInvoice(inv)">
               <td>
                 <code>{{ inv.number }}</code>
               </td>
-              <td>{{ inv.date }}</td>
-              <td>{{ inv.dueDate }}</td>
+              <td>{{ inv.date | date: "mediumDate" }}</td>
+              <td>{{ inv.dueDate ? (inv.dueDate | date: "mediumDate") : "—" }}</td>
               <td>{{ inv.amount | money }}</td>
               <td>
                 <span class="badge" [ngClass]="getStatusBadge(inv.status)">{{
@@ -183,6 +183,103 @@ import { MoneyPipe } from "../../pipes/money.pipe";
             </tr>
           </tbody>
         </table>
+      </div>
+      <div *ngIf="invoicesLoading" class="loading-state">
+        {{ "account.invoicesLoading" | translate }}
+      </div>
+      <div *ngIf="!invoicesLoading && invoices.length === 0" class="empty-state">
+        <div class="empty-icon">📄</div>
+        <div class="empty-title">{{ "account.noInvoices" | translate }}</div>
+      </div>
+    </div>
+
+    <!-- Invoice Detail Drawer -->
+    <div class="drawer-backdrop" *ngIf="selectedInvoice" (click)="selectedInvoice = null">
+      <div class="drawer" (click)="$event.stopPropagation()">
+        <div class="drawer-header">
+          <div>
+            <h2>{{ selectedInvoice.invoiceNumber }}</h2>
+            <p *ngIf="selectedInvoice.poNumber">{{ "account.againstPo" | translate: { poNumber: selectedInvoice.poNumber } }}</p>
+          </div>
+          <span class="badge" [ngClass]="getStatusBadge(selectedInvoice.status)">{{
+            getStatusKey(selectedInvoice.status) | translate
+          }}</span>
+          <button class="btn btn-sm" (click)="selectedInvoice = null">✕</button>
+        </div>
+
+        <div class="drawer-body" *ngIf="!invoiceDetailLoading; else detailLoading">
+          <div class="po-meta">
+            <div><strong>{{ "account.date" | translate }}:</strong> {{ selectedInvoice.invoiceDate | date: "mediumDate" }}</div>
+            <div><strong>{{ "account.subTotal" | translate }}:</strong> {{ selectedInvoice.subTotal | money }}</div>
+            <div><strong>{{ "account.tax" | translate }}:</strong> {{ selectedInvoice.taxAmount | money }}</div>
+            <div><strong>{{ "account.amount" | translate }}:</strong> {{ selectedInvoice.totalAmount | money }}</div>
+            <div>
+              <strong>{{ "account.matchStatus" | translate }}:</strong>
+              <span class="badge" [ngClass]="selectedInvoice.matchStatus === 'Matched' ? 'badge-success' : 'badge-error'">
+                {{ selectedInvoice.matchStatus }}
+              </span>
+            </div>
+          </div>
+          <p *ngIf="selectedInvoice.mismatchReasons" class="field-warning">
+            ⚠ {{ selectedInvoice.mismatchReasons }}
+          </p>
+
+          <h3>{{ "account.lineItems" | translate }}</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>{{ "account.item" | translate }}</th>
+                <th>{{ "account.invoicedQty" | translate }}</th>
+                <th>{{ "account.invoicedPrice" | translate }}</th>
+                <th>{{ "account.expectedQty" | translate }}</th>
+                <th>{{ "account.expectedPrice" | translate }}</th>
+                <th>{{ "account.lineTotal" | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let line of selectedInvoice.lines">
+                <td>{{ line.itemDescription }}</td>
+                <td [class.field-warning]="line.invoicedQty !== line.expectedQty">{{ line.invoicedQty }}</td>
+                <td [class.field-warning]="line.invoicedUnitPrice !== line.expectedUnitPrice">{{ line.invoicedUnitPrice | money }}</td>
+                <td>{{ line.expectedQty }}</td>
+                <td>{{ line.expectedUnitPrice | money }}</td>
+                <td>{{ line.lineTotal | money }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>{{ "account.adjustments" | translate }}</h3>
+          <table class="data-table" *ngIf="selectedInvoice.payments?.length; else noAdjustments">
+            <thead>
+              <tr>
+                <th>{{ "account.reference" | translate }}</th>
+                <th>{{ "account.amount" | translate }}</th>
+                <th>{{ "account.status" | translate }}</th>
+                <th>{{ "account.scheduledDate" | translate }}</th>
+                <th>{{ "account.paidDate" | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of selectedInvoice.payments">
+                <td><code>{{ p.paymentReference }}</code></td>
+                <td>{{ p.amount | money }}</td>
+                <td>
+                  <span class="badge" [ngClass]="p.status === 'Paid' ? 'badge-success' : (p.status === 'Cancelled' ? 'badge-error' : 'badge-warning')">
+                    {{ p.status }}
+                  </span>
+                </td>
+                <td>{{ p.scheduledDate ? (p.scheduledDate | date: "mediumDate") : "—" }}</td>
+                <td>{{ p.paidDate ? (p.paidDate | date: "mediumDate") : "—" }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <ng-template #noAdjustments>
+            <p class="empty-inline">{{ "account.noAdjustments" | translate }}</p>
+          </ng-template>
+        </div>
+        <ng-template #detailLoading>
+          <div class="loading-state">{{ "account.invoicesLoading" | translate }}</div>
+        </ng-template>
       </div>
     </div>
 
@@ -390,6 +487,94 @@ import { MoneyPipe } from "../../pipes/money.pipe";
           align-items: flex-start;
         }
       }
+
+      .clickable {
+        cursor: pointer;
+      }
+      .loading-state {
+        padding: 40px;
+        text-align: center;
+        color: var(--color-text-secondary);
+        font-size: 13px;
+      }
+      .empty-inline {
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        padding: 12px 0;
+      }
+      .field-warning {
+        color: var(--color-warning);
+        font-weight: 600;
+      }
+
+      .drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 300;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .drawer {
+        width: 700px;
+        max-width: 90vw;
+        background: var(--color-surface);
+        color: var(--color-text);
+        overflow-y: auto;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+      }
+      .drawer-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        background: var(--color-surface);
+        z-index: 1;
+        h2 {
+          font-size: 18px;
+          font-weight: 700;
+        }
+        p {
+          font-size: 13px;
+          color: var(--color-text-secondary);
+        }
+      }
+      .drawer-header > div:first-child {
+        flex: 1;
+      }
+      .drawer-header .btn-sm {
+        font-size: 16px;
+        line-height: 1;
+      }
+      .drawer-body {
+        padding: 20px;
+      }
+      .po-meta {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+        font-size: 13px;
+      }
+      .drawer-body h3 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 20px 0 12px;
+      }
+
+      @media (max-width: 768px) {
+        .drawer {
+          width: 100% !important;
+          max-width: 100vw !important;
+        }
+        .po-meta {
+          grid-template-columns: 1fr !important;
+        }
+      }
     `,
   ],
 })
@@ -409,6 +594,10 @@ export class AccountComponent implements OnInit {
   readonly totalOutstanding = 189500;
   readonly overdueAmount = 42000;
   readonly paidLast30Days = 215500;
+
+  invoicesLoading = false;
+  selectedInvoice: any = null;
+  invoiceDetailLoading = false;
 
   // ─── Company profile (vendor) ───────────────────────────────
   vendor: any = null;
@@ -455,6 +644,32 @@ export class AccountComponent implements OnInit {
       error: () => {
         this.profileLoading = false;
         this.profileError = true;
+      },
+    });
+
+    this.loadInvoices(vendorId);
+  }
+
+  private loadInvoices(vendorId: string): void {
+    this.invoicesLoading = true;
+    this.api.getInvoices(vendorId).subscribe({
+      next: (res: any) => {
+        const items = res?.items ?? res ?? [];
+        this.invoices = items.map((inv: any) => ({
+          id: inv.id,
+          number: inv.invoiceNumber,
+          date: inv.invoiceDate,
+          // Invoice has no distinct due-date field yet — showing nothing is more
+          // honest than fabricating one (e.g. defaulting it to the invoice date
+          // would falsely imply zero payment terms).
+          dueDate: null,
+          amount: inv.totalAmount,
+          status: inv.status,
+        }));
+        this.invoicesLoading = false;
+      },
+      error: () => {
+        this.invoicesLoading = false;
       },
     });
   }
@@ -653,29 +868,7 @@ export class AccountComponent implements OnInit {
       .replace(/>/g, "&gt;");
   }
 
-  invoices = [
-    {
-      number: "INV-2025-001",
-      date: "Jul 5",
-      dueDate: "Aug 4",
-      amount: 84000,
-      status: "Submitted",
-    },
-    {
-      number: "INV-2025-002",
-      date: "Jul 8",
-      dueDate: "Aug 7",
-      amount: 63500,
-      status: "Under review",
-    },
-    {
-      number: "INV-2025-003",
-      date: "Jun 20",
-      dueDate: "Jul 20",
-      amount: 42000,
-      status: "Blocked",
-    },
-  ];
+  invoices: any[] = [];
 
   payments = [
     {
@@ -753,9 +946,13 @@ export class AccountComponent implements OnInit {
   getStatusBadge(status: string): string {
     const map: Record<string, string> = {
       Submitted: "badge-info",
-      "Under review": "badge-warning",
+      UnderReview: "badge-warning",
       Approved: "badge-success",
+      Posted: "badge-success",
       Blocked: "badge-error",
+      Paid: "badge-success",
+      Scheduled: "badge-warning",
+      Cancelled: "badge-error",
     };
     return map[status] || "badge-muted";
   }
@@ -763,12 +960,29 @@ export class AccountComponent implements OnInit {
   getStatusKey(status: string): string {
     const map: Record<string, string> = {
       Submitted: "account.statusSubmitted",
-      "Under review": "account.statusUnderReview",
+      UnderReview: "account.statusUnderReview",
       Approved: "account.statusApproved",
+      Posted: "account.statusPosted",
       Blocked: "account.statusBlocked",
       Paid: "account.statusPaid",
       Scheduled: "account.statusScheduled",
+      Cancelled: "account.statusCancelled",
     };
     return map[status] || status;
+  }
+
+  openInvoice(inv: any): void {
+    this.selectedInvoice = { invoiceNumber: inv.number, status: inv.status, invoiceDate: inv.date };
+    this.invoiceDetailLoading = true;
+    this.api.getInvoice(inv.id).subscribe({
+      next: (d: any) => {
+        this.selectedInvoice = d;
+        this.invoiceDetailLoading = false;
+      },
+      error: () => {
+        this.invoiceDetailLoading = false;
+        this.selectedInvoice = null;
+      },
+    });
   }
 }

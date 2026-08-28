@@ -23,6 +23,12 @@ public class PaymentRepository : IPaymentRepository
         return await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
     }
 
+    public async Task<IEnumerable<Payment>> GetByInvoiceAsync(Guid invoiceId) =>
+        await _db.Payments
+            .Where(p => p.InvoiceId == invoiceId)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+
     public async Task<Payment?> GetNextScheduledAsync(Guid vendorId) =>
         await _db.Payments
             .Where(p => p.VendorId == vendorId && p.Status == PaymentStatus.Scheduled)

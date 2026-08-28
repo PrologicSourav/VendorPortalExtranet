@@ -125,6 +125,9 @@ public interface INotificationRepository
 public interface IPaymentRepository
 {
     Task<IEnumerable<Payment>> GetByVendorAsync(Guid vendorId, string? status);
+    /// <summary>Payments made/scheduled against one specific invoice — shown as that
+    /// invoice's adjustments in its detail view.</summary>
+    Task<IEnumerable<Payment>> GetByInvoiceAsync(Guid invoiceId);
     Task<Payment?> GetNextScheduledAsync(Guid vendorId);
     Task<Payment> CreateAsync(Payment payment);
 }

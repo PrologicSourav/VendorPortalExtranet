@@ -169,6 +169,10 @@ export class ApiService {
     return this.http.post(`${API}/invoices`, invoice);
   }
 
+  getInvoice(id: string): Observable<any> {
+    return this.http.get(`${API}/invoices/${id}`);
+  }
+
   // Notifications
   getNotifications(userId: string): Observable<any> {
     return this.http.get(`${API}/notifications/user/${userId}`);
