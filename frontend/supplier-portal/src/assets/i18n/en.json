@@ -177,7 +177,8 @@
     "scheduledDate": "Scheduled Date",
     "paidDate": "Paid Date",
     "statusPosted": "Posted",
-    "statusCancelled": "Cancelled"
+    "statusCancelled": "Cancelled",
+    "noPayments": "No payments yet."
   },
   "catalogue": {
     "title": "My Catalogue",

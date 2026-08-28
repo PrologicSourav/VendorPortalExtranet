@@ -294,6 +294,7 @@ import { MoneyPipe } from "../../pipes/money.pipe";
           <thead>
             <tr>
               <th>{{ "account.reference" | translate }}</th>
+              <th>{{ "account.invoiceNo" | translate }}</th>
               <th>{{ "account.date" | translate }}</th>
               <th>{{ "account.amount" | translate }}</th>
               <th>{{ "account.status" | translate }}</th>
@@ -304,20 +305,34 @@ import { MoneyPipe } from "../../pipes/money.pipe";
               <td>
                 <code>{{ p.reference }}</code>
               </td>
-              <td>{{ p.date }}</td>
+              <td>
+                <a
+                  *ngIf="p.invoiceId; else noInvoiceLink"
+                  class="invoice-link"
+                  (click)="openInvoiceById(p.invoiceId)"
+                  >{{ p.invoiceNumber || p.invoiceId }}</a
+                >
+                <ng-template #noInvoiceLink>—</ng-template>
+              </td>
+              <td>{{ p.date | date: "mediumDate" }}</td>
               <td>{{ p.amount | money }}</td>
               <td>
                 <span
                   class="badge"
-                  [ngClass]="
-                    p.status === 'Paid' ? 'badge-success' : 'badge-info'
-                  "
+                  [ngClass]="getStatusBadge(p.status)"
                   >{{ getStatusKey(p.status) | translate }}</span
                 >
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+      <div *ngIf="paymentsLoading" class="loading-state">
+        {{ "account.invoicesLoading" | translate }}
+      </div>
+      <div *ngIf="!paymentsLoading && payments.length === 0" class="empty-state">
+        <div class="empty-icon">💳</div>
+        <div class="empty-title">{{ "account.noPayments" | translate }}</div>
       </div>
     </div>
 
@@ -491,6 +506,11 @@ import { MoneyPipe } from "../../pipes/money.pipe";
       .clickable {
         cursor: pointer;
       }
+      .invoice-link {
+        color: var(--color-primary);
+        cursor: pointer;
+        text-decoration: underline;
+      }
       .loading-state {
         padding: 40px;
         text-align: center;
@@ -598,6 +618,7 @@ export class AccountComponent implements OnInit {
   invoicesLoading = false;
   selectedInvoice: any = null;
   invoiceDetailLoading = false;
+  paymentsLoading = false;
 
   // ─── Company profile (vendor) ───────────────────────────────
   vendor: any = null;
@@ -648,6 +669,28 @@ export class AccountComponent implements OnInit {
     });
 
     this.loadInvoices(vendorId);
+    this.loadPayments(vendorId);
+  }
+
+  private loadPayments(vendorId: string): void {
+    this.paymentsLoading = true;
+    this.api.getPayments(vendorId).subscribe({
+      next: (res: any) => {
+        const items = res?.items ?? res ?? [];
+        this.payments = items.map((p: any) => ({
+          reference: p.paymentReference,
+          invoiceId: p.invoiceId,
+          invoiceNumber: p.invoiceNumber,
+          date: p.paidDate || p.scheduledDate,
+          amount: p.amount,
+          status: p.status,
+        }));
+        this.paymentsLoading = false;
+      },
+      error: () => {
+        this.paymentsLoading = false;
+      },
+    });
   }
 
   private loadInvoices(vendorId: string): void {
@@ -870,26 +913,7 @@ export class AccountComponent implements OnInit {
 
   invoices: any[] = [];
 
-  payments = [
-    {
-      reference: "PAY-2025-045",
-      date: "Jul 1",
-      amount: 156000,
-      status: "Paid",
-    },
-    {
-      reference: "PAY-2025-046",
-      date: "Jul 15",
-      amount: 59500,
-      status: "Scheduled",
-    },
-    {
-      reference: "PAY-2025-047",
-      date: "Jul 20",
-      amount: 49500,
-      status: "Scheduled",
-    },
-  ];
+  payments: any[] = [];
 
   statement = [
     {
@@ -973,8 +997,19 @@ export class AccountComponent implements OnInit {
 
   openInvoice(inv: any): void {
     this.selectedInvoice = { invoiceNumber: inv.number, status: inv.status, invoiceDate: inv.date };
+    this.loadInvoiceDetail(inv.id);
+  }
+
+  /** Opens the invoice detail drawer from a payment row's linked invoice — the
+   *  Payments tab only has the invoice id/number up front, not the full record. */
+  openInvoiceById(invoiceId: string): void {
+    this.selectedInvoice = { invoiceNumber: "…" };
+    this.loadInvoiceDetail(invoiceId);
+  }
+
+  private loadInvoiceDetail(id: string): void {
     this.invoiceDetailLoading = true;
-    this.api.getInvoice(inv.id).subscribe({
+    this.api.getInvoice(id).subscribe({
       next: (d: any) => {
         this.selectedInvoice = d;
         this.invoiceDetailLoading = false;

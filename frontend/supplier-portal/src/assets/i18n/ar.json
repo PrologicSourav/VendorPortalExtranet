@@ -177,7 +177,8 @@
     "scheduledDate": "تاريخ الجدولة",
     "paidDate": "تاريخ الدفع",
     "statusPosted": "مُرحّل",
-    "statusCancelled": "ملغى"
+    "statusCancelled": "ملغى",
+    "noPayments": "لا توجد مدفوعات بعد."
   },
   "catalogue": {
     "title": "الفهرس الخاص بي",

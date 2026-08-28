@@ -177,7 +177,8 @@
     "scheduledDate": "วันที่กำหนด",
     "paidDate": "วันที่ชำระ",
     "statusPosted": "บันทึกบัญชีแล้ว",
-    "statusCancelled": "ยกเลิก"
+    "statusCancelled": "ยกเลิก",
+    "noPayments": "ยังไม่มีการชำระเงิน"
   },
   "catalogue": {
     "title": "แคตตาล็อกของฉัน",

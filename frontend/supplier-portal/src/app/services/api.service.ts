@@ -173,6 +173,11 @@ export class ApiService {
     return this.http.get(`${API}/invoices/${id}`);
   }
 
+  // Payments
+  getPayments(vendorId: string): Observable<any> {
+    return this.http.get(`${API}/payments/vendor/${vendorId}`);
+  }
+
   // Notifications
   getNotifications(userId: string): Observable<any> {
     return this.http.get(`${API}/notifications/user/${userId}`);

@@ -177,7 +177,8 @@
     "scheduledDate": "Ngày dự kiến",
     "paidDate": "Ngày thanh toán",
     "statusPosted": "Đã ghi sổ",
-    "statusCancelled": "Đã hủy"
+    "statusCancelled": "Đã hủy",
+    "noPayments": "Chưa có khoản thanh toán nào."
   },
   "catalogue": {
     "title": "Danh mục của tôi",
