@@ -49,7 +49,10 @@ public class WishPoSyncService
         }
 
         var vendors = await _db.Vendors
-            .Where(v => (v.Gstin != null && v.Gstin != "") || (v.Pan != null && v.Pan != ""))
+            .Where(v =>
+                (v.WishVendorId != null && v.WishVendorId != "") ||
+                (v.Gstin != null && v.Gstin != "") ||
+                (v.Pan != null && v.Pan != ""))
             .ToListAsync(ct);
 
         var mappedProperties = await _db.Properties
@@ -58,7 +61,12 @@ public class WishPoSyncService
 
         foreach (var vendor in vendors)
         {
-            var wishVendorIds = await _wish.FindVendorIdsAsync(vendor.Gstin, vendor.Pan);
+            // An explicit staff-set mapping is preferred — WISH's own vendor data
+            // doesn't always have GSTIN/PAN populated, so that fallback can miss a
+            // real, correctly-linked vendor.
+            var wishVendorIds = !string.IsNullOrWhiteSpace(vendor.WishVendorId)
+                ? new List<string> { vendor.WishVendorId!.Trim() }
+                : await _wish.FindVendorIdsAsync(vendor.Gstin, vendor.Pan);
             if (wishVendorIds.Count == 0) continue;
 
             summary.VendorsMatched++;

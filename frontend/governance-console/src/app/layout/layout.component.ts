@@ -83,6 +83,13 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from "@angular/router";
         >
           <span class="nav-icon">📦</span> Delivery Note Receiving
         </a>
+        <a
+          routerLink="/wish-mapping"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">🔗</span> Web Prol'IFIC Mapping
+        </a>
       </nav>
 
       <main class="main-content">

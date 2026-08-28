@@ -17,6 +17,11 @@ public class Vendor
     public bool? IsMsme { get; set; }
     public string? UdyamNumber { get; set; }
 
+    // WISH's vendor_id (e.g. "SUP_AE01") — set once by staff to link this Vendor
+    // Portal vendor to its real Web Prol'IFIC vendor record. Preferred over GSTIN/PAN
+    // matching, which WISH's own vendor data doesn't always have populated.
+    public string? WishVendorId { get; set; }
+
     // KYC
     public KycStatus KycStatus { get; set; } = KycStatus.Incomplete;
     public DateTime? KycValidatedDate { get; set; }

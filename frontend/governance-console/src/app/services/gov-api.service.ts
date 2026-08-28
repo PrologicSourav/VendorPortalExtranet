@@ -176,4 +176,41 @@ export class GovApiService {
     if (search) params = params.set("search", search);
     return this.http.get<PagedResult<GovVendor>>(`${this.api}/vendors`, { params });
   }
+
+  // ─── WISH (Web Prol'IFIC) mapping ─────────────────────────
+  getWishVendorMappings(search?: string): Observable<WishVendorMapping[]> {
+    let params = new HttpParams();
+    if (search) params = params.set("search", search);
+    return this.http.get<WishVendorMapping[]>(`${this.api}/wishmapping/vendors`, { params });
+  }
+
+  setWishVendorMapping(vendorId: string, wishId: string | null): Observable<unknown> {
+    return this.http.put(`${this.api}/wishmapping/vendors/${vendorId}`, { wishId });
+  }
+
+  getWishPropertyMappings(search?: string): Observable<WishPropertyMapping[]> {
+    let params = new HttpParams();
+    if (search) params = params.set("search", search);
+    return this.http.get<WishPropertyMapping[]>(`${this.api}/wishmapping/properties`, { params });
+  }
+
+  setWishPropertyMapping(propertyId: string, wishId: string | null): Observable<unknown> {
+    return this.http.put(`${this.api}/wishmapping/properties/${propertyId}`, { wishId });
+  }
+}
+
+export interface WishVendorMapping {
+  id: string;
+  legalName: string;
+  gstin?: string | null;
+  pan?: string | null;
+  wishVendorId?: string | null;
+}
+
+export interface WishPropertyMapping {
+  id: string;
+  name: string;
+  code?: string | null;
+  buyingEntityName: string;
+  wishPropertyId?: string | null;
 }
