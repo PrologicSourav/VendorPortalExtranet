@@ -24,6 +24,10 @@ public class DeliveryNoteLine
 {
     public Guid Id { get; set; }
     public Guid DeliveryNoteId { get; set; }
+    // Which PO line this shipment quantity counts against — needed to credit
+    // PurchaseOrderLine.QtyDelivered when the note is marked Received. Nullable so
+    // existing rows (created before this field existed) don't break.
+    public Guid? PurchaseOrderLineId { get; set; }
     public string ItemDescription { get; set; } = string.Empty;
     public decimal QtyInDelivery { get; set; }
     public string? BatchLotNumber { get; set; }
@@ -31,4 +35,5 @@ public class DeliveryNoteLine
 
     // Navigation
     public DeliveryNote DeliveryNote { get; set; } = null!;
+    public PurchaseOrderLine? PurchaseOrderLine { get; set; }
 }

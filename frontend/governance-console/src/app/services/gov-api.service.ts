@@ -65,6 +65,18 @@ export interface PurchaseOrderSummary {
   printedDocumentUploadedAt?: string | null;
 }
 
+export interface DeliveryNoteSummary {
+  id: string;
+  deliveryNoteNumber: string;
+  purchaseOrderId: string;
+  poNumber?: string | null;
+  vendorName?: string | null;
+  expectedDeliveryDate: string;
+  status: string;
+  lineCount: number;
+  createdAt: string;
+}
+
 export interface KycChangeRequest {
   id: string;
   vendorId: string;
@@ -143,6 +155,18 @@ export class GovApiService {
     const form = new FormData();
     form.append("file", file, file.name);
     return this.http.post(`${this.api}/purchaseorders/${poId}/document`, form);
+  }
+
+  // ─── Delivery note receiving ─────────────────────────────
+  searchDeliveryNotes(status?: string, search?: string): Observable<PagedResult<DeliveryNoteSummary>> {
+    let params = new HttpParams();
+    if (status) params = params.set("status", status);
+    if (search) params = params.set("search", search);
+    return this.http.get<PagedResult<DeliveryNoteSummary>>(`${this.api}/deliverynotes`, { params });
+  }
+
+  receiveDeliveryNote(id: string): Observable<unknown> {
+    return this.http.put(`${this.api}/deliverynotes/${id}/receive`, {});
   }
 
   // ─── Supplier accounts (vendor master) ───────────────────

@@ -133,6 +133,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<DeliveryNoteLine>(e =>
         {
             e.HasOne(dnl => dnl.DeliveryNote).WithMany(dn => dn.Lines).HasForeignKey(dnl => dnl.DeliveryNoteId);
+            // Restrict: a PO line must not vanish (cascade-deleted) just because a
+            // delivery note line references it — POs aren't deleted through the app,
+            // but this avoids EF Core's multiple-cascade-path error either way.
+            e.HasOne(dnl => dnl.PurchaseOrderLine).WithMany().HasForeignKey(dnl => dnl.PurchaseOrderLineId)
+                .IsRequired(false).OnDelete(DeleteBehavior.Restrict);
             _logger.LogDebug("Configured DeliveryNoteLine entity relationship");
         });
 

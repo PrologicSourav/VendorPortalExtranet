@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
@@ -19,6 +20,29 @@ public class DeliveryNotesController : ControllerBase
         var notes = (await _dnRepo.GetByPurchaseOrderAsync(poId)).ToList();
         if (notes.Count > 0 && !User.CanAccessVendor(notes[0].VendorId)) return Forbid();
         return Ok(notes);
+    }
+
+    /// <summary>Cross-vendor delivery note queue for internal staff — used by the
+    /// governance console to find notes awaiting receipt confirmation.</summary>
+    [HttpGet]
+    [Authorize(Policy = "InternalOnly")]
+    public async Task<IActionResult> Search([FromQuery] string? status, [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var notes = await _dnRepo.SearchAsync(status, search, page, pageSize);
+        var total = await _dnRepo.SearchCountAsync(status, search);
+        var items = notes.Select(dn => new
+        {
+            dn.Id,
+            dn.DeliveryNoteNumber,
+            dn.PurchaseOrderId,
+            PoNumber = dn.PurchaseOrder?.PoNumber,
+            VendorName = dn.Vendor?.LegalName,
+            dn.ExpectedDeliveryDate,
+            dn.Status,
+            LineCount = dn.Lines.Count,
+            dn.CreatedAt,
+        });
+        return Ok(new { items, total, page, pageSize });
     }
 
     [HttpGet("{id:guid}")]
@@ -62,6 +86,7 @@ public class DeliveryNotesController : ControllerBase
             Lines = (request.Lines ?? new()).Select(l => new DeliveryNoteLine
             {
                 Id = Guid.NewGuid(),
+                PurchaseOrderLineId = l.PurchaseOrderLineId,
                 ItemDescription = l.ItemDescription,
                 QtyInDelivery = l.QtyInDelivery,
                 BatchLotNumber = l.BatchLotNumber,
@@ -85,6 +110,32 @@ public class DeliveryNotesController : ControllerBase
         var updated = await _dnRepo.UpdateAsync(dn);
         return Ok(new { updated.Id, updated.DeliveryNoteNumber, updated.Status });
     }
+
+    /// <summary>Property/warehouse staff confirm the goods were physically received —
+    /// credits each line's quantity against the originating PO line so remaining
+    /// quantity tracking (partial/split deliveries) works. Internal staff only: this
+    /// is a receiving confirmation, not something the vendor attests to themselves.</summary>
+    [HttpPut("{id:guid}/receive")]
+    [Authorize(Policy = "InternalOnly")]
+    public async Task<IActionResult> Receive(Guid id)
+    {
+        var dn = await _dnRepo.GetByIdAsync(id);
+        if (dn is null) return NotFound();
+        if (dn.Status != DeliveryNoteStatus.Submitted)
+            return BadRequest(new { message = "Only a submitted delivery note can be marked received." });
+
+        foreach (var line in dn.Lines)
+        {
+            var poLine = line.PurchaseOrderLineId.HasValue
+                ? dn.PurchaseOrder.Lines.FirstOrDefault(l => l.Id == line.PurchaseOrderLineId.Value)
+                : null;
+            if (poLine is not null) poLine.QtyDelivered += line.QtyInDelivery;
+        }
+
+        dn.Status = DeliveryNoteStatus.Received;
+        var updated = await _dnRepo.UpdateAsync(dn);
+        return Ok(new { updated.Id, updated.DeliveryNoteNumber, updated.Status });
+    }
 }
 
 public class CreateDeliveryNoteRequest
@@ -100,6 +151,7 @@ public class CreateDeliveryNoteRequest
 
 public class CreateDeliveryNoteLineInput
 {
+    public Guid? PurchaseOrderLineId { get; set; }
     public string ItemDescription { get; set; } = string.Empty;
     public decimal QtyInDelivery { get; set; }
     public string? BatchLotNumber { get; set; }

@@ -307,6 +307,7 @@ export class DeliveryNoteBuilderComponent implements OnInit {
         this.lines = (po?.lines ?? []).map((l: any) => {
           const remaining = (l.qtyOrdered ?? 0) - (l.qtyDelivered ?? 0);
           return {
+            purchaseOrderLineId: l.id,
             item: l.itemDescription,
             orderedQty: l.qtyOrdered,
             deliveredSoFar: l.qtyDelivered ?? 0,
@@ -334,6 +335,7 @@ export class DeliveryNoteBuilderComponent implements OnInit {
     const dnLines = this.lines
       .filter((l) => l.qtyInDelivery > 0)
       .map((l) => ({
+        purchaseOrderLineId: l.purchaseOrderLineId,
         itemDescription: l.item,
         qtyInDelivery: l.qtyInDelivery,
         batchLotNumber: l.batchLot || null,

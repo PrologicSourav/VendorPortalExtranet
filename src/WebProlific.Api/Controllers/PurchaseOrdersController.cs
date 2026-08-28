@@ -149,6 +149,7 @@ public class PurchaseOrdersController : ControllerBase
                 l.ItemDescription,
                 l.QtyOrdered,
                 l.QtyAccepted,
+                l.QtyDelivered,
                 l.Uom,
                 l.UnitPrice,
                 l.LineTotal,

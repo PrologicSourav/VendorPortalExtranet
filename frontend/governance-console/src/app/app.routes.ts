@@ -8,6 +8,7 @@ import { SupplierSubmissionsComponent } from "./screens/supplier-submissions/sup
 import { CatalogueApprovalsComponent } from "./screens/catalogue-approvals/catalogue-approvals.component";
 import { SupplierAccountsComponent } from "./screens/supplier-accounts/supplier-accounts.component";
 import { PoDocumentsComponent } from "./screens/po-documents/po-documents.component";
+import { DeliveryNoteReceivingComponent } from "./screens/delivery-note-receiving/delivery-note-receiving.component";
 
 export const routes: Routes = [
   { path: "", redirectTo: "kyc-review", pathMatch: "full" },
@@ -22,6 +23,7 @@ export const routes: Routes = [
       { path: "supplier-submissions", component: SupplierSubmissionsComponent },
       { path: "catalogue-approvals", component: CatalogueApprovalsComponent },
       { path: "po-documents", component: PoDocumentsComponent },
+      { path: "delivery-note-receiving", component: DeliveryNoteReceivingComponent },
       { path: "supplier-accounts", component: SupplierAccountsComponent },
     ],
   },

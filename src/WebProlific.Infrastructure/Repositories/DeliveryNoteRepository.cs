@@ -14,7 +14,9 @@ public class DeliveryNoteRepository : IDeliveryNoteRepository
     public async Task<DeliveryNote?> GetByIdAsync(Guid id) =>
         await _db.DeliveryNotes
             .Include(dn => dn.Lines)
-            .Include(dn => dn.PurchaseOrder)
+            // PurchaseOrder.Lines is needed (tracked, not just referenced) so
+            // ReceiveAsync can credit QtyDelivered on the matching PO line.
+            .Include(dn => dn.PurchaseOrder).ThenInclude(po => po.Lines)
             .Include(dn => dn.Vendor)
             .FirstOrDefaultAsync(dn => dn.Id == id);
 
@@ -37,5 +39,36 @@ public class DeliveryNoteRepository : IDeliveryNoteRepository
         _db.DeliveryNotes.Update(dn);
         await _db.SaveChangesAsync();
         return dn;
+    }
+
+    public async Task<IEnumerable<DeliveryNote>> SearchAsync(string? status, string? search, int page, int pageSize)
+    {
+        var query = BuildSearchQuery(status, search)
+            .Include(dn => dn.Lines)
+            .Include(dn => dn.PurchaseOrder)
+            .Include(dn => dn.Vendor);
+
+        var ordered = query.OrderByDescending(dn => dn.CreatedAt);
+        IQueryable<DeliveryNote> paged = page > 1 ? ordered.Skip((page - 1) * pageSize) : ordered;
+        return await paged.Take(pageSize).ToListAsync();
+    }
+
+    public async Task<int> SearchCountAsync(string? status, string? search) =>
+        await BuildSearchQuery(status, search).CountAsync();
+
+    private IQueryable<DeliveryNote> BuildSearchQuery(string? status, string? search)
+    {
+        var query = _db.DeliveryNotes.AsQueryable();
+
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<DeliveryNoteStatus>(status, true, out var dnStatus))
+            query = query.Where(dn => dn.Status == dnStatus);
+
+        if (!string.IsNullOrEmpty(search))
+            query = query.Where(dn =>
+                dn.DeliveryNoteNumber.Contains(search) ||
+                dn.PurchaseOrder.PoNumber.Contains(search) ||
+                dn.Vendor.LegalName.Contains(search));
+
+        return query;
     }
 }

@@ -76,6 +76,13 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from "@angular/router";
         >
           <span class="nav-icon">📄</span> PO Documents
         </a>
+        <a
+          routerLink="/delivery-note-receiving"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">📦</span> Delivery Note Receiving
+        </a>
       </nav>
 
       <main class="main-content">

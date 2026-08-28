@@ -60,6 +60,10 @@ public interface IDeliveryNoteRepository
     Task<IEnumerable<DeliveryNote>> GetByPurchaseOrderAsync(Guid poId);
     Task<DeliveryNote> CreateAsync(DeliveryNote dn);
     Task<DeliveryNote> UpdateAsync(DeliveryNote dn);
+    /// <summary>Cross-vendor lookup (by status and/or DN/PO number or vendor name)
+    /// for internal staff — used by the governance console's receiving queue.</summary>
+    Task<IEnumerable<DeliveryNote>> SearchAsync(string? status, string? search, int page, int pageSize);
+    Task<int> SearchCountAsync(string? status, string? search);
 }
 
 public interface IInvoiceRepository
