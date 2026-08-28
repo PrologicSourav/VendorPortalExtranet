@@ -22,6 +22,12 @@ services:
         value: WebProlific
       - key: DOTNET_hostBuilder__reloadConfigOnChange
         value: "false"
+      - key: ConnectionStrings__WishConnection
+        sync: false # OPTIONAL — Web Prol'IFIC (WISH) PO sync. Leave unset unless this
+        # deployment has an actual network path to WISH's invdb SQL Server (e.g. a VPN
+        # tunnel to the on-prem network) — the sync background service no-ops safely
+        # when this isn't configured. Set manually in the Render dashboard; never
+        # commit the real value here.
 
   - type: web
     runtime: static

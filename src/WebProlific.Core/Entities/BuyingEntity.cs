@@ -23,5 +23,10 @@ public class Property
     public string? City { get; set; }
     public bool IsActive { get; set; } = true;
 
+    // WISH's property_id (e.g. "CCEHB") — set once by staff to link this Vendor
+    // Portal property to its corresponding WISH property so synced POs land here
+    // instead of an unmapped default. Null until mapped.
+    public string? WishPropertyId { get; set; }
+
     public BuyingEntity BuyingEntity { get; set; } = null!;
 }

@@ -45,6 +45,15 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IRateContractRepository, RateContractRepository>();
 
+// ─── Web Prol'IFIC (WISH) PO sync ────────────────────────────
+// Read-only integration: pulls printed/open POs from WISH's own database into this
+// system's own tables. ConnectionStrings:WishConnection is optional — if unset (no
+// network path to WISH's DB, e.g. most cloud deployments), the reader/background
+// service both no-op instead of failing startup.
+builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishPurchaseOrderReader>();
+builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishPoSyncService>();
+builder.Services.AddHostedService<WishSyncBackgroundService>();
+
 // ─── JWT Auth ───────────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey))

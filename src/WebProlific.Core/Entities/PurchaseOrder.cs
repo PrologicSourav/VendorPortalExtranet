@@ -18,6 +18,13 @@ public class PurchaseOrder
     public string? DispatchInstructions { get; set; }
     public string? PackingInstructions { get; set; }
 
+    // Set only for POs imported from Web Prol'IFIC (WISH) — "WISH" plus a stable
+    // composite key (po_number|po_date|amd_number|property_id) so re-syncing the
+    // same WISH PO updates this row instead of creating a duplicate. Null for POs
+    // created directly in the Vendor Portal.
+    public string? SourceSystem { get; set; }
+    public string? SourcePoNumber { get; set; }
+
     // The printed PO document (PDF) as produced by the hotel/property — uploaded by
     // internal staff via the governance console. Only lightweight metadata lives on
     // this row; the file bytes live in the related PurchaseOrderDocument row so that
@@ -68,6 +75,10 @@ public class PurchaseOrderLine
     /// CatalogueLine.TaxClass ("GST-5", "GST-12", "GST-18", "GST-0").</summary>
     public string? TaxClass { get; set; }
     public decimal TaxAmount { get; set; }
+
+    // WISH's item_seq_id for a line synced from Web Prol'IFIC — lets a re-sync match
+    // this line back up instead of duplicating it. Null for portal-created lines.
+    public string? SourceLineId { get; set; }
 
     // Navigation
     public PurchaseOrder PurchaseOrder { get; set; } = null!;

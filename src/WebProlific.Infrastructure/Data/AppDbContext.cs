@@ -99,6 +99,12 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<PurchaseOrder>(e =>
         {
             e.HasIndex(po => po.PoNumber).IsUnique();
+            // Filtered so it only applies to WISH-synced rows (SourceSystem is null for
+            // portal-created POs) — lets the sync job match on re-run instead of
+            // duplicating, without constraining locally-created POs at all.
+            e.HasIndex(po => new { po.SourceSystem, po.SourcePoNumber })
+                .IsUnique()
+                .HasFilter("[SourceSystem] IS NOT NULL");
             e.HasOne(po => po.Vendor).WithMany(v => v.PurchaseOrders).HasForeignKey(po => po.VendorId);
             e.HasOne(po => po.BuyingEntity).WithMany(be => be.PurchaseOrders).HasForeignKey(po => po.BuyingEntityId);
             e.HasOne(po => po.Property).WithMany().HasForeignKey(po => po.PropertyId).IsRequired(false);
