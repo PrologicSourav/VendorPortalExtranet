@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { ActivatedRoute } from "@angular/router";
 import { TranslatePipe } from "@ngx-translate/core";
 import { MoneyPipe } from "../../pipes/money.pipe";
 import { ApiService } from "../../services/api.service";
@@ -31,6 +32,9 @@ import { AuthService } from "../../services/auth.service";
         </div>
         <div *ngIf="!loading && deliveredPOs.length === 0" class="notice">
           {{ "invoiceSubmit.noInvoiceablePos" | translate }}
+        </div>
+        <div *ngIf="!loading && preselectedPoNotFound" class="notice error">
+          {{ "invoiceSubmit.preselectedPoNotFound" | translate }}
         </div>
         <div class="po-select-list">
           <div
@@ -239,6 +243,9 @@ import { AuthService } from "../../services/auth.service";
         font-size: 13px;
         color: var(--color-text-secondary);
       }
+      .notice.error {
+        color: var(--color-error);
+      }
       .po-select-list {
         display: flex;
         flex-direction: column;
@@ -407,8 +414,12 @@ import { AuthService } from "../../services/auth.service";
 export class InvoiceSubmitComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private route = inject(ActivatedRoute);
 
   step = 1;
+  /** Set when opened via "Attach Invoice" on a specific PO (?poId=...) but that PO
+   *  isn't in the invoiceable list — lets the template explain why nothing preselected. */
+  preselectedPoNotFound = false;
   selectedPO: any = null;
   invoiceNumber = "";
   invoiceDate = "";
@@ -432,6 +443,7 @@ export class InvoiceSubmitComponent implements OnInit {
     const vid = this.vendorId;
     if (!vid) return;
     this.loading = true;
+    const preselectPoId = this.route.snapshot.queryParamMap.get("poId");
     // Invoiceable POs = those the buyer has acknowledged or received (delivered).
     this.api.getPurchaseOrders(vid).subscribe({
       next: (res: any) => {
@@ -449,6 +461,17 @@ export class InvoiceSubmitComponent implements OnInit {
             value: p.totalValue,
           }));
         this.loading = false;
+
+        // Arrived here via "Attach Invoice" on a specific PO — skip straight to it.
+        if (preselectPoId) {
+          const match = this.deliveredPOs.find((p) => p.id === preselectPoId);
+          if (match) {
+            this.selectPo(match);
+            this.step = 2;
+          } else {
+            this.preselectedPoNotFound = true;
+          }
+        }
       },
       error: () => {
         this.loading = false;

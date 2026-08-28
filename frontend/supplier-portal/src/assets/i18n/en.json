@@ -275,7 +275,8 @@
     "matchNote": "Invoices that do not match are held and reviewed by Accounts Payable before posting — they are not posted automatically.",
     "submitInvoice": "Submit Invoice",
     "submitApReview": "Submit (AP Review Required)",
-    "submittedToast": "Invoice submitted successfully"
+    "submittedToast": "Invoice submitted successfully",
+    "preselectedPoNotFound": "That PO is not ready to invoice yet — pick one from the list below."
   },
   "purchaseOrders": {
     "noVendorNotice": "Your account isn't linked to a vendor yet, so there are no purchase orders to show.",
@@ -330,7 +331,8 @@
     "taxTotal": "Tax Total",
     "remarks": "Remarks",
     "dispatchInstructions": "Dispatch Instructions",
-    "packingInstructions": "Packing Instructions"
+    "packingInstructions": "Packing Instructions",
+    "attachInvoice": "Attach Invoice"
   },
   "excelUpload": {
     "uploadButton": "Upload Excel",

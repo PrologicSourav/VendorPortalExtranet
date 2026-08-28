@@ -275,7 +275,8 @@
     "matchNote": "Các hóa đơn không khớp sẽ được giữ lại và xem xét bởi bộ phận Kế toán công nợ trước khi ghi sổ — chúng không được ghi sổ tự động.",
     "submitInvoice": "Gửi hóa đơn",
     "submitApReview": "Gửi (Yêu cầu xem xét từ Kế toán công nợ)",
-    "submittedToast": "Gửi hóa đơn thành công"
+    "submittedToast": "Gửi hóa đơn thành công",
+    "preselectedPoNotFound": "PO đó chưa sẵn sàng để lập hóa đơn — hãy chọn một PO khác từ danh sách bên dưới."
   },
   "purchaseOrders": {
     "noVendorNotice": "Tài khoản của bạn chưa được liên kết với nhà cung cấp nên không có đơn đặt hàng nào để hiển thị.",
@@ -330,7 +331,8 @@
     "taxTotal": "Tổng thuế",
     "remarks": "Ghi chú",
     "dispatchInstructions": "Hướng dẫn giao hàng",
-    "packingInstructions": "Hướng dẫn đóng gói"
+    "packingInstructions": "Hướng dẫn đóng gói",
+    "attachInvoice": "Đính kèm hóa đơn"
   },
   "excelUpload": {
     "uploadButton": "Tải lên Excel",

@@ -275,7 +275,8 @@
     "matchNote": "الفواتير غير المطابقة تُحجز وتُراجع من قبل قسم الحسابات الدائنة قبل الترحيل — لا يتم ترحيلها تلقائيًا.",
     "submitInvoice": "إرسال الفاتورة",
     "submitApReview": "إرسال (مطلوب مراجعة الحسابات الدائنة)",
-    "submittedToast": "تم إرسال الفاتورة بنجاح"
+    "submittedToast": "تم إرسال الفاتورة بنجاح",
+    "preselectedPoNotFound": "أمر الشراء هذا غير جاهز للفوترة بعد — اختر واحدًا من القائمة أدناه."
   },
   "purchaseOrders": {
     "noVendorNotice": "حسابك غير مرتبط بمورّد بعد، لذا لا توجد أوامر شراء لعرضها.",
@@ -330,7 +331,8 @@
     "taxTotal": "إجمالي الضريبة",
     "remarks": "ملاحظات",
     "dispatchInstructions": "تعليمات الشحن",
-    "packingInstructions": "تعليمات التعبئة"
+    "packingInstructions": "تعليمات التعبئة",
+    "attachInvoice": "إرفاق فاتورة"
   },
   "excelUpload": {
     "uploadButton": "رفع ملف إكسل",

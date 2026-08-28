@@ -222,13 +222,26 @@ import { PropertyContextService } from "../../services/property-context.service"
             </div>
           </div>
 
-          <div *ngIf="selectedPO.status === 'Acknowledged'" class="action-zone">
-            <button
-              class="btn btn-primary"
-              routerLink="/purchase-orders/{{ selectedPO.id }}/delivery-note"
-            >
-              {{ "purchaseOrders.raiseDeliveryNote" | translate }}
-            </button>
+          <div
+            *ngIf="selectedPO.status === 'Acknowledged' || selectedPO.status === 'Delivered'"
+            class="action-zone"
+          >
+            <div class="action-buttons">
+              <button
+                *ngIf="selectedPO.status === 'Acknowledged'"
+                class="btn btn-primary"
+                routerLink="/purchase-orders/{{ selectedPO.id }}/delivery-note"
+              >
+                {{ "purchaseOrders.raiseDeliveryNote" | translate }}
+              </button>
+              <button
+                class="btn btn-secondary"
+                [routerLink]="['/invoices']"
+                [queryParams]="{ poId: selectedPO.id }"
+              >
+                {{ "purchaseOrders.attachInvoice" | translate }}
+              </button>
+            </div>
           </div>
 
           <!-- Partial Accept Dialog -->
