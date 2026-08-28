@@ -13,7 +13,7 @@ services:
       - key: ConnectionStrings__DefaultConnection
         sync: false # set manually in Render dashboard — do not commit real value here
       - key: AllowedOrigins
-        value: https://vendorportal-frontend-rxwy.onrender.com,https://vendorportal-frontend.onrender.com,http://localhost:4200,http://localhost:4201
+        value: https://vendorportal-frontend-rxwy.onrender.com,https://vendorportal-frontend.onrender.com,https://vendorportal-governance.onrender.com,http://localhost:4200,http://localhost:4201
       - key: Jwt__Key
         sync: false # set manually in Render dashboard — do not commit real value here
       - key: Jwt__Issuer
