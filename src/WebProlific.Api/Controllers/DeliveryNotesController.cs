@@ -133,8 +133,17 @@ public class DeliveryNotesController : ControllerBase
         }
 
         dn.Status = DeliveryNoteStatus.Received;
+
+        // Once every line on the PO has received its full ordered quantity (across
+        // however many delivery notes it took), the PO itself is fully delivered.
+        if (dn.PurchaseOrder.Lines.Count > 0 && dn.PurchaseOrder.Lines.All(l => l.QtyDelivered >= l.QtyOrdered))
+        {
+            dn.PurchaseOrder.Status = PoStatus.Delivered;
+            dn.PurchaseOrder.UpdatedAt = DateTime.UtcNow;
+        }
+
         var updated = await _dnRepo.UpdateAsync(dn);
-        return Ok(new { updated.Id, updated.DeliveryNoteNumber, updated.Status });
+        return Ok(new { updated.Id, updated.DeliveryNoteNumber, updated.Status, PurchaseOrderStatus = dn.PurchaseOrder.Status });
     }
 }
 
