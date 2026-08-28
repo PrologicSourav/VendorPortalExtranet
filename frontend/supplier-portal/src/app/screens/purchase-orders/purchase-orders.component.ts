@@ -722,16 +722,28 @@ export class PurchaseOrdersComponent implements OnInit {
    *  plain link) because the request needs the Bearer auth header. */
   viewDocument(po: any) {
     if (!po?.id || this.loadingDocument) return;
+    // Open the tab synchronously, in the same user-gesture the click provides.
+    // Opening it later — after the async fetch resolves, inside the subscribe
+    // callback — breaks the trusted-gesture chain and most browsers silently
+    // block it as an untrusted popup (no error, it just does nothing).
+    const newTab = window.open("", "_blank");
     this.loadingDocument = true;
     this.api.getPoDocument(po.id).subscribe({
       next: (blob: Blob) => {
         this.loadingDocument = false;
         const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
+        if (newTab) {
+          newTab.location.href = url;
+        } else {
+          // The synchronous open itself was blocked — fall back to navigating
+          // the current tab so the document is still reachable.
+          window.location.href = url;
+        }
         setTimeout(() => URL.revokeObjectURL(url), 60000);
       },
       error: () => {
         this.loadingDocument = false;
+        newTab?.close();
         this.showToast("error", "purchaseOrders.toastDocumentError");
       },
     });
