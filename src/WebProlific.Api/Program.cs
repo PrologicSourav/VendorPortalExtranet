@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using WebProlific.Api.Services;
 using WebProlific.Api.Middleware;
 using WebProlific.Api.Extensions;
+using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
 using WebProlific.Infrastructure.Data;
 using WebProlific.Infrastructure.Repositories;
@@ -44,6 +45,9 @@ builder.Services.AddScoped<IDedupRepository, DedupRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IRateContractRepository, RateContractRepository>();
+builder.Services.AddScoped<IVendorRelationshipRepository, VendorRelationshipRepository>();
+builder.Services.AddScoped<IVendorRequestRepository, VendorRequestRepository>();
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
 // ─── Web Prol'IFIC (WISH) PO sync ────────────────────────────
 // Read-only integration: pulls printed/open POs from WISH's own database into this
@@ -176,6 +180,56 @@ catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogError(ex, "Plaintext password upgrade failed");
+}
+
+// ─── Backfill VendorRelationships from existing PO history (one-time, idempotent) ───
+// The vendor-relationship access model is new; no vendor has one yet. Rather than
+// leave every existing vendor locked out of properties they already legitimately
+// transact with, infer an Active Property-scoped relationship from their own
+// PurchaseOrders (PropertyId already set on those rows). Safe to re-run: the
+// filtered unique index means a duplicate insert attempt for an existing active
+// pairing is simply skipped here before it would ever hit that constraint.
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var existingPairs = db.VendorRelationships
+        .Where(r => r.PropertyId != null)
+        .Select(r => new { r.VendorId, PropertyId = r.PropertyId!.Value })
+        .ToHashSet();
+
+    var poPairs = db.PurchaseOrders
+        .Where(po => po.PropertyId != null)
+        .Select(po => new { po.VendorId, PropertyId = po.PropertyId!.Value, po.BuyingEntityId })
+        .Distinct()
+        .ToList();
+
+    var toCreate = poPairs
+        .Where(p => !existingPairs.Contains(new { p.VendorId, p.PropertyId }))
+        .Select(p => new VendorRelationship
+        {
+            Id = Guid.NewGuid(),
+            VendorId = p.VendorId,
+            BuyingEntityId = p.BuyingEntityId,
+            PropertyId = p.PropertyId,
+            ScopeType = VendorRelationshipScope.Property,
+            Status = VendorRelationshipStatus.Active,
+            StartDate = DateTime.UtcNow,
+        })
+        .ToList();
+
+    if (toCreate.Count > 0)
+    {
+        db.VendorRelationships.AddRange(toCreate);
+        await db.SaveChangesAsync();
+        var log = app.Services.GetRequiredService<ILogger<Program>>();
+        log.LogInformation("Backfilled {Count} VendorRelationship row(s) from existing PO history", toCreate.Count);
+    }
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "VendorRelationship backfill failed");
 }
 
 // ─── Middleware ──────────────────────────────────────────────

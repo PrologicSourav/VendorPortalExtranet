@@ -12,8 +12,9 @@ const STORAGE_KEY = "wp_selected_property";
 
 /**
  * Which property (hotel) the vendor is currently viewing data for, driven by the
- * topbar property switcher. Selection is vendor-scoped (only properties this vendor
- * has actually received purchase orders for) and null means "all properties".
+ * topbar property switcher. Selection is vendor-scoped — only properties this
+ * vendor has an active VendorRelationship for (direct or chain-wide) — and null
+ * means "all properties".
  */
 @Injectable({ providedIn: "root" })
 export class PropertyContextService {

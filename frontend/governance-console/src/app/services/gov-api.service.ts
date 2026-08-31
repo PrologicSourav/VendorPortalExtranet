@@ -197,6 +197,85 @@ export class GovApiService {
   setWishPropertyMapping(propertyId: string, wishId: string | null): Observable<unknown> {
     return this.http.put(`${this.api}/wishmapping/properties/${propertyId}`, { wishId });
   }
+
+  // ─── Chains / Properties reference list ──────────────────
+  getBuyingEntities(): Observable<BuyingEntityOption[]> {
+    return this.http.get<BuyingEntityOption[]>(`${this.api}/buyingentities`);
+  }
+
+  // ─── Vendor creation (Flow B — brand new vendor) ─────────
+  createVendor(legalName: string, gstin?: string | null): Observable<GovVendor> {
+    return this.http.post<GovVendor>(`${this.api}/vendors`, {
+      legalName,
+      gstin: gstin || null,
+    });
+  }
+
+  // ─── Vendor relationships (Chain/Property access) ────────
+  getVendorRelationships(vendorId: string): Observable<VendorRelationship[]> {
+    return this.http.get<VendorRelationship[]>(`${this.api}/vendorrelationships/vendor/${vendorId}`);
+  }
+
+  createVendorRelationship(body: {
+    vendorId: string;
+    buyingEntityId: string;
+    propertyId?: string | null;
+    scopeType: "Chain" | "Property";
+  }): Observable<unknown> {
+    return this.http.post(`${this.api}/vendorrelationships`, body);
+  }
+
+  setVendorRelationshipStatus(id: string, status: "Active" | "Inactive"): Observable<unknown> {
+    return this.http.put(`${this.api}/vendorrelationships/${id}/status`, { status });
+  }
+
+  // ─── Vendor access requests (Flow C approval queue) ──────
+  getVendorRequestQueue(status?: string): Observable<VendorRequestQueueItem[]> {
+    let params = new HttpParams();
+    if (status) params = params.set("status", status);
+    return this.http.get<VendorRequestQueueItem[]>(`${this.api}/vendorrequests`, { params });
+  }
+
+  approveVendorRequest(id: string, remarks?: string): Observable<unknown> {
+    return this.http.put(`${this.api}/vendorrequests/${id}/approve`, { remarks });
+  }
+
+  rejectVendorRequest(id: string, remarks?: string): Observable<unknown> {
+    return this.http.put(`${this.api}/vendorrequests/${id}/reject`, { remarks });
+  }
+}
+
+export interface BuyingEntityOption {
+  id: string;
+  name: string;
+  code?: string | null;
+  properties: { id: string; name: string; code?: string | null; city?: string | null }[];
+}
+
+export interface VendorRelationship {
+  id: string;
+  buyingEntityId: string;
+  buyingEntityName: string;
+  propertyId?: string | null;
+  propertyName?: string | null;
+  scopeType: "Chain" | "Property";
+  status: "Active" | "Inactive";
+  startDate: string;
+  endDate?: string | null;
+}
+
+export interface VendorRequestQueueItem {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  requestedBuyingEntityId: string;
+  buyingEntityName: string;
+  requestedPropertyId?: string | null;
+  propertyName?: string | null;
+  requestType: "Chain" | "Property";
+  status: "Pending" | "Approved" | "Rejected" | "Cancelled";
+  requestedDate: string;
+  remarks?: string | null;
 }
 
 export interface WishVendorMapping {

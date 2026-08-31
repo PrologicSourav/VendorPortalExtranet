@@ -127,3 +127,24 @@ public enum ItemDedupStatus
     Merged,
     Dismissed
 }
+
+// ─── Vendor Relationships (Chain/Property access) ────────────
+public enum VendorRelationshipScope
+{
+    Chain,
+    Property
+}
+
+public enum VendorRelationshipStatus
+{
+    Active,
+    Inactive
+}
+
+public enum VendorRequestStatus
+{
+    Pending,
+    Approved,
+    Rejected,
+    Cancelled
+}

@@ -10,6 +10,8 @@ import { SupplierAccountsComponent } from "./screens/supplier-accounts/supplier-
 import { PoDocumentsComponent } from "./screens/po-documents/po-documents.component";
 import { DeliveryNoteReceivingComponent } from "./screens/delivery-note-receiving/delivery-note-receiving.component";
 import { WishMappingComponent } from "./screens/wish-mapping/wish-mapping.component";
+import { VendorRelationshipsComponent } from "./screens/vendor-relationships/vendor-relationships.component";
+import { VendorRequestsComponent } from "./screens/vendor-requests/vendor-requests.component";
 
 export const routes: Routes = [
   { path: "", redirectTo: "kyc-review", pathMatch: "full" },
@@ -27,6 +29,8 @@ export const routes: Routes = [
       { path: "delivery-note-receiving", component: DeliveryNoteReceivingComponent },
       { path: "wish-mapping", component: WishMappingComponent },
       { path: "supplier-accounts", component: SupplierAccountsComponent },
+      { path: "vendor-relationships", component: VendorRelationshipsComponent },
+      { path: "vendor-requests", component: VendorRequestsComponent },
     ],
   },
 ];

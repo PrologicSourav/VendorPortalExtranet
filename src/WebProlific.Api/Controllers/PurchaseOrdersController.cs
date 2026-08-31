@@ -16,18 +16,33 @@ public class PurchaseOrdersController : ControllerBase
     private readonly IPurchaseOrderRepository _poRepo;
     private readonly AppDbContext _db;
     private readonly ICurrencyConversionService _currencyConverter;
+    private readonly IVendorRelationshipRepository _relationshipRepo;
 
-    public PurchaseOrdersController(IPurchaseOrderRepository poRepo, AppDbContext db, ICurrencyConversionService currencyConverter)
+    public PurchaseOrdersController(
+        IPurchaseOrderRepository poRepo, AppDbContext db, ICurrencyConversionService currencyConverter,
+        IVendorRelationshipRepository relationshipRepo)
     {
         _poRepo = poRepo;
         _db = db;
         _currencyConverter = currencyConverter;
+        _relationshipRepo = relationshipRepo;
     }
 
     [HttpGet("vendor/{vendorId:guid}")]
     public async Task<IActionResult> GetByVendor(Guid vendorId, [FromQuery] string? status, [FromQuery] Guid? propertyId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (!User.CanAccessVendor(vendorId)) return Forbid();
+
+        // A vendor-supplied propertyId is never trusted at face value — internal
+        // staff can filter by any property, but a vendor user must actually have
+        // an active VendorRelationship covering it (directly, or via a chain-wide
+        // relationship on that property's BuyingEntity).
+        if (propertyId.HasValue && !User.IsInternal())
+        {
+            var property = await _db.Properties.FindAsync(propertyId.Value);
+            if (property is null || !await _relationshipRepo.HasActiveAccessAsync(vendorId, property.BuyingEntityId, propertyId))
+                return Forbid();
+        }
 
         var pos = await _poRepo.GetByVendorAsync(vendorId, status, propertyId, page, pageSize);
         // Resolve user's preferred currency (set by middleware)
@@ -97,14 +112,16 @@ public class PurchaseOrdersController : ControllerBase
         return Ok(new { items, total, page, pageSize });
     }
 
-    /// <summary>Distinct properties this vendor has received purchase orders for —
-    /// populates the supplier portal's property switcher.</summary>
+    /// <summary>Properties this vendor is actually authorized to operate in (via an
+    /// active VendorRelationship — direct or chain-wide) — populates the supplier
+    /// portal's workspace switcher. Independent of PO history, so a newly-approved
+    /// vendor sees the property before their first PO ever lands.</summary>
     [HttpGet("vendor/{vendorId:guid}/properties")]
     public async Task<IActionResult> GetVendorProperties(Guid vendorId)
     {
         if (!User.CanAccessVendor(vendorId)) return Forbid();
 
-        var properties = await _poRepo.GetPropertiesForVendorAsync(vendorId);
+        var properties = await _relationshipRepo.GetEffectivePropertiesAsync(vendorId);
         var result = properties.Select(p => new { p.Id, p.Name, p.Code, p.City });
         return Ok(result);
     }

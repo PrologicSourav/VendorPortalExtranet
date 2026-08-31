@@ -178,6 +178,29 @@ export class ApiService {
     return this.http.get(`${API}/payments/vendor/${vendorId}`);
   }
 
+  // Chain/Property access (Flow C — request access to another chain/property)
+  getBuyingEntities(): Observable<any> {
+    return this.http.get(`${API}/buyingentities`);
+  }
+
+  getVendorRelationships(vendorId: string): Observable<any> {
+    return this.http.get(`${API}/vendorrelationships/vendor/${vendorId}`);
+  }
+
+  getVendorRequests(vendorId: string): Observable<any> {
+    return this.http.get(`${API}/vendorrequests/vendor/${vendorId}`);
+  }
+
+  requestVendorAccess(body: {
+    vendorId: string;
+    requestedBuyingEntityId: string;
+    requestedPropertyId?: string | null;
+    requestType: "Chain" | "Property";
+    remarks?: string;
+  }): Observable<any> {
+    return this.http.post(`${API}/vendorrequests`, body);
+  }
+
   // Notifications
   getNotifications(userId: string): Observable<any> {
     return this.http.get(`${API}/notifications/user/${userId}`);

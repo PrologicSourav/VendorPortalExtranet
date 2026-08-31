@@ -27,6 +27,7 @@
     "account": "Account",
     "companyProfile": "Company Profile",
     "notifications": "Notifications",
+    "accessRequests": "Chain/Property Access",
     "logout": "Logout"
   },
   "deliveryNotes": {
@@ -418,5 +419,25 @@
     "accountCreatedHint": "You can now sign in with your email and password.",
     "footer": "Supplier access portal. For Web Prol'IFIC internal staff, use the",
     "staffConsole": "staff console"
+  },
+  "access": {
+    "title": "Chain/Property Access",
+    "subtitle": "Where your company is currently approved to transact. Request access to a new chain or property below — a staff member has to approve it before it's active.",
+    "current": "Current Access",
+    "loading": "Loading…",
+    "none": "No active access yet.",
+    "entireChain": "Entire chain",
+    "requestNew": "Request Access",
+    "scopeProperty": "Specific Property",
+    "scopeChain": "Entire Chain",
+    "selectChain": "Select chain…",
+    "selectProperty": "Select property…",
+    "submit": "Submit Request",
+    "submitting": "Submitting…",
+    "history": "Request History",
+    "noRequests": "No requests yet.",
+    "colScope": "Requested",
+    "colStatus": "Status",
+    "colDate": "Date"
   }
 }

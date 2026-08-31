@@ -9,6 +9,7 @@ import { DeliveryNotesComponent } from "./screens/delivery-notes/delivery-notes.
 import { InvoiceSubmitComponent } from "./screens/invoice-submit/invoice-submit.component";
 import { AccountComponent } from "./screens/account/account.component";
 import { NotificationsComponent } from "./screens/notifications/notifications.component";
+import { AccessRequestsComponent } from "./screens/access-requests/access-requests.component";
 import { LayoutComponent } from "./layout/layout.component";
 
 export const routes: Routes = [
@@ -29,6 +30,7 @@ export const routes: Routes = [
       { path: "invoices", component: InvoiceSubmitComponent },
       { path: "account", component: AccountComponent },
       { path: "notifications", component: NotificationsComponent },
+      { path: "access-requests", component: AccessRequestsComponent },
       { path: "", redirectTo: "dashboard", pathMatch: "full" },
     ],
   },

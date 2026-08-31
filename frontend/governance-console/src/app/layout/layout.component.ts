@@ -90,6 +90,20 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from "@angular/router";
         >
           <span class="nav-icon">🔗</span> Web Prol'IFIC Mapping
         </a>
+        <a
+          routerLink="/vendor-relationships"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">🏷️</span> Vendor Relationships
+        </a>
+        <a
+          routerLink="/vendor-requests"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">📥</span> Vendor Access Requests
+        </a>
       </nav>
 
       <main class="main-content">

@@ -27,6 +27,7 @@
     "account": "Tài khoản",
     "companyProfile": "Hồ sơ công ty",
     "notifications": "Thông báo",
+    "accessRequests": "Quyền truy cập Chuỗi/Cơ sở",
     "logout": "Đăng xuất"
   },
   "deliveryNotes": {
@@ -418,5 +419,25 @@
     "accountCreatedHint": "Bạn có thể đăng nhập bằng email và mật khẩu của mình.",
     "footer": "Cổng truy cập nhà cung cấp. Dành cho nhân viên nội bộ Web Prol'IFIC, sử dụng",
     "staffConsole": "bảng điều khiển nhân viên"
+  },
+  "access": {
+    "title": "Quyền truy cập Chuỗi/Cơ sở",
+    "subtitle": "Nơi công ty bạn hiện được phép giao dịch. Yêu cầu quyền truy cập vào một chuỗi hoặc cơ sở mới bên dưới — nhân viên phải phê duyệt trước khi có hiệu lực.",
+    "current": "Quyền truy cập hiện tại",
+    "loading": "Đang tải…",
+    "none": "Chưa có quyền truy cập nào đang hoạt động.",
+    "entireChain": "Toàn bộ chuỗi",
+    "requestNew": "Yêu cầu quyền truy cập",
+    "scopeProperty": "Cơ sở cụ thể",
+    "scopeChain": "Toàn bộ chuỗi",
+    "selectChain": "Chọn chuỗi…",
+    "selectProperty": "Chọn cơ sở…",
+    "submit": "Gửi yêu cầu",
+    "submitting": "Đang gửi…",
+    "history": "Lịch sử yêu cầu",
+    "noRequests": "Chưa có yêu cầu nào.",
+    "colScope": "Đã yêu cầu",
+    "colStatus": "Trạng thái",
+    "colDate": "Ngày"
   }
 }

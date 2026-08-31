@@ -137,3 +137,36 @@ public interface IRateContractRepository
     Task<RateContract?> GetActiveForVendorAsync(Guid vendorId, Guid buyingEntityId);
     Task<decimal?> GetAgreedPriceAsync(Guid vendorId, Guid buyingEntityId, Guid itemId);
 }
+
+public interface IVendorRelationshipRepository
+{
+    Task<IEnumerable<VendorRelationship>> GetByVendorAsync(Guid vendorId, VendorRelationshipStatus? status = null);
+    Task<VendorRelationship?> GetByIdAsync(Guid id);
+    /// <summary>True if the vendor has an Active relationship that covers this
+    /// buying entity/property — either a direct Property-scoped row, or a
+    /// Chain-scoped row for the property's BuyingEntity. Server-side source of
+    /// truth for "can this vendor operate here" — never trust a client-supplied
+    /// chain/property id without this check.</summary>
+    Task<bool> HasActiveAccessAsync(Guid vendorId, Guid buyingEntityId, Guid? propertyId);
+    /// <summary>Every Property this vendor can currently operate in — a direct
+    /// Property-scoped relationship, plus every active property under any
+    /// Chain-scoped (BuyingEntityId, PropertyId=null) relationship. Backs the
+    /// supplier portal's workspace switcher.</summary>
+    Task<IEnumerable<Property>> GetEffectivePropertiesAsync(Guid vendorId);
+    Task<VendorRelationship> CreateAsync(VendorRelationship relationship);
+    Task<VendorRelationship> UpdateAsync(VendorRelationship relationship);
+}
+
+public interface IVendorRequestRepository
+{
+    Task<IEnumerable<VendorRequest>> GetByVendorAsync(Guid vendorId);
+    Task<IEnumerable<VendorRequest>> GetQueueAsync(VendorRequestStatus? status);
+    Task<VendorRequest?> GetByIdAsync(Guid id);
+    Task<VendorRequest> CreateAsync(VendorRequest request);
+    Task<VendorRequest> UpdateAsync(VendorRequest request);
+}
+
+public interface IAuditLogRepository
+{
+    Task LogAsync(string eventType, Guid? vendorId, Guid? userId, string? details = null);
+}

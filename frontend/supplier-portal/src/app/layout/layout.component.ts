@@ -183,6 +183,14 @@ import { CurrencySelectorComponent } from "../components/currency-selector/curre
         >
           <span class="nav-icon">🔔</span> {{ "nav.notifications" | translate }}
         </a>
+        <a
+          routerLink="/access-requests"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">🔓</span> {{ "nav.accessRequests" | translate }}
+        </a>
         <div class="nav-divider"></div>
         <a (click)="logout()" class="nav-item logout" style="cursor:pointer">
           <span class="nav-icon">🚪</span> {{ "nav.logout" | translate }}

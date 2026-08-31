@@ -41,6 +41,9 @@ public class AppDbContext : DbContext
     public DbSet<UserPreference> UserPreferences => Set<UserPreference>();
     public DbSet<Currency> Currencies => Set<Currency>();
     public DbSet<ExchangeRate> ExchangeRates => Set<ExchangeRate>();
+    public DbSet<VendorRelationship> VendorRelationships => Set<VendorRelationship>();
+    public DbSet<VendorRequest> VendorRequests => Set<VendorRequest>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -214,6 +217,33 @@ public class AppDbContext : DbContext
             _logger.LogDebug("Configured RateContractLine entity relationships");
         });
 
-        
+        // Vendor Relationship — prevent duplicate *active* relationships at the same
+        // scope. Two filtered indexes since a plain unique index can't treat
+        // PropertyId's NULL (chain-wide) rows as duplicates of each other in the
+        // way a real uniqueness rule needs (SQL Server NULLs are already distinct,
+        // but we still need to exclude Inactive/superseded rows from the check).
+        modelBuilder.Entity<VendorRelationship>(e =>
+        {
+            e.HasOne(vr => vr.Vendor).WithMany().HasForeignKey(vr => vr.VendorId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(vr => vr.BuyingEntity).WithMany().HasForeignKey(vr => vr.BuyingEntityId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(vr => vr.Property).WithMany().HasForeignKey(vr => vr.PropertyId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(vr => new { vr.VendorId, vr.BuyingEntityId })
+                .IsUnique()
+                .HasFilter("[PropertyId] IS NULL AND [Status] = 0")
+                .HasDatabaseName("IX_VendorRelationships_ActiveChainScope");
+            e.HasIndex(vr => new { vr.VendorId, vr.PropertyId })
+                .IsUnique()
+                .HasFilter("[PropertyId] IS NOT NULL AND [Status] = 0")
+                .HasDatabaseName("IX_VendorRelationships_ActivePropertyScope");
+            _logger.LogDebug("Configured VendorRelationship entity with filtered unique indexes preventing duplicate active relationships");
+        });
+
+        modelBuilder.Entity<VendorRequest>(e =>
+        {
+            e.HasOne(vr => vr.Vendor).WithMany().HasForeignKey(vr => vr.VendorId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(vr => vr.RequestedBuyingEntity).WithMany().HasForeignKey(vr => vr.RequestedBuyingEntityId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(vr => vr.RequestedProperty).WithMany().HasForeignKey(vr => vr.RequestedPropertyId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+            _logger.LogDebug("Configured VendorRequest entity relationships");
+        });
     }
 }
