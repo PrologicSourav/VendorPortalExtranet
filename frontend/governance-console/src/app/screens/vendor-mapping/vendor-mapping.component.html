@@ -1,0 +1,11 @@
+<div class="tabs mapping-tabs">
+  <div class="tab" [class.active]="tab === 'unmapped'" (click)="tab = 'unmapped'">
+    Unmapped Vendors
+  </div>
+  <div class="tab" [class.active]="tab === 'relationships'" (click)="tab = 'relationships'">
+    Vendor Relationships
+  </div>
+</div>
+
+<app-unmapped-vendors *ngIf="tab === 'unmapped'"></app-unmapped-vendors>
+<app-vendor-relationships *ngIf="tab === 'relationships'"></app-vendor-relationships>

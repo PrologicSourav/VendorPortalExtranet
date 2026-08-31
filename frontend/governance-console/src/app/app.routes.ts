@@ -9,9 +9,7 @@ import { CatalogueApprovalsComponent } from "./screens/catalogue-approvals/catal
 import { SupplierAccountsComponent } from "./screens/supplier-accounts/supplier-accounts.component";
 import { PoDocumentsComponent } from "./screens/po-documents/po-documents.component";
 import { DeliveryNoteReceivingComponent } from "./screens/delivery-note-receiving/delivery-note-receiving.component";
-import { WishMappingComponent } from "./screens/wish-mapping/wish-mapping.component";
-import { VendorRelationshipsComponent } from "./screens/vendor-relationships/vendor-relationships.component";
-import { UnmappedVendorsComponent } from "./screens/unmapped-vendors/unmapped-vendors.component";
+import { VendorMappingComponent } from "./screens/vendor-mapping/vendor-mapping.component";
 import { VendorRequestsComponent } from "./screens/vendor-requests/vendor-requests.component";
 
 export const routes: Routes = [
@@ -28,10 +26,8 @@ export const routes: Routes = [
       { path: "catalogue-approvals", component: CatalogueApprovalsComponent },
       { path: "po-documents", component: PoDocumentsComponent },
       { path: "delivery-note-receiving", component: DeliveryNoteReceivingComponent },
-      { path: "wish-mapping", component: WishMappingComponent },
       { path: "supplier-accounts", component: SupplierAccountsComponent },
-      { path: "vendor-relationships", component: VendorRelationshipsComponent },
-      { path: "unmapped-vendors", component: UnmappedVendorsComponent },
+      { path: "vendor-mapping", component: VendorMappingComponent },
       { path: "vendor-requests", component: VendorRequestsComponent },
     ],
   },
