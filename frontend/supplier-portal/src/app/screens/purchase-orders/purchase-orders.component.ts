@@ -163,11 +163,14 @@ import { PropertyContextService } from "../../services/property-context.service"
                 <td>{{ line.uom }}</td>
                 <td>{{ line.unitPrice | money }}</td>
                 <td>
-                  <span *ngIf="line.taxAmount; else noTax">
+                  <span *ngIf="line.taxAmount; else onlyTaxClass">
                     {{ line.taxAmount | money }}
                     <span class="tax-class" *ngIf="line.taxClass">({{ line.taxClass }})</span>
                   </span>
-                  <ng-template #noTax>—</ng-template>
+                  <ng-template #onlyTaxClass>
+                    <span *ngIf="line.taxClass; else noTax">{{ line.taxClass }}</span>
+                    <ng-template #noTax>—</ng-template>
+                  </ng-template>
                 </td>
                 <td>{{ line.lineTotal | money }}</td>
               </tr>

@@ -151,8 +151,9 @@ public class WishPoSyncService
                     // from here on the portal's delivery-note flow owns this value.
                     QtyDelivered = line.QtyRecvd,
                     Uom = line.UnitId ?? "",
-                    UnitPrice = line.ItemRate,
+                    UnitPrice = line.EffectiveUnitPrice,
                     LineTotal = line.TotAmount,
+                    TaxClass = line.ItemVatClass,
                     SourceLineId = line.ItemSeqId.ToString(),
                 });
             }
@@ -183,8 +184,9 @@ public class WishPoSyncService
                     QtyOrdered = line.QtyOrdered,
                     QtyDelivered = line.QtyRecvd,
                     Uom = line.UnitId ?? "",
-                    UnitPrice = line.ItemRate,
+                    UnitPrice = line.EffectiveUnitPrice,
                     LineTotal = line.TotAmount,
+                    TaxClass = line.ItemVatClass,
                     SourceLineId = line.ItemSeqId.ToString(),
                 });
                 continue;
@@ -195,8 +197,9 @@ public class WishPoSyncService
             existingLine.ItemDescription = line.ItemDescription;
             existingLine.QtyOrdered = line.QtyOrdered;
             existingLine.Uom = line.UnitId ?? existingLine.Uom;
-            existingLine.UnitPrice = line.ItemRate;
+            existingLine.UnitPrice = line.EffectiveUnitPrice;
             existingLine.LineTotal = line.TotAmount;
+            existingLine.TaxClass = line.ItemVatClass;
         }
 
         return UpsertOutcome.Updated;

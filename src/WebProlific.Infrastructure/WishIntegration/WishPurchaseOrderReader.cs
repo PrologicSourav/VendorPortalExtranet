@@ -133,7 +133,7 @@ public class WishPurchaseOrderReader
             await conn.OpenAsync();
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT item_seq_id, vendor_item_desc, qty_ordered, unit_id, item_rate, tot_amount, qty_recvd
+                SELECT item_seq_id, vendor_item_desc, qty_ordered, unit_id, item_rate, tot_amount, qty_recvd, item_vat_class
                 FROM OPM1.po_items WITH (NOLOCK)
                 WHERE po_number = @po AND po_date = @dt AND amd_number = @amd AND property_id = @prop
                 ORDER BY sl_no";
@@ -154,6 +154,7 @@ public class WishPurchaseOrderReader
                     ItemRate = reader.IsDBNull(4) ? 0 : reader.GetDecimal(4),
                     TotAmount = reader.IsDBNull(5) ? 0 : reader.GetDecimal(5),
                     QtyRecvd = reader.IsDBNull(6) ? 0 : Convert.ToDecimal(reader.GetDouble(6)),
+                    ItemVatClass = ReadTrimmedString(reader, 7),
                 });
             }
         }

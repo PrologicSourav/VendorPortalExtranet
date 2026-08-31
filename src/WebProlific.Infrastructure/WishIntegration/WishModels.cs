@@ -33,4 +33,15 @@ public class WishPoLine
     public decimal ItemRate { get; set; }
     public decimal TotAmount { get; set; }
     public decimal QtyRecvd { get; set; }
+    /// <summary>WISH's internal tax-class code (e.g. "GST3", "GST0") — an opaque
+    /// category, not a literal percentage. Surfaced as-is since we have no access
+    /// to WISH's tax-rate lookup table to translate it into a real GST slab.</summary>
+    public string? ItemVatClass { get; set; }
+
+    /// <summary>Effective per-unit price. WISH leaves item_rate at 0 for "charge"
+    /// lines (freight, packing, etc. — charge_flag='Y') that only carry a lump-sum
+    /// tot_amount, so fall back to tot_amount/qty_ordered rather than show ₹0.00
+    /// next to a nonzero line total.</summary>
+    public decimal EffectiveUnitPrice =>
+        ItemRate > 0 ? ItemRate : (QtyOrdered > 0 ? Math.Round(TotAmount / QtyOrdered, 2) : 0);
 }
