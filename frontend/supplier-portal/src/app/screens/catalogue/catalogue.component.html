@@ -77,6 +77,7 @@
     <!-- Data Table -->
     <div class="card">
       <div class="table-wrap">
+        <div class="table-scroll">
         <table class="data-table" *ngIf="lines.length > 0">
           <thead>
             <tr>
@@ -152,6 +153,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <div *ngIf="lines.length === 0" class="empty-state">

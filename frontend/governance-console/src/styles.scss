@@ -180,6 +180,14 @@ a:hover {
 .table-wrap {
   overflow-x: auto;
 }
+/* Bounds a table to its own scroll box instead of letting the whole page
+   grow to fit it — keeps the page header/search bar in view and lets the
+   column headers (sticky, below) stay pinned to the top of just this box
+   as rows scroll underneath them. */
+.table-scroll {
+  max-height: calc(100vh - 260px);
+  overflow: auto;
+}
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -194,6 +202,9 @@ a:hover {
     background: var(--color-surface-alt);
     border-bottom: 1px solid var(--color-border);
     white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
   td {
     padding: 12px 16px;

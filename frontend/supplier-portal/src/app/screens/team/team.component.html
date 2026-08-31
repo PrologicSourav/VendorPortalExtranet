@@ -27,6 +27,7 @@
       </div>
       <p *ngIf="inviteError" class="field-error" role="alert">{{ inviteError }}</p>
 
+      <div class="table-scroll">
       <table class="data-table" *ngIf="users.length > 0">
         <thead>
           <tr>
@@ -73,6 +74,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
 
     <div class="card" *ngIf="selectedUser && isAdmin">

@@ -59,6 +59,7 @@
           <span>Submitted: {{ cat.submittedDate ? (cat.submittedDate | date: "mediumDate") : "—" }}</span>
         </div>
 
+        <div class="table-scroll">
         <table class="data-table" style="margin-top: 12px">
           <thead>
             <tr>
@@ -109,6 +110,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
 
         <div *ngIf="cat.status === 'Submitted'" class="catalogue-actions">
           <button

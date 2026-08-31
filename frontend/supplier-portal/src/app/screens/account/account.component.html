@@ -142,6 +142,7 @@
       style="border-top: none; border-radius: 0 0 8px 8px"
     >
       <div class="table-wrap">
+        <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
@@ -168,6 +169,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
       <div *ngIf="invoicesLoading" class="loading-state">
         {{ "account.invoicesLoading" | translate }}
@@ -275,6 +277,7 @@
       style="border-top: none; border-radius: 0 0 8px 8px"
     >
       <div class="table-wrap">
+        <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
@@ -311,6 +314,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
       <div *ngIf="paymentsLoading" class="loading-state">
         {{ "account.invoicesLoading" | translate }}
@@ -337,6 +341,7 @@
             📥 {{ "account.downloadPdf" | translate }}
           </button>
         </div>
+        <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
@@ -359,6 +364,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
         <div class="statement-footer">
           {{ "account.closingBalance" | translate }}:
           <strong>{{ closingBalance | money }}</strong>

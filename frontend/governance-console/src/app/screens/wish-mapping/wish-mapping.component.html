@@ -30,6 +30,7 @@
     <div *ngIf="loadError" class="load-error" role="alert">Failed to load. Please try again.</div>
 
     <div class="card" *ngIf="!loading && !loadError && tab === 'vendors'">
+      <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
@@ -65,6 +66,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div *ngIf="vendors.length === 0" class="empty-state">
         <div class="empty-icon">🏢</div>
         <div class="empty-title">No vendors found</div>
@@ -72,6 +74,7 @@
     </div>
 
     <div class="card" *ngIf="!loading && !loadError && tab === 'properties'">
+      <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
@@ -107,6 +110,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div *ngIf="properties.length === 0" class="empty-state">
         <div class="empty-icon">🏨</div>
         <div class="empty-title">No properties found</div>

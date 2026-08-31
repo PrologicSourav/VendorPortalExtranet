@@ -47,6 +47,7 @@
 
     <div class="card">
       <h3>{{ "access.history" | translate }}</h3>
+      <div class="table-scroll">
       <table class="data-table" *ngIf="requests.length > 0">
         <thead>
           <tr>
@@ -63,6 +64,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div *ngIf="requests.length === 0" class="empty-state">{{ "access.noRequests" | translate }}</div>
     </div>
   

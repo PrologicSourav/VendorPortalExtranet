@@ -35,19 +35,6 @@
   padding: 0;
   overflow: hidden;
 }
-.table-scroll {
-  /* Bounds the table to its own scroll box instead of the whole page growing
-     to fit it — with a table that can have hundreds of rows, this keeps the
-     page header/search bar in view and lets the column headers stay pinned
-     to the top of just this box as rows scroll underneath them. */
-  max-height: calc(100vh - 260px);
-  overflow: auto;
-}
-.data-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
 .empty-state {
   padding: 40px;
   text-align: center;

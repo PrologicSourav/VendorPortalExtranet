@@ -22,6 +22,7 @@
     </div>
 
     <div class="card" *ngIf="!loading && !loadError">
+      <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
@@ -70,6 +71,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
 
       <div *ngIf="purchaseOrders.length === 0" class="empty-state">
         <div class="empty-icon">📋</div>

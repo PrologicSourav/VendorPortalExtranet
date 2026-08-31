@@ -42,6 +42,7 @@
     <!-- PO Table -->
     <div class="card" *ngIf="hasVendor && !loading && !loadError">
       <div class="table-wrap">
+        <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
@@ -86,6 +87,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
       <div *ngIf="filteredPOs.length === 0" class="empty-state">
         <div class="empty-icon">📋</div>

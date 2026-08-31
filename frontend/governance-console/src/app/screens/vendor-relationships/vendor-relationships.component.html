@@ -51,6 +51,7 @@
 
       <h3>Current relationships</h3>
       <div *ngIf="loadingRelationships" class="loading-state">Loading…</div>
+      <div class="table-scroll">
       <table class="data-table" *ngIf="!loadingRelationships">
         <thead>
           <tr>
@@ -81,6 +82,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div *ngIf="!loadingRelationships && relationships.length === 0" class="empty-state">
         <div class="empty-title">No relationships yet</div>
       </div>

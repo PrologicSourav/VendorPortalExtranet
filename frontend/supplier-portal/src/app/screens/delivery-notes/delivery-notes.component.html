@@ -13,6 +13,7 @@
 
     <div class="card" *ngIf="hasVendor && !loading">
       <div class="table-wrap">
+        <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
@@ -48,6 +49,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
       <div *ngIf="pos.length === 0" class="empty-state">
         <div class="empty-icon">🚚</div>

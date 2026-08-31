@@ -15,6 +15,7 @@
     <div *ngIf="loading" class="loading-state">Loading…</div>
 
     <div class="card" *ngIf="!loading">
+      <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
@@ -42,6 +43,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div *ngIf="requests.length === 0" class="empty-state">
         <div class="empty-title">Nothing here</div>
       </div>
