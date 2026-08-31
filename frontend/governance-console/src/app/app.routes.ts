@@ -11,6 +11,7 @@ import { PoDocumentsComponent } from "./screens/po-documents/po-documents.compon
 import { DeliveryNoteReceivingComponent } from "./screens/delivery-note-receiving/delivery-note-receiving.component";
 import { WishMappingComponent } from "./screens/wish-mapping/wish-mapping.component";
 import { VendorRelationshipsComponent } from "./screens/vendor-relationships/vendor-relationships.component";
+import { UnmappedVendorsComponent } from "./screens/unmapped-vendors/unmapped-vendors.component";
 import { VendorRequestsComponent } from "./screens/vendor-requests/vendor-requests.component";
 
 export const routes: Routes = [
@@ -30,6 +31,7 @@ export const routes: Routes = [
       { path: "wish-mapping", component: WishMappingComponent },
       { path: "supplier-accounts", component: SupplierAccountsComponent },
       { path: "vendor-relationships", component: VendorRelationshipsComponent },
+      { path: "unmapped-vendors", component: UnmappedVendorsComponent },
       { path: "vendor-requests", component: VendorRequestsComponent },
     ],
   },

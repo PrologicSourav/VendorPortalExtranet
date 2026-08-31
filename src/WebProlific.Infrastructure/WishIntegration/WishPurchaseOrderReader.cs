@@ -58,6 +58,46 @@ public class WishPurchaseOrderReader
         return ids;
     }
 
+    /// <summary>Every WISH vendor record (property-scoped — see WishVendor). Used
+    /// to find ones with no VendorRelationship.ExternalVendorId pointing at them
+    /// yet, for the governance "Unmapped Vendors" screen. Not filtered by activity
+    /// — a vendor with no recent POs is still a real WISH record worth mapping
+    /// deliberately, not silently hidden.</summary>
+    public async Task<List<WishVendor>> GetAllVendorsAsync()
+    {
+        var result = new List<WishVendor>();
+        if (!IsConfigured) return result;
+
+        try
+        {
+            await using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT vendor_id, vendor_name, property_id, gst_reg_no, pan_number
+                FROM OPM1.vendors WITH (NOLOCK)
+                WHERE ISNULL(vendor_id, '') <> ''";
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                result.Add(new WishVendor
+                {
+                    VendorId = reader.GetString(0).Trim(),
+                    VendorName = reader.IsDBNull(1) ? "" : reader.GetString(1).Trim(),
+                    PropertyId = reader.IsDBNull(2) ? "" : reader.GetString(2).Trim(),
+                    Gstin = ReadTrimmedString(reader, 3),
+                    Pan = ReadTrimmedString(reader, 4),
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "WISH vendor master listing failed");
+        }
+        return result;
+    }
+
     /// <summary>Printed, still-open POs (not cancelled, not closed) for the given WISH
     /// vendor ids — latest amendment per po_number/po_date/property_id only.</summary>
     public async Task<List<WishPoHeader>> GetPrintedOpenPurchaseOrdersAsync(IEnumerable<string> vendorIds)

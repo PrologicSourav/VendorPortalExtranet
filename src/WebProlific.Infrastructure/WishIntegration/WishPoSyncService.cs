@@ -48,11 +48,23 @@ public class WishPoSyncService
             return summary;
         }
 
+        // Relationship-level ids are the precise, per-chain/property source (WISH
+        // vendor records are property-scoped, so the same real-world vendor can
+        // have a different vendor_id per relationship) — see VendorRelationship
+        // .ExternalVendorId. Grouped up front rather than queried per vendor.
+        var relationshipIdsByVendor = (await _db.VendorRelationships
+                .Where(r => r.Status == VendorRelationshipStatus.Active && r.ExternalVendorId != null && r.ExternalVendorId != "")
+                .Select(r => new { r.VendorId, r.ExternalVendorId })
+                .ToListAsync(ct))
+            .GroupBy(r => r.VendorId)
+            .ToDictionary(g => g.Key, g => g.Select(r => r.ExternalVendorId!.Trim()).Distinct().ToList());
+
         var vendors = await _db.Vendors
             .Where(v =>
                 (v.WishVendorId != null && v.WishVendorId != "") ||
                 (v.Gstin != null && v.Gstin != "") ||
-                (v.Pan != null && v.Pan != ""))
+                (v.Pan != null && v.Pan != "") ||
+                relationshipIdsByVendor.Keys.Contains(v.Id))
             .ToListAsync(ct);
 
         var mappedProperties = await _db.Properties
@@ -61,11 +73,18 @@ public class WishPoSyncService
 
         foreach (var vendor in vendors)
         {
-            // An explicit staff-set mapping is preferred — WISH's own vendor data
-            // doesn't always have GSTIN/PAN populated, so that fallback can miss a
-            // real, correctly-linked vendor.
-            var wishVendorIds = !string.IsNullOrWhiteSpace(vendor.WishVendorId)
-                ? new List<string> { vendor.WishVendorId!.Trim() }
+            // Relationship-level ids first (the precise source), unioned with the
+            // older single-value Vendor.WishVendorId for vendors not yet migrated
+            // to per-relationship mapping. WISH's own GSTIN/PAN fallback only
+            // kicks in when neither explicit source has anything at all.
+            var explicitIds = relationshipIdsByVendor.TryGetValue(vendor.Id, out var relIds)
+                ? new List<string>(relIds)
+                : new List<string>();
+            if (!string.IsNullOrWhiteSpace(vendor.WishVendorId) && !explicitIds.Contains(vendor.WishVendorId.Trim()))
+                explicitIds.Add(vendor.WishVendorId.Trim());
+
+            var wishVendorIds = explicitIds.Count > 0
+                ? explicitIds
                 : await _wish.FindVendorIdsAsync(vendor.Gstin, vendor.Pan);
             if (wishVendorIds.Count == 0) continue;
 

@@ -1,0 +1,128 @@
+<div class="page-header">
+  <h1>Unmapped Vendors</h1>
+  <p class="page-subtitle">
+    Web Prol'IFIC (WISH) vendor records not yet linked to a Vendor Portal
+    vendor for this chain/property. WISH vendor ids are property-scoped — the
+    same real-world company can appear here more than once, one row per
+    chain/property it supplies.
+  </p>
+</div>
+
+<div class="card" *ngIf="!configured">
+  <div class="empty-state">
+    <div class="empty-title">WISH connection not configured</div>
+    <div class="empty-desc">No ConnectionStrings:WishConnection is set on this environment.</div>
+  </div>
+</div>
+
+<ng-container *ngIf="configured">
+  <div class="search-bar">
+    <input
+      type="text"
+      class="form-control search-input"
+      placeholder="Search by vendor name or WISH vendor id..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearchChange()"
+    />
+    <span class="count-hint" *ngIf="totalCount > rows.length">
+      Showing {{ rows.length }} of {{ totalCount }} — refine your search to see more
+    </span>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">Loading…</div>
+
+  <div class="card" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Vendor Name</th>
+          <th>WISH Vendor Id</th>
+          <th>Chain</th>
+          <th>Property</th>
+          <th>GSTIN</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let row of rows">
+          <tr>
+            <td>{{ row.vendorName || "—" }}</td>
+            <td><code>{{ row.vendorId }}</code></td>
+            <td>{{ row.buyingEntityName || "—" }}</td>
+            <td>{{ row.propertyName || row.wishPropertyId }}</td>
+            <td>{{ row.gstin || "—" }}</td>
+            <td>
+              <span *ngIf="!row.resolved" class="unsynced-hint" title="This WISH property hasn't been synced into the portal yet">
+                Property not synced
+              </span>
+              <button
+                *ngIf="row.resolved"
+                class="btn btn-sm btn-primary"
+                [disabled]="activeRow === row"
+                (click)="openMap(row)"
+              >
+                Map
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="activeRow === row" class="map-panel-row">
+            <td colspan="6">
+              <div class="map-panel">
+                <div class="map-panel-tabs">
+                  <div class="tab" [class.active]="mode === 'search'" (click)="mode = 'search'">
+                    Link to Existing Vendor
+                  </div>
+                  <div class="tab" [class.active]="mode === 'create'" (click)="mode = 'create'">
+                    Create New Vendor
+                  </div>
+                  <button class="btn btn-sm close-btn" (click)="closePanel()">✕</button>
+                </div>
+
+                <div class="scope-row">
+                  <label>
+                    <input type="radio" name="scope-{{ row.vendorId }}" value="Property" [(ngModel)]="scopeType" />
+                    This property only ({{ row.propertyName }})
+                  </label>
+                  <label>
+                    <input type="radio" name="scope-{{ row.vendorId }}" value="Chain" [(ngModel)]="scopeType" />
+                    Entire chain ({{ row.buyingEntityName }})
+                  </label>
+                </div>
+
+                <div *ngIf="mode === 'search'">
+                  <input
+                    type="text"
+                    class="form-control search-input"
+                    placeholder="Search vendor by name or GSTIN..."
+                    [(ngModel)]="vendorSearchTerm"
+                    (ngModelChange)="onVendorSearchChange()"
+                  />
+                  <div class="results" *ngIf="vendorSearchResults.length > 0">
+                    <div class="result-row" *ngFor="let v of vendorSearchResults" (click)="linkToExisting(v)">
+                      <span class="result-name">{{ v.legalName }}</span>
+                      <span class="result-gstin">{{ v.gstin || "—" }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="create-form" *ngIf="mode === 'create'">
+                  <input type="text" class="form-control" placeholder="Legal name" [(ngModel)]="newVendorName" />
+                  <input type="text" class="form-control" placeholder="GSTIN (optional)" [(ngModel)]="newVendorGstin" />
+                  <button class="btn btn-primary" [disabled]="!newVendorName || busy" (click)="createAndLink()">
+                    {{ busy ? "Creating…" : "Create & Map" }}
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+    <div *ngIf="rows.length === 0" class="empty-state">
+      <div class="empty-icon">✅</div>
+      <div class="empty-title">Nothing unmapped</div>
+    </div>
+  </div>
+</ng-container>
+
+<div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">{{ toast.message }}</div>

@@ -221,12 +221,20 @@ export class GovApiService {
     buyingEntityId: string;
     propertyId?: string | null;
     scopeType: "Chain" | "Property";
+    externalVendorId?: string | null;
   }): Observable<unknown> {
     return this.http.post(`${this.api}/vendorrelationships`, body);
   }
 
   setVendorRelationshipStatus(id: string, status: "Active" | "Inactive"): Observable<unknown> {
     return this.http.put(`${this.api}/vendorrelationships/${id}/status`, { status });
+  }
+
+  // ─── Unmapped WISH vendors ────────────────────────────────
+  getUnmappedWishVendors(search?: string): Observable<UnmappedVendorsResult> {
+    let params = new HttpParams();
+    if (search) params = params.set("search", search);
+    return this.http.get<UnmappedVendorsResult>(`${this.api}/vendorrelationships/unmapped`, { params });
   }
 
   // ─── Vendor access requests (Flow C approval queue) ──────
@@ -260,8 +268,28 @@ export interface VendorRelationship {
   propertyName?: string | null;
   scopeType: "Chain" | "Property";
   status: "Active" | "Inactive";
+  externalVendorId?: string | null;
   startDate: string;
   endDate?: string | null;
+}
+
+export interface UnmappedVendorRow {
+  vendorId: string;
+  vendorName: string;
+  wishPropertyId: string;
+  gstin?: string | null;
+  pan?: string | null;
+  propertyName?: string | null;
+  buyingEntityName?: string | null;
+  propertyId?: string | null;
+  buyingEntityId?: string | null;
+  resolved: boolean;
+}
+
+export interface UnmappedVendorsResult {
+  configured: boolean;
+  items: UnmappedVendorRow[];
+  totalCount: number;
 }
 
 export interface VendorRequestQueueItem {

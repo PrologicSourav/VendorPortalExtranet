@@ -45,3 +45,16 @@ public class WishPoLine
     public decimal EffectiveUnitPrice =>
         ItemRate > 0 ? ItemRate : (QtyOrdered > 0 ? Math.Round(TotAmount / QtyOrdered, 2) : 0);
 }
+
+/// <summary>One row from WISH's own vendor master (OPM1.vendors) — property-scoped,
+/// so the same real-world company can appear multiple times with a different
+/// vendor_id per property. Used to find WISH vendors not yet linked to any
+/// VendorRelationship, for the governance "Unmapped Vendors" screen.</summary>
+public class WishVendor
+{
+    public string VendorId { get; set; } = string.Empty;
+    public string VendorName { get; set; } = string.Empty;
+    public string PropertyId { get; set; } = string.Empty;
+    public string? Gstin { get; set; }
+    public string? Pan { get; set; }
+}

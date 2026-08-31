@@ -27,6 +27,15 @@ public class VendorRelationship
     public Guid? ModifiedByUserId { get; set; }
     public DateTime? ModifiedAt { get; set; }
 
+    // WISH's own vendor_id for THIS specific chain/property — WISH vendor
+    // records are property-scoped (OPM1.vendors.property_id), so the same
+    // real-world vendor can have a different vendor_id per relationship. This
+    // supersedes Vendor.WishVendorId (a single value that couldn't represent
+    // more than one chain/property) as the preferred source for the WISH PO
+    // sync; the old field is kept for backward compatibility and still used as
+    // a fallback when a relationship has no id of its own.
+    public string? ExternalVendorId { get; set; }
+
     public Vendor Vendor { get; set; } = null!;
     public BuyingEntity BuyingEntity { get; set; } = null!;
     public Property? Property { get; set; }
