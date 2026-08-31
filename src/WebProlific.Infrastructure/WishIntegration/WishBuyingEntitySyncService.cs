@@ -49,9 +49,15 @@ public class WishBuyingEntitySyncService
         var wishProperties = await _wish.GetPropertiesAsync();
 
         var existingEntities = await _db.BuyingEntities
-            .Where(be => be.WishChainId != null)
+            .Where(be => be.WishChainId != null && be.IsActive)
             .ToListAsync(ct);
-        var entityByWishId = existingEntities.ToDictionary(be => be.WishChainId!, be => be);
+        // GroupBy+First rather than a raw ToDictionary: a WishChainId shouldn't
+        // repeat, but this must never throw on the data actually behaving
+        // unexpectedly (see the same defensive choice below for properties,
+        // which WISH's own source data does repeat).
+        var entityByWishId = existingEntities
+            .GroupBy(be => be.WishChainId!)
+            .ToDictionary(g => g.Key, g => g.First());
 
         foreach (var chain in wishChains)
         {
@@ -82,9 +88,14 @@ public class WishBuyingEntitySyncService
         await _db.SaveChangesAsync(ct);
 
         var existingProperties = await _db.Properties
-            .Where(p => p.WishPropertyId != null)
+            .Where(p => p.WishPropertyId != null && p.IsActive)
             .ToListAsync(ct);
-        var propertyByWishId = existingProperties.ToDictionary(p => p.WishPropertyId!, p => p);
+        // WISH's own vo_property table repeats the same property_id across rows
+        // (see WishBuyingEntitySyncService history) — a raw ToDictionary would
+        // throw on the very data this sync exists to read, so group instead.
+        var propertyByWishId = existingProperties
+            .GroupBy(p => p.WishPropertyId!)
+            .ToDictionary(g => g.Key, g => g.First());
 
         foreach (var wishProperty in wishProperties)
         {
