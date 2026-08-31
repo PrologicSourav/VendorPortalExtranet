@@ -9,6 +9,10 @@ public class BuyingEntity
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // WISH's chain_id (menudb.OPM1.chains) — set by the WISH chain/property sync so
+    // this "Chain" concept lines up with WISH's own, instead of being hand-entered.
+    public string? WishChainId { get; set; }
+
     // Navigation
     public ICollection<PurchaseOrder> PurchaseOrders { get; set; } = new List<PurchaseOrder>();
     public ICollection<Property> Properties { get; set; } = new List<Property>();

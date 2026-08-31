@@ -56,6 +56,8 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 // service both no-op instead of failing startup.
 builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishPurchaseOrderReader>();
 builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishPoSyncService>();
+builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishBuyingEntityReader>();
+builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishBuyingEntitySyncService>();
 builder.Services.AddHostedService<WishSyncBackgroundService>();
 
 // ─── JWT Auth ───────────────────────────────────────────────

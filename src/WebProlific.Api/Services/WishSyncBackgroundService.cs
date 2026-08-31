@@ -41,6 +41,12 @@ public class WishSyncBackgroundService : BackgroundService
                 var reader = scope.ServiceProvider.GetRequiredService<WishPurchaseOrderReader>();
                 if (reader.IsConfigured)
                 {
+                    // Chain/property master first — PO sync attaches each PO to a
+                    // BuyingEntity/Property by WishPropertyId, so those rows need to
+                    // exist (or be refreshed) before it runs.
+                    var entitySync = scope.ServiceProvider.GetRequiredService<WishBuyingEntitySyncService>();
+                    await entitySync.RunAsync(stoppingToken);
+
                     var sync = scope.ServiceProvider.GetRequiredService<WishPoSyncService>();
                     await sync.RunAsync(stoppingToken);
                 }
