@@ -47,6 +47,7 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IRateContractRepository, RateContractRepository>();
 builder.Services.AddScoped<IVendorRelationshipRepository, VendorRelationshipRepository>();
 builder.Services.AddScoped<IVendorRequestRepository, VendorRequestRepository>();
+builder.Services.AddScoped<IVendorUserAccessRepository, VendorUserAccessRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
 // ─── Web Prol'IFIC (WISH) PO sync ────────────────────────────

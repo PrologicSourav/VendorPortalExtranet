@@ -26,4 +26,16 @@ public static class ClaimsPrincipalExtensions
     {
         return user.IsInternal() || user.GetVendorId() == vendorId;
     }
+
+    /// <summary>True for a SupplierAdmin acting on their own vendor, or any internal
+    /// staff. Team management (inviting teammates, granting/revoking their
+    /// chain/property access) is restricted to this — a non-admin vendor user must
+    /// not be able to change another user's access, including their own.</summary>
+    public static bool CanManageVendorTeam(this ClaimsPrincipal user, Guid vendorId)
+    {
+        if (user.IsInternal()) return true;
+        if (user.GetVendorId() != vendorId) return false;
+        var role = user.FindFirst(ClaimTypes.Role)?.Value;
+        return string.Equals(role, "SupplierAdmin", StringComparison.OrdinalIgnoreCase);
+    }
 }

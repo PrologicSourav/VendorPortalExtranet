@@ -178,6 +178,27 @@ export class ApiService {
     return this.http.get(`${API}/payments/vendor/${vendorId}`);
   }
 
+  // Team (a vendor's own users + per-user chain/property access)
+  getVendorUsers(vendorId: string): Observable<any> {
+    return this.http.get(`${API}/vendorusers/vendor/${vendorId}`);
+  }
+
+  inviteVendorUser(vendorId: string, body: { email: string; displayName: string; role: string; password: string }): Observable<any> {
+    return this.http.post(`${API}/vendorusers/vendor/${vendorId}`, body);
+  }
+
+  setVendorUserStatus(userId: string, isActive: boolean): Observable<any> {
+    return this.http.put(`${API}/vendorusers/${userId}/status`, { isActive });
+  }
+
+  getVendorUserAccess(userId: string): Observable<any> {
+    return this.http.get(`${API}/vendorusers/${userId}/access`);
+  }
+
+  setVendorUserAccess(userId: string, relationshipIds: string[]): Observable<any> {
+    return this.http.put(`${API}/vendorusers/${userId}/access`, relationshipIds);
+  }
+
   // Chain/Property access (Flow C — request access to another chain/property)
   getBuyingEntities(): Observable<any> {
     return this.http.get(`${API}/buyingentities`);

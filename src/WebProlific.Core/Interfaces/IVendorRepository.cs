@@ -146,13 +146,15 @@ public interface IVendorRelationshipRepository
     /// buying entity/property — either a direct Property-scoped row, or a
     /// Chain-scoped row for the property's BuyingEntity. Server-side source of
     /// truth for "can this vendor operate here" — never trust a client-supplied
-    /// chain/property id without this check.</summary>
-    Task<bool> HasActiveAccessAsync(Guid vendorId, Guid buyingEntityId, Guid? propertyId);
+    /// chain/property id without this check. Pass userId to additionally apply
+    /// that user's own VendorUserAccess restriction, if they have any.</summary>
+    Task<bool> HasActiveAccessAsync(Guid vendorId, Guid buyingEntityId, Guid? propertyId, Guid? userId = null);
     /// <summary>Every Property this vendor can currently operate in — a direct
     /// Property-scoped relationship, plus every active property under any
     /// Chain-scoped (BuyingEntityId, PropertyId=null) relationship. Backs the
-    /// supplier portal's workspace switcher.</summary>
-    Task<IEnumerable<Property>> GetEffectivePropertiesAsync(Guid vendorId);
+    /// supplier portal's workspace switcher. Pass userId to additionally apply
+    /// that user's own VendorUserAccess restriction, if they have any.</summary>
+    Task<IEnumerable<Property>> GetEffectivePropertiesAsync(Guid vendorId, Guid? userId = null);
     Task<VendorRelationship> CreateAsync(VendorRelationship relationship);
     Task<VendorRelationship> UpdateAsync(VendorRelationship relationship);
 }
@@ -169,4 +171,16 @@ public interface IVendorRequestRepository
 public interface IAuditLogRepository
 {
     Task LogAsync(string eventType, Guid? vendorId, Guid? userId, string? details = null);
+}
+
+public interface IVendorUserAccessRepository
+{
+    /// <summary>Relationship ids this user is explicitly granted. Empty means
+    /// unrestricted (sees everything their vendor is entitled to) — callers
+    /// must treat empty as "no restriction," not "no access."</summary>
+    Task<List<Guid>> GetGrantedRelationshipIdsAsync(Guid userId);
+    /// <summary>Replaces a user's full set of granted relationships in one
+    /// transaction (used by the "edit teammate access" screen, which always
+    /// submits the complete desired set rather than incremental add/remove).</summary>
+    Task ReplaceAsync(Guid userId, IEnumerable<Guid> relationshipIds, Guid? grantedByUserId);
 }

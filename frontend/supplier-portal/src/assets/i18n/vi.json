@@ -28,6 +28,7 @@
     "companyProfile": "Hồ sơ công ty",
     "notifications": "Thông báo",
     "accessRequests": "Quyền truy cập Chuỗi/Cơ sở",
+    "team": "Nhóm",
     "logout": "Đăng xuất"
   },
   "deliveryNotes": {
@@ -439,5 +440,34 @@
     "colScope": "Đã yêu cầu",
     "colStatus": "Trạng thái",
     "colDate": "Ngày"
+  },
+  "team": {
+    "title": "Nhóm",
+    "subtitle": "Tất cả những người ở công ty bạn có thể đăng nhập vào đây, và chuỗi/cơ sở họ có thể xem. Chỉ Quản trị viên Nhà cung cấp mới có thể thêm thành viên hoặc thay đổi quyền truy cập.",
+    "members": "Thành viên",
+    "invite": "+ Thêm thành viên",
+    "cancel": "Hủy",
+    "name": "Họ và tên",
+    "email": "Email",
+    "tempPassword": "Mật khẩu tạm thời",
+    "addMember": "Thêm",
+    "inviting": "Đang thêm…",
+    "roleOrders": "Đơn hàng",
+    "roleCatalogue": "Danh mục",
+    "roleFinance": "Tài chính",
+    "roleAdmin": "Quản trị",
+    "colName": "Tên",
+    "colEmail": "Email",
+    "colRole": "Vai trò",
+    "colStatus": "Trạng thái",
+    "active": "Hoạt động",
+    "disabled": "Đã vô hiệu hóa",
+    "disable": "Vô hiệu hóa",
+    "enable": "Kích hoạt",
+    "accessFor": "Quyền truy cập cho",
+    "accessHint": "Chọn chuỗi/cơ sở người này có thể xem. Không giới hạn nghĩa là họ thấy mọi thứ công ty có quyền truy cập.",
+    "unrestricted": "Không giới hạn (thấy tất cả)",
+    "saveAccess": "Lưu quyền truy cập",
+    "saving": "Đang lưu…"
   }
 }

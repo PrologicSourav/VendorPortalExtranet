@@ -28,6 +28,7 @@
     "companyProfile": "Company Profile",
     "notifications": "Notifications",
     "accessRequests": "Chain/Property Access",
+    "team": "Team",
     "logout": "Logout"
   },
   "deliveryNotes": {
@@ -439,5 +440,34 @@
     "colScope": "Requested",
     "colStatus": "Status",
     "colDate": "Date"
+  },
+  "team": {
+    "title": "Team",
+    "subtitle": "Everyone at your company who can log in here, and which chains/properties they can see. Only a Supplier Admin can add teammates or change access.",
+    "members": "Members",
+    "invite": "+ Add Teammate",
+    "cancel": "Cancel",
+    "name": "Full name",
+    "email": "Email",
+    "tempPassword": "Temporary password",
+    "addMember": "Add",
+    "inviting": "Adding…",
+    "roleOrders": "Orders",
+    "roleCatalogue": "Catalogue",
+    "roleFinance": "Finance",
+    "roleAdmin": "Admin",
+    "colName": "Name",
+    "colEmail": "Email",
+    "colRole": "Role",
+    "colStatus": "Status",
+    "active": "Active",
+    "disabled": "Disabled",
+    "disable": "Disable",
+    "enable": "Enable",
+    "accessFor": "Access for",
+    "accessHint": "Pick which chains/properties this person can see. Unrestricted means they see everything the company has access to.",
+    "unrestricted": "Unrestricted (sees everything)",
+    "saveAccess": "Save Access",
+    "saving": "Saving…"
   }
 }

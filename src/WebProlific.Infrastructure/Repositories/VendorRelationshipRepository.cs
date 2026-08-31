@@ -31,31 +31,48 @@ public class VendorRelationshipRepository : IVendorRelationshipRepository
             .Include(r => r.Property)
             .FirstOrDefaultAsync(r => r.Id == id);
 
-    public async Task<bool> HasActiveAccessAsync(Guid vendorId, Guid buyingEntityId, Guid? propertyId)
+    public async Task<bool> HasActiveAccessAsync(Guid vendorId, Guid buyingEntityId, Guid? propertyId, Guid? userId = null)
     {
-        var query = _db.VendorRelationships.Where(r =>
-            r.VendorId == vendorId &&
-            r.Status == VendorRelationshipStatus.Active &&
-            r.BuyingEntityId == buyingEntityId);
-
-        return await query.AnyAsync(r =>
-            r.PropertyId == null || // chain-wide covers every property under it
-            (propertyId != null && r.PropertyId == propertyId));
+        var relationships = await GetEffectiveRelationshipsAsync(vendorId, userId);
+        return relationships.Any(r =>
+            r.BuyingEntityId == buyingEntityId &&
+            (r.PropertyId == null || // chain-wide covers every property under it
+             (propertyId != null && r.PropertyId == propertyId)));
     }
 
-    public async Task<IEnumerable<Property>> GetEffectivePropertiesAsync(Guid vendorId)
+    public async Task<IEnumerable<Property>> GetEffectivePropertiesAsync(Guid vendorId, Guid? userId = null)
     {
-        var active = await _db.VendorRelationships
-            .Where(r => r.VendorId == vendorId && r.Status == VendorRelationshipStatus.Active)
-            .ToListAsync();
+        var relationships = await GetEffectiveRelationshipsAsync(vendorId, userId);
 
-        var directPropertyIds = active.Where(r => r.PropertyId != null).Select(r => r.PropertyId!.Value).ToList();
-        var chainWideEntityIds = active.Where(r => r.PropertyId == null).Select(r => r.BuyingEntityId).ToList();
+        var directPropertyIds = relationships.Where(r => r.PropertyId != null).Select(r => r.PropertyId!.Value).ToList();
+        var chainWideEntityIds = relationships.Where(r => r.PropertyId == null).Select(r => r.BuyingEntityId).ToList();
 
         return await _db.Properties
             .Where(p => p.IsActive && (directPropertyIds.Contains(p.Id) || chainWideEntityIds.Contains(p.BuyingEntityId)))
             .OrderBy(p => p.Name)
             .ToListAsync();
+    }
+
+    /// <summary>The vendor's Active relationships, narrowed to a specific user's
+    /// VendorUserAccess grants when they have any — a user with zero grants is
+    /// unrestricted and sees every relationship their vendor has.</summary>
+    private async Task<List<VendorRelationship>> GetEffectiveRelationshipsAsync(Guid vendorId, Guid? userId)
+    {
+        var active = await _db.VendorRelationships
+            .Where(r => r.VendorId == vendorId && r.Status == VendorRelationshipStatus.Active)
+            .ToListAsync();
+
+        if (userId is null) return active;
+
+        var grantedIds = await _db.VendorUserAccesses
+            .Where(a => a.UserId == userId.Value)
+            .Select(a => a.VendorRelationshipId)
+            .ToListAsync();
+
+        if (grantedIds.Count == 0) return active;
+
+        var granted = new HashSet<Guid>(grantedIds);
+        return active.Where(r => granted.Contains(r.Id)).ToList();
     }
 
     public async Task<VendorRelationship> CreateAsync(VendorRelationship relationship)

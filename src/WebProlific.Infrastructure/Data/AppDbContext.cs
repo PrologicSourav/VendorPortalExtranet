@@ -43,6 +43,7 @@ public class AppDbContext : DbContext
     public DbSet<ExchangeRate> ExchangeRates => Set<ExchangeRate>();
     public DbSet<VendorRelationship> VendorRelationships => Set<VendorRelationship>();
     public DbSet<VendorRequest> VendorRequests => Set<VendorRequest>();
+    public DbSet<VendorUserAccess> VendorUserAccesses => Set<VendorUserAccess>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -244,6 +245,14 @@ public class AppDbContext : DbContext
             e.HasOne(vr => vr.RequestedBuyingEntity).WithMany().HasForeignKey(vr => vr.RequestedBuyingEntityId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(vr => vr.RequestedProperty).WithMany().HasForeignKey(vr => vr.RequestedPropertyId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
             _logger.LogDebug("Configured VendorRequest entity relationships");
+        });
+
+        modelBuilder.Entity<VendorUserAccess>(e =>
+        {
+            e.HasOne(a => a.User).WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(a => a.VendorRelationship).WithMany().HasForeignKey(a => a.VendorRelationshipId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(a => new { a.UserId, a.VendorRelationshipId }).IsUnique();
+            _logger.LogDebug("Configured VendorUserAccess entity relationships");
         });
     }
 }

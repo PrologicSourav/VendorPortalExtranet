@@ -36,11 +36,12 @@ public class PurchaseOrdersController : ControllerBase
         // A vendor-supplied propertyId is never trusted at face value — internal
         // staff can filter by any property, but a vendor user must actually have
         // an active VendorRelationship covering it (directly, or via a chain-wide
-        // relationship on that property's BuyingEntity).
+        // relationship on that property's BuyingEntity), further narrowed by
+        // their own VendorUserAccess grants if they have any.
         if (propertyId.HasValue && !User.IsInternal())
         {
             var property = await _db.Properties.FindAsync(propertyId.Value);
-            if (property is null || !await _relationshipRepo.HasActiveAccessAsync(vendorId, property.BuyingEntityId, propertyId))
+            if (property is null || !await _relationshipRepo.HasActiveAccessAsync(vendorId, property.BuyingEntityId, propertyId, User.GetUserId()))
                 return Forbid();
         }
 
@@ -121,7 +122,11 @@ public class PurchaseOrdersController : ControllerBase
     {
         if (!User.CanAccessVendor(vendorId)) return Forbid();
 
-        var properties = await _relationshipRepo.GetEffectivePropertiesAsync(vendorId);
+        // Only narrow by VendorUserAccess for an actual vendor user viewing their
+        // own workspace switcher — an internal staff member's own user id has no
+        // relevance to this vendor's per-user grants.
+        var userId = User.IsInternal() ? null : User.GetUserId();
+        var properties = await _relationshipRepo.GetEffectivePropertiesAsync(vendorId, userId);
         var result = properties.Select(p => new { p.Id, p.Name, p.Code, p.City });
         return Ok(result);
     }
