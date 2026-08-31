@@ -1,0 +1,228 @@
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          class="hamburger"
+          (click)="sidebarOpen = !sidebarOpen"
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <span class="logo">{{ "app.title" | translate }}</span>
+        <span class="divider">|</span>
+        <span class="portal-name">{{ "app.portal" | translate }}</span>
+        <language-selector></language-selector>
+        <currency-selector></currency-selector>
+      </div>
+      <div class="topbar-right">
+        <div class="entity-switcher" *ngIf="propertyCtx.properties().length">
+          <span class="entity-label">{{ "app.entity" | translate }}:</span>
+          <select
+            class="entity-select"
+            [ngModel]="propertyCtx.selectedPropertyId()"
+            (ngModelChange)="propertyCtx.selectProperty($event || null)"
+          >
+            <option [ngValue]="null">{{ "app.allProperties" | translate }}</option>
+            <option *ngFor="let p of propertyCtx.properties()" [ngValue]="p.id">
+              {{ p.name }}
+            </option>
+          </select>
+        </div>
+        <button
+          class="theme-toggle"
+          (click)="theme.toggle()"
+          [attr.aria-label]="'app.toggleTheme' | translate"
+          [title]="'app.toggleTheme' | translate"
+        >
+          {{ theme.theme() === "dark" ? "☀️" : "🌙" }}
+        </button>
+        <a routerLink="/notifications" class="notif-bell">
+          🔔
+          @if (notifService.unreadCount() > 0) {
+            <span class="notif-count">{{ notifService.unreadCount() }}</span>
+          }
+        </a>
+        <div class="user-menu-wrap">
+          <button
+            class="user-menu"
+            (click)="userMenuOpen = !userMenuOpen"
+            [title]="userEmail"
+          >
+            <span class="user-avatar">{{ userInitials }}</span>
+            <span class="user-name">{{ userName }}</span>
+            <span class="caret">▾</span>
+          </button>
+          @if (userMenuOpen) {
+            <div class="menu-backdrop" (click)="userMenuOpen = false"></div>
+            <div class="user-dropdown">
+              <div class="user-dropdown-head">
+                <strong>{{ userName }}</strong>
+                <span>{{ userEmail }}</span>
+              </div>
+              <button class="user-dropdown-item" (click)="openChangePassword()">
+                🔑 {{ "profile.changePassword" | translate }}
+              </button>
+              <button class="user-dropdown-item danger" (click)="logout()">
+                🚪 {{ "nav.logout" | translate }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile sidebar overlay -->
+    <div
+      class="sidebar-overlay"
+      [class.visible]="sidebarOpen"
+      (click)="sidebarOpen = false"
+    ></div>
+
+    <div class="shell">
+      <!-- Sidebar -->
+      <nav class="sidebar" [class.open]="sidebarOpen">
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">📊</span> {{ "nav.dashboard" | translate }}
+        </a>
+        <a
+          routerLink="/catalogue"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">📦</span> {{ "nav.catalogue" | translate }}
+        </a>
+        <a
+          routerLink="/purchase-orders"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">📋</span>
+          {{ "nav.purchaseOrders" | translate }}
+        </a>
+        <a
+          routerLink="/delivery-notes"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">🚚</span> {{ "nav.deliveryNotes" | translate }}
+        </a>
+        <a
+          routerLink="/invoices"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">🧾</span> {{ "nav.invoices" | translate }}
+        </a>
+        <a
+          routerLink="/account"
+          [queryParams]="{ tab: 'statement' }"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">🏦</span> {{ "nav.account" | translate }}
+        </a>
+        <a
+          routerLink="/account"
+          [queryParams]="{ only: 'profile' }"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">🏢</span> {{ "nav.companyProfile" | translate }}
+        </a>
+        <a
+          routerLink="/notifications"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">🔔</span> {{ "nav.notifications" | translate }}
+        </a>
+        <a
+          routerLink="/access-requests"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">🔓</span> {{ "nav.accessRequests" | translate }}
+        </a>
+        <a
+          routerLink="/team"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="sidebarOpen = false"
+        >
+          <span class="nav-icon">👥</span> {{ "nav.team" | translate }}
+        </a>
+        <div class="nav-divider"></div>
+        <a (click)="logout()" class="nav-item logout" style="cursor:pointer">
+          <span class="nav-icon">🚪</span> {{ "nav.logout" | translate }}
+        </a>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <router-outlet />
+      </main>
+    </div>
+
+    <!-- Change Password modal -->
+    @if (showPasswordModal) {
+      <div class="modal-backdrop" (click)="closePasswordModal()">
+        <div class="modal" style="max-width: 420px" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>{{ "profile.changePassword" | translate }}</h3>
+            <button class="btn btn-sm" (click)="closePasswordModal()">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>{{ "profile.currentPassword" | translate }}</label>
+              <input type="password" class="form-control" [(ngModel)]="pw.current" autocomplete="current-password" />
+            </div>
+            <div class="form-group">
+              <label>{{ "profile.newPassword" | translate }}</label>
+              <input type="password" class="form-control" [(ngModel)]="pw.next" autocomplete="new-password" />
+              <span *ngIf="pw.next && pw.next.length < 6" class="field-error">
+                {{ "profile.tooShort" | translate }}
+              </span>
+            </div>
+            <div class="form-group">
+              <label>{{ "profile.confirmPassword" | translate }}</label>
+              <input type="password" class="form-control" [(ngModel)]="pw.confirm" autocomplete="new-password" />
+              <span *ngIf="pw.confirm && pw.next !== pw.confirm" class="field-error">
+                {{ "profile.mismatch" | translate }}
+              </span>
+            </div>
+            <p *ngIf="pwError" class="field-error" role="alert">{{ pwError }}</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="closePasswordModal()" [disabled]="pwSaving">
+              {{ "profile.cancel" | translate }}
+            </button>
+            <button
+              class="btn btn-primary"
+              (click)="submitPassword()"
+              [disabled]="pwSaving || !pw.current || pw.next.length < 6 || pw.next !== pw.confirm"
+            >
+              {{ "profile.save" | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.key | translate }}
+    </div>
+  

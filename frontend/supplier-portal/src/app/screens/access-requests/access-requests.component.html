@@ -1,0 +1,68 @@
+    <div class="page-header">
+      <h1>{{ "access.title" | translate }}</h1>
+      <p class="page-subtitle">{{ "access.subtitle" | translate }}</p>
+    </div>
+
+    <div class="card">
+      <h3>{{ "access.current" | translate }}</h3>
+      <div *ngIf="loadingRelationships" class="loading-state">{{ "access.loading" | translate }}</div>
+      <ul class="rel-list" *ngIf="!loadingRelationships">
+        <li *ngFor="let r of relationships">
+          <strong>{{ r.buyingEntityName }}</strong>
+          <span *ngIf="r.propertyName"> — {{ r.propertyName }}</span>
+          <span *ngIf="!r.propertyName" class="chain-badge">{{ "access.entireChain" | translate }}</span>
+        </li>
+      </ul>
+      <div *ngIf="!loadingRelationships && relationships.length === 0" class="empty-state">
+        {{ "access.none" | translate }}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>{{ "access.requestNew" | translate }}</h3>
+      <div class="request-form">
+        <select class="form-control" [(ngModel)]="scope">
+          <option value="Property">{{ "access.scopeProperty" | translate }}</option>
+          <option value="Chain">{{ "access.scopeChain" | translate }}</option>
+        </select>
+        <select class="form-control" [(ngModel)]="selectedEntityId" (ngModelChange)="selectedPropertyId = null">
+          <option [ngValue]="null">{{ "access.selectChain" | translate }}</option>
+          <option *ngFor="let be of buyingEntities" [ngValue]="be.id">{{ be.name }}</option>
+        </select>
+        <select
+          class="form-control"
+          *ngIf="scope === 'Property'"
+          [(ngModel)]="selectedPropertyId"
+          [disabled]="!selectedEntityId"
+        >
+          <option [ngValue]="null">{{ "access.selectProperty" | translate }}</option>
+          <option *ngFor="let p of propertiesFor(selectedEntityId)" [ngValue]="p.id">{{ p.name }}</option>
+        </select>
+        <button class="btn btn-primary" [disabled]="!canSubmit() || submitting" (click)="submitRequest()">
+          {{ submitting ? ("access.submitting" | translate) : ("access.submit" | translate) }}
+        </button>
+      </div>
+      <p *ngIf="submitError" class="field-error" role="alert">{{ submitError }}</p>
+    </div>
+
+    <div class="card">
+      <h3>{{ "access.history" | translate }}</h3>
+      <table class="data-table" *ngIf="requests.length > 0">
+        <thead>
+          <tr>
+            <th>{{ "access.colScope" | translate }}</th>
+            <th>{{ "access.colStatus" | translate }}</th>
+            <th>{{ "access.colDate" | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of requests">
+            <td>{{ r.buyingEntityName }}{{ r.propertyName ? " / " + r.propertyName : "" }}</td>
+            <td><span class="badge" [ngClass]="'badge-' + r.status.toLowerCase()">{{ r.status }}</span></td>
+            <td>{{ r.requestedDate | date: "mediumDate" }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="requests.length === 0" class="empty-state">{{ "access.noRequests" | translate }}</div>
+    </div>
+  

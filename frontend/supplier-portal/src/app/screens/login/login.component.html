@@ -1,0 +1,310 @@
+    <div class="login-page">
+      <div class="login-top-controls">
+        <button
+          class="login-theme-toggle"
+          (click)="theme.toggle()"
+          [attr.aria-label]="'app.toggleTheme' | translate"
+          [title]="'app.toggleTheme' | translate"
+        >
+          {{ theme.theme() === "dark" ? "☀️" : "🌙" }}
+        </button>
+        <language-selector></language-selector>
+      </div>
+      <div class="login-card">
+        <div class="brand">
+          <div class="brand-icon">WP</div>
+          <h1>Web Prol'IFIC</h1>
+          <p class="brand-sub">Prologic First</p>
+        </div>
+
+        <!-- Step 1: Credentials -->
+        @if (step === 1) {
+          <div class="login-form">
+            <h2>{{ "login.title" | translate }}</h2>
+
+            <div *ngIf="idleLogout" class="idle-msg">
+              {{ "login.idleLogout" | translate }}
+            </div>
+
+            <div class="form-group">
+              <label>{{ "login.email" | translate }}</label>
+              <input
+                type="email"
+                class="form-control"
+                [(ngModel)]="email"
+                placeholder="you@company.com"
+                [class.error]="showError"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>{{ "login.password" | translate }}</label>
+              <input
+                type="password"
+                class="form-control"
+                [(ngModel)]="password"
+                placeholder="••••••••"
+                [class.error]="showError"
+                (keyup.enter)="handleLogin()"
+              />
+            </div>
+
+            @if (showError) {
+              <div class="error-msg">
+                {{ "login.invalidCredentials" | translate }}
+              </div>
+            }
+
+            <div class="form-row">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="rememberMe" />
+                {{ "login.rememberMe" | translate }}
+              </label>
+              <a
+                href="javascript:void(0)"
+                class="forgot-link"
+                (click)="step = 3"
+                >{{ "login.forgotPassword" | translate }}</a
+              >
+            </div>
+
+            <button
+              class="btn btn-primary btn-block"
+              (click)="handleLogin()"
+              [disabled]="loading"
+            >
+              {{
+                loading
+                  ? ("login.signingIn" | translate)
+                  : ("login.signIn" | translate)
+              }}
+            </button>
+
+            <div class="signup-row">
+              <span>{{ "login.noAccount" | translate }}</span>
+              <a
+                href="javascript:void(0)"
+                class="signup-link"
+                (click)="step = 4"
+                >{{ "login.register" | translate }}</a
+              >
+            </div>
+          </div>
+        }
+
+        <!-- Step 2: MFA OTP -->
+        @if (step === 2) {
+          <div class="login-form">
+            <h2>{{ "login.mfaTitle" | translate }}</h2>
+            <p class="otp-hint">{{ "login.mfaHint" | translate }}</p>
+
+            <div class="otp-inputs">
+              @for (i of [0, 1, 2, 3, 4, 5]; track i; let idx = $index) {
+                <input
+                  type="text"
+                  maxlength="1"
+                  class="otp-input"
+                  [id]="'otp-' + idx"
+                  (input)="onOtpInput($event, idx)"
+                  (keydown)="onOtpKeydown($event, idx)"
+                />
+              }
+            </div>
+
+            <button
+              class="btn btn-primary btn-block"
+              (click)="handleOtp()"
+              [disabled]="loading || otp.length !== 6"
+            >
+              {{
+                loading
+                  ? ("login.verifying" | translate)
+                  : ("login.verifyOtp" | translate)
+              }}
+            </button>
+
+            <button
+              class="btn btn-secondary btn-block"
+              (click)="step = 1"
+              style="margin-top: 8px"
+            >
+              {{ "login.backToLogin" | translate }}
+            </button>
+          </div>
+        }
+
+        <!-- Step 3: Forgot Password -->
+        @if (step === 3) {
+          <div class="login-form">
+            <h2>{{ "login.resetPassword" | translate }}</h2>
+
+            @if (!resetSent) {
+              <div>
+                <p class="otp-hint">{{ "login.resetHint" | translate }}</p>
+
+                <div class="form-group">
+                  <label>{{ "login.email" | translate }}</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    [(ngModel)]="resetEmail"
+                    placeholder="you@company.com"
+                  />
+                </div>
+
+                @if (showError) {
+                  <div class="error-msg">
+                    {{ errorMsg || ("login.somethingWentWrong" | translate) }}
+                  </div>
+                }
+
+                <button
+                  class="btn btn-primary btn-block"
+                  (click)="handleForgotPassword()"
+                  [disabled]="loading || !resetEmail"
+                >
+                  {{
+                    loading
+                      ? ("login.sending" | translate)
+                      : ("login.sendResetLink" | translate)
+                  }}
+                </button>
+              </div>
+            }
+
+            @if (resetSent) {
+              <div class="reset-success">
+                <div class="success-icon">✉️</div>
+                <p class="success-msg">
+                  {{ "login.resetSentMsg" | translate }}
+                </p>
+                <p class="success-hint">
+                  {{ "login.resetSentHint" | translate }}
+                </p>
+              </div>
+            }
+
+            <button
+              class="btn btn-secondary btn-block"
+              (click)="step = 1"
+              style="margin-top: 8px"
+            >
+              {{ "login.backToLogin" | translate }}
+            </button>
+          </div>
+        }
+
+        <!-- Step 4: Sign Up / Register -->
+        @if (step === 4) {
+          <div class="login-form">
+            <h2>{{ "login.registerTitle" | translate }}</h2>
+
+            @if (!signupSuccess) {
+              <div>
+                <p class="otp-hint">{{ "login.registerHint" | translate }}</p>
+
+                <div class="form-group">
+                  <label>{{ "login.companyName" | translate }}</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="signupCompany"
+                    [placeholder]="'login.companyNamePlaceholder' | translate"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>{{ "login.contactName" | translate }}</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="signupName"
+                    [placeholder]="'login.contactNamePlaceholder' | translate"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>{{ "login.email" | translate }}</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    [(ngModel)]="signupEmail"
+                    placeholder="you@company.com"
+                    [class.error]="showError"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>{{ "login.password" | translate }}</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    [(ngModel)]="signupPassword"
+                    [placeholder]="'login.passwordPlaceholder' | translate"
+                    [class.error]="showError"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>{{ "login.gstin" | translate }}</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="signupGstin"
+                    placeholder="22AAAAA0000A1Z5"
+                    maxlength="15"
+                  />
+                </div>
+
+                @if (showError) {
+                  <div class="error-msg">
+                    {{ errorMsg || ("login.registrationFailed" | translate) }}
+                  </div>
+                }
+
+                <button
+                  class="btn btn-primary btn-block"
+                  (click)="handleSignup()"
+                  [disabled]="loading"
+                >
+                  {{
+                    loading
+                      ? ("login.creatingAccount" | translate)
+                      : ("login.createAccount" | translate)
+                  }}
+                </button>
+              </div>
+            }
+
+            @if (signupSuccess) {
+              <div class="reset-success">
+                <div class="success-icon">✅</div>
+                <p class="success-msg">
+                  {{ "login.accountCreated" | translate }}
+                </p>
+                <p class="success-hint">
+                  {{ "login.accountCreatedHint" | translate }}
+                </p>
+              </div>
+            }
+
+            <button
+              class="btn btn-secondary btn-block"
+              (click)="step = 1"
+              style="margin-top: 8px"
+            >
+              {{ "login.backToLogin" | translate }}
+            </button>
+          </div>
+        }
+
+        <div class="login-footer">
+          {{ "login.footer" | translate }}
+          <a href="#">{{ "login.staffConsole" | translate }}</a
+          >.
+        </div>
+      </div>
+
+      <div class="powered-by">Powered by Prologic First</div>
+    </div>
+  

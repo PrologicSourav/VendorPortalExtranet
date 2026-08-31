@@ -1,0 +1,169 @@
+    <div class="modal-backdrop" (click)="onCancel()">
+      <div
+        class="upload-modal"
+        (click)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="titleKey | translate"
+      >
+        <div class="modal-header">
+          <h3>{{ titleKey | translate }}</h3>
+          <button
+            class="btn btn-sm"
+            (click)="onCancel()"
+            [attr.aria-label]="'excelUpload.close' | translate"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="upload-layout">
+            <!-- Upload panel -->
+            <div class="upload-panel">
+              <div
+                class="drop-zone"
+                [class.dragover]="isDragOver"
+                (dragover)="onDragOver($event)"
+                (dragleave)="isDragOver = false"
+                (drop)="onDrop($event)"
+              >
+                <label for="excelFileInput" class="drop-zone-label">
+                  <span class="drop-icon">📄</span>
+                  <span>{{ "excelUpload.dropOrClick" | translate }}</span>
+                  <span class="drop-hint">{{
+                    "excelUpload.fileHint" | translate
+                  }}</span>
+                </label>
+                <input
+                  id="excelFileInput"
+                  type="file"
+                  accept=".xlsx"
+                  hidden
+                  (change)="onFileSelected($event)"
+                  [attr.aria-label]="'excelUpload.chooseFile' | translate"
+                />
+              </div>
+
+              <div *ngIf="fileError" class="file-error" role="alert">
+                {{ fileError | translate }}
+              </div>
+
+              <div
+                *ngIf="parsing"
+                class="parsing-status"
+                aria-live="polite"
+                role="status"
+              >
+                <span class="spinner" aria-hidden="true"></span>
+                {{ "excelUpload.parsing" | translate }}
+              </div>
+
+              <button
+                class="btn btn-secondary btn-block"
+                type="button"
+                (click)="onDownloadTemplate()"
+                [disabled]="downloadingTemplate"
+              >
+                📥 {{ "excelUpload.downloadTemplate" | translate }}
+              </button>
+            </div>
+
+            <!-- Preview panel -->
+            <div class="preview-panel" *ngIf="result">
+              <div class="preview-summary" aria-live="polite">
+                {{
+                  "excelUpload.summary"
+                    | translate
+                      : {
+                          valid: result.validCount,
+                          invalid: result.invalidCount,
+                        }
+                }}
+                <button
+                  *ngIf="result.invalidCount > 0"
+                  class="btn btn-sm"
+                  type="button"
+                  (click)="onDownloadErrorReport()"
+                >
+                  {{ "excelUpload.downloadErrorReport" | translate }}
+                </button>
+              </div>
+
+              <div class="table-wrap">
+                <table class="data-table preview-table">
+                  <thead>
+                    <tr>
+                      <th>{{ "excelUpload.rowColumn" | translate }}</th>
+                      <th *ngFor="let col of columns">
+                        {{ col.labelKey | translate }}
+                      </th>
+                      <th>{{ "excelUpload.statusColumn" | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      *ngFor="let row of result.rows"
+                      [class.row-invalid]="!row.valid"
+                    >
+                      <td>{{ row.rowNumber }}</td>
+                      <td *ngFor="let col of columns">{{ row[col.key] }}</td>
+                      <td>
+                        <span
+                          class="badge"
+                          [ngClass]="row.valid ? 'badge-success' : 'badge-error'"
+                        >
+                          {{
+                            (row.valid
+                              ? "excelUpload.statusValid"
+                              : "excelUpload.statusInvalid"
+                            ) | translate
+                          }}
+                        </span>
+                        <ul
+                          *ngIf="!row.valid"
+                          class="row-errors"
+                          [attr.aria-label]="
+                            'excelUpload.rowErrorsLabel' | translate
+                          "
+                        >
+                          <li *ngFor="let err of row.errors">
+                            {{ err | translate }}
+                          </li>
+                        </ul>
+                        <ul
+                          *ngIf="row.warnings?.length"
+                          class="row-warnings"
+                        >
+                          <li *ngFor="let warn of row.warnings">
+                            ⚠ {{ warn | translate }}
+                          </li>
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" (click)="onCancel()">
+            {{ "excelUpload.cancel" | translate }}
+          </button>
+          <button
+            class="btn btn-primary"
+            type="button"
+            [disabled]="!result || result.validCount === 0"
+            (click)="onConfirm()"
+          >
+            {{
+              "excelUpload.proceed"
+                | translate: { count: result?.validCount ?? 0 }
+            }}
+          </button>
+        </div>
+      </div>
+    </div>
+  

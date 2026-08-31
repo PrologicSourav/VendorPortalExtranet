@@ -1,0 +1,210 @@
+    <div class="page-header">
+      <h1>{{ "invoiceSubmit.title" | translate }}</h1>
+      <p class="page-subtitle">
+        {{ "invoiceSubmit.subtitle" | translate }}
+      </p>
+    </div>
+
+    <div *ngIf="!hasVendor" class="card notice">
+      {{ "invoiceSubmit.noVendorNotice" | translate }}
+    </div>
+
+    <!-- Step 1: Select PO/GRN -->
+    <div *ngIf="hasVendor && step === 1" class="card">
+      <div class="card-header">{{ "invoiceSubmit.selectPo" | translate }}</div>
+      <div class="card-body">
+        <div *ngIf="loading" class="notice">
+          {{ "invoiceSubmit.loading" | translate }}
+        </div>
+        <div *ngIf="!loading && deliveredPOs.length === 0" class="notice">
+          {{ "invoiceSubmit.noInvoiceablePos" | translate }}
+        </div>
+        <div *ngIf="!loading && preselectedPoNotFound" class="notice error">
+          {{ "invoiceSubmit.preselectedPoNotFound" | translate }}
+        </div>
+        <div class="po-select-list">
+          <div
+            *ngFor="let po of deliveredPOs"
+            class="po-select-item"
+            (click)="selectPo(po)"
+            [class.selected]="selectedPO?.id === po.id"
+          >
+            <div class="po-info">
+              <span class="po-number">{{ po.poNumber }}</span>
+              <span class="po-entity">{{ po.entity }} · {{ po.property }}</span>
+              <span class="po-date">{{
+                "invoiceSubmit.delivered" | translate: { date: po.deliveryDate }
+              }}</span>
+            </div>
+            <span class="po-value">{{ po.value | money }}</span>
+          </div>
+        </div>
+        <button
+          class="btn btn-primary"
+          [disabled]="!selectedPO"
+          (click)="step = 2"
+          style="margin-top: 16px"
+        >
+          {{ "invoiceSubmit.continue" | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Invoice Form -->
+    <div *ngIf="step === 2">
+      <div class="invoice-layout">
+        <div class="invoice-main">
+          <div class="card">
+            <div class="card-header">{{ "invoiceSubmit.invoiceDetails" | translate }}</div>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>{{ "invoiceSubmit.invoiceNumber" | translate }}</label>
+                  <input
+                    class="form-control"
+                    [(ngModel)]="invoiceNumber"
+                    placeholder="INV-2025-001"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>{{ "invoiceSubmit.invoiceDate" | translate }}</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    [(ngModel)]="invoiceDate"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>{{ "invoiceSubmit.currency" | translate }}</label>
+                  <select class="form-control" [(ngModel)]="currency">
+                    <option value="INR">INR (₹)</option>
+                    <option value="AED">AED (د.إ)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 16px">
+            <div class="card-header">{{ "invoiceSubmit.lineItems" | translate }}</div>
+            <div class="card-body">
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>{{ "invoiceSubmit.item" | translate }}</th>
+                      <th>{{ "invoiceSubmit.expectedQty" | translate }}</th>
+                      <th>{{ "invoiceSubmit.invoicedQty" | translate }}</th>
+                      <th>{{ "invoiceSubmit.expectedPrice" | translate }}</th>
+                      <th>{{ "invoiceSubmit.invoicedPrice" | translate }}</th>
+                      <th>{{ "invoiceSubmit.lineTotal" | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let line of invoiceLines">
+                      <td>{{ line.item }}</td>
+                      <td>{{ line.expectedQty }}</td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control inline-input"
+                          [(ngModel)]="line.invoicedQty"
+                          min="0"
+                        />
+                      </td>
+                      <td>{{ line.expectedPrice | money }}</td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control inline-input"
+                          [(ngModel)]="line.invoicedPrice"
+                          min="0"
+                          step="0.01"
+                        />
+                      </td>
+                      <td>
+                        {{ line.invoicedQty * line.invoicedPrice | money }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 16px">
+            <div class="card-header">{{ "invoiceSubmit.pdfUpload" | translate }}</div>
+            <div class="card-body">
+              <input
+                type="file"
+                id="invoiceUpload"
+                hidden
+                (change)="onFileSelect($event)"
+              />
+              <label for="invoiceUpload" class="upload-label">
+                📎 {{ selectedFile || ("invoiceSubmit.clickToUpload" | translate) }}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Match Status Panel -->
+        <div class="match-panel">
+          <div class="card">
+            <div
+              class="card-header"
+              [ngClass]="isMatched ? 'match-header-ok' : 'match-header-warn'"
+            >
+              {{ isMatched ? ("✅ " + ("invoiceSubmit.matched" | translate)) : ("⚠️ " + ("invoiceSubmit.mismatch" | translate)) }}
+            </div>
+            <div class="card-body">
+              <div *ngIf="isMatched" class="match-status match-ok">
+                <p>
+                  {{ "invoiceSubmit.matchedMessage" | translate }}
+                </p>
+              </div>
+              <div *ngIf="!isMatched" class="match-status match-err">
+                <div
+                  *ngFor="let reason of mismatchReasons"
+                  class="match-reason"
+                >
+                  ❌ {{ reason.key | translate: reason.params }}
+                </div>
+              </div>
+              <div class="match-summary">
+                <div class="match-row">
+                  <span>{{ "invoiceSubmit.subtotal" | translate }}</span>
+                  <span>{{ subtotal | money }}</span>
+                </div>
+                <div class="match-row">
+                  <span>{{ "invoiceSubmit.tax" | translate }}</span>
+                  <span>{{ tax | money }}</span>
+                </div>
+                <div class="match-row total">
+                  <span>{{ "invoiceSubmit.total" | translate }}</span>
+                  <span>{{ total | money }}</span>
+                </div>
+              </div>
+              <div class="match-note">
+                ℹ️ {{ "invoiceSubmit.matchNote" | translate }}
+              </div>
+              <button
+                class="btn btn-primary btn-block"
+                style="margin-top: 16px"
+                [disabled]="busy"
+                (click)="submitInvoice()"
+              >
+                {{
+                  (isMatched ? "invoiceSubmit.submitInvoice" : "invoiceSubmit.submitApReview") | translate
+                }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+        {{ toast.raw ? toast.message : (toast.message | translate) }}
+      </div>
+    </div>
+  

@@ -1,0 +1,112 @@
+    <div class="page-header">
+      <h1>Vendor Deduplication</h1>
+      <p class="page-subtitle">
+        Review clusters of potential duplicate vendors across entities
+      </p>
+    </div>
+
+    <!-- Auth required -->
+    <div *ngIf="authError" class="card" style="margin-top: 16px">
+      <div class="empty-state">
+        <div class="empty-icon">🔒</div>
+        <div class="empty-title">Authentication required</div>
+        <div class="empty-desc">
+          This console must be opened from the host application with a valid
+          governance session. No internal access token was provided.
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="card" style="margin-top: 16px">
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Loading clusters…</div>
+      </div>
+    </div>
+
+    <div *ngIf="loadError && !authError" class="card" style="margin-top: 16px">
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">Could not load clusters</div>
+        <div class="empty-desc">{{ loadError }}</div>
+        <button class="btn btn-secondary" style="margin-top: 12px" (click)="load()">
+          Retry
+        </button>
+      </div>
+    </div>
+
+    <ng-container *ngIf="!loading && !authError && !loadError">
+      <div
+        *ngFor="let cluster of clusters"
+        class="cluster-card card"
+        style="margin-top: 16px"
+      >
+        <div class="card-header">
+          {{ clusterTitle(cluster) }} — Similarity:
+          {{ topSimilarity(cluster) | number: "1.0-0" }}%
+          <span class="badge badge-warning" style="margin-left: 8px">{{
+            cluster.status
+          }}</span>
+        </div>
+        <div class="card-body">
+          <div class="vendor-comparison">
+            <div
+              *ngFor="let c of cluster.candidates"
+              class="vendor-card"
+              [class.primary]="c.isSource"
+            >
+              <div class="vendor-header">
+                <strong>{{ c.vendor.legalName }}</strong>
+                <span *ngIf="c.isSource" class="badge badge-success">Primary</span>
+              </div>
+              <div class="vendor-detail">
+                GSTIN: <code>{{ c.vendor.gstin || "—" }}</code>
+              </div>
+              <div class="vendor-detail">City: {{ c.vendor.city || "—" }}</div>
+              <div class="vendor-detail">
+                Contact: {{ c.vendor.contactEmail || c.vendor.contactPhone || "—" }}
+              </div>
+              <div class="vendor-detail attrs">
+                <span
+                  *ngFor="let a of matchedAttributes(c)"
+                  class="attr-chip"
+                  >{{ a }}</span
+                >
+                <span class="score">{{ c.similarityScore | number: "1.0-0" }}%</span>
+              </div>
+            </div>
+          </div>
+          <div class="cluster-actions">
+            <button
+              class="btn btn-primary"
+              [disabled]="busyId === cluster.id"
+              (click)="merge(cluster)"
+            >
+              🔗 Merge into Primary
+            </button>
+            <button
+              class="btn btn-secondary"
+              [disabled]="busyId === cluster.id"
+              (click)="dismiss(cluster)"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="clusters.length === 0" class="card" style="margin-top: 16px">
+        <div class="empty-state">
+          <div class="empty-icon">🏢</div>
+          <div class="empty-title">No open clusters</div>
+          <div class="empty-desc">
+            All vendor deduplication clusters have been reviewed.
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.message }}
+    </div>
+  

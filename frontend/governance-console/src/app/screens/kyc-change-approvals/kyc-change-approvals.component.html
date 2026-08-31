@@ -1,0 +1,124 @@
+    <div class="page-header">
+      <h1>KYC Change Approvals</h1>
+      <p class="page-subtitle">Review supplier-initiated changes to KYC data</p>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Supplier</th>
+              <th>Change Type</th>
+              <th>Field</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Submitted</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let req of requests">
+              <td>
+                <strong>{{ req.supplier }}</strong>
+              </td>
+              <td>
+                <span class="badge badge-purple">{{ req.changeType }}</span>
+              </td>
+              <td>{{ req.field }}</td>
+              <td class="old-value">{{ req.from }}</td>
+              <td class="new-value">{{ req.to }}</td>
+              <td>{{ req.submitted }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-primary" (click)="approve(req)">
+                    Approve
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    style="color: var(--color-error)"
+                    (click)="reject(req)"
+                  >
+                    Reject
+                  </button>
+                  <button
+                    class="btn btn-sm btn-secondary"
+                    (click)="openDetail(req)"
+                  >
+                    Detail
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="requests.length === 0" class="empty-state">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">No pending change requests</div>
+        <div class="empty-desc">All supplier KYC changes are up to date.</div>
+      </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div
+      class="modal-backdrop"
+      *ngIf="selectedReq"
+      (click)="selectedReq = null"
+    >
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>KYC Change Detail</h3>
+          <button class="btn btn-sm" (click)="selectedReq = null">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Supplier</label><span>{{ selectedReq.supplier }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Change Type</label
+              ><span class="badge badge-purple">{{
+                selectedReq.changeType
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Field</label><span>{{ selectedReq.field }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Current Value</label
+              ><span class="old-value">{{ selectedReq.from }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Proposed Value</label
+              ><span class="new-value">{{ selectedReq.to }}</span>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 16px">
+            <label>Approval Notes (optional)</label>
+            <textarea
+              class="form-control"
+              [(ngModel)]="notes"
+              placeholder="Add a note..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn"
+            style="background: var(--color-error); color: white"
+            (click)="reject(selectedReq)"
+          >
+            Reject
+          </button>
+          <button class="btn btn-primary" (click)="approve(selectedReq)">
+            Approve
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.message }}
+    </div>
+  

@@ -1,0 +1,401 @@
+    <div class="page-header">
+      <div>
+        <h1>{{ "catalogue.title" | translate }}</h1>
+        <p class="page-subtitle">{{ "catalogue.subtitle" | translate }}</p>
+      </div>
+      <div class="header-actions">
+        <span class="badge" [ngClass]="statusBadgeClass">
+          {{ ("catalogue.status" + catalogueStatus) | translate }}
+        </span>
+        <button
+          class="btn btn-primary"
+          [disabled]="lines.length === 0 || !isEditable || submitting || !hasVendor"
+          [title]="'catalogue.submitTooltip' | translate"
+          (click)="submitForApproval()"
+        >
+          {{ "catalogue.submitForApproval" | translate }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      {{ "catalogue.loading" | translate }}
+    </div>
+    <div *ngIf="loadError" class="load-error" role="alert">
+      {{ "catalogue.loadError" | translate }}
+    </div>
+    <div *ngIf="!loading && !hasVendor" class="no-vendor-notice" role="alert">
+      {{ "catalogue.noVendorNotice" | translate }}
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <input
+          type="text"
+          class="form-control search-input"
+          [placeholder]="'catalogue.searchPlaceholder' | translate"
+          [(ngModel)]="searchTerm"
+        />
+        <select
+          class="form-control filter-select"
+          [ngModel]="viewStatus"
+          (ngModelChange)="selectView($event)"
+          [title]="'catalogue.viewSelectLabel' | translate"
+        >
+          <option *ngFor="let s of availableViews" [value]="s">
+            {{ ("catalogue.status" + s) | translate }}
+          </option>
+        </select>
+        <button
+          class="btn btn-primary"
+          [disabled]="!isEditable || !hasVendor"
+          (click)="openAddDialog()"
+        >
+          + {{ "catalogue.addLine" | translate }}
+        </button>
+        <button
+          class="btn btn-secondary"
+          [disabled]="!isEditable || !hasVendor"
+          (click)="showUploadModal = true"
+        >
+          📤 {{ "excelUpload.uploadButton" | translate }}
+        </button>
+      </div>
+
+      <div
+        *ngIf="hasVendor && !isEditable"
+        class="read-only-notice"
+        role="status"
+      >
+        {{
+          "catalogue.readOnlyNotice"
+            | translate: { status: ("catalogue.status" + catalogueStatus | translate) }
+        }}
+      </div>
+
+    <!-- Data Table -->
+    <div class="card">
+      <div class="table-wrap">
+        <table class="data-table" *ngIf="lines.length > 0">
+          <thead>
+            <tr>
+              <th>{{ "catalogue.itemCode" | translate }}</th>
+              <th>{{ "catalogue.description" | translate }}</th>
+              <th>{{ "catalogue.packUom" | translate }}</th>
+              <th>{{ "catalogue.price" | translate }}</th>
+              <th>{{ "catalogue.currency" | translate }}</th>
+              <th>{{ "catalogue.validFrom" | translate }}</th>
+              <th>{{ "catalogue.validTo" | translate }}</th>
+              <th>{{ "catalogue.taxClass" | translate }}</th>
+              <th>{{ "catalogue.contractDeviation" | translate }}</th>
+              <th>{{ "catalogue.mappedItem" | translate }}</th>
+              <th>{{ "catalogue.actions" | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let line of filteredLines">
+              <td>
+                <code>{{ line.itemCode }}</code>
+              </td>
+              <td>{{ line.description }}</td>
+              <td>{{ line.packUom }}</td>
+              <td>{{ line.price | money }}</td>
+              <td>{{ line.currency }}</td>
+              <td>{{ line.validFrom }}</td>
+              <td>{{ line.validTo }}</td>
+              <td>{{ line.taxClass }}</td>
+              <td>
+                <span
+                  *ngIf="line.deviation && line.deviation > 0"
+                  class="badge badge-error"
+                  [title]="'catalogue.deviationTooltip' | translate"
+                >
+                  {{ "catalogue.aboveContract" | translate: { deviation: line.deviation } }}
+                </span>
+                <span *ngIf="line.deviation === 0" class="badge badge-success"
+                  >{{ "catalogue.onContract" | translate }}</span
+                >
+              </td>
+              <td>
+                <span
+                  *ngIf="line.itemId; else unmapped"
+                  class="badge badge-info"
+                  [title]="line.mappedItemDescription"
+                >
+                  {{ line.mappedItemCode }}
+                </span>
+                <ng-template #unmapped>
+                  <span class="badge badge-muted">{{ "catalogue.unmapped" | translate }}</span>
+                </ng-template>
+              </td>
+              <td>
+                <ng-container *ngIf="isEditable; else readOnlyActions">
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    (click)="editLine(line)"
+                  >
+                    {{ "catalogue.edit" | translate }}
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    style="color: var(--color-error)"
+                    (click)="deleteLine(line)"
+                  >
+                    {{ "catalogue.delete" | translate }}
+                  </button>
+                </ng-container>
+                <ng-template #readOnlyActions>
+                  <span class="muted-dash">—</span>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="lines.length === 0" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div class="empty-title">{{ "catalogue.emptyTitle" | translate }}</div>
+        <div class="empty-desc">
+          {{ "catalogue.emptyDesc" | translate }}
+        </div>
+      </div>
+    </div>
+    </ng-container>
+
+    <!-- Add/Edit Dialog -->
+    <div
+      class="modal-backdrop"
+      *ngIf="showAddDialog"
+      (click)="showAddDialog = false"
+    >
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            {{ (editingLine ? "catalogue.editLine" : "catalogue.addLine") | translate }}
+          </h3>
+          <button class="btn btn-sm" (click)="showAddDialog = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>{{ "catalogue.itemCode" | translate }}</label>
+              <input
+                class="form-control"
+                [(ngModel)]="formData.itemCode"
+                placeholder="FOOD-001"
+              />
+              <span
+                *ngIf="formData.itemCode && !isItemCodeValid"
+                class="field-error"
+                >{{ "catalogue.itemCodeValidation" | translate }}</span
+              >
+              <span
+                *ngIf="formData.itemCode && isItemCodeValid && isItemCodeDuplicate"
+                class="field-error"
+                >{{ "catalogue.itemCodeDuplicate" | translate }}</span
+              >
+            </div>
+            <div class="form-group">
+              <label>{{ "catalogue.description" | translate }}</label>
+              <input
+                class="form-control"
+                [(ngModel)]="formData.description"
+                [maxlength]="maxDescriptionLength"
+                placeholder="Basmati Rice 25kg"
+              />
+              <span
+                *ngIf="formData.description.length > maxDescriptionLength"
+                class="field-error"
+                >{{
+                  "catalogue.descriptionValidation"
+                    | translate: { max: maxDescriptionLength }
+                }}</span
+              >
+              <span
+                *ngIf="formData.description.trim() && isDescriptionDuplicate"
+                class="field-error"
+                >{{ "catalogue.descriptionDuplicate" | translate }}</span
+              >
+              <span
+                *ngIf="!isDescriptionDuplicate && similarDescription"
+                class="field-warning"
+                >{{
+                  "catalogue.descriptionSimilar"
+                    | translate: { desc: similarDescription }
+                }}</span
+              >
+            </div>
+            <div class="form-group">
+              <label>{{ "catalogue.packUom" | translate }}</label>
+              <input
+                class="form-control"
+                [(ngModel)]="formData.packUom"
+                placeholder="25kg"
+              />
+            </div>
+          </div>
+
+          <!-- Map this line to a Web Prol'IFIC master item -->
+          <div class="form-group item-map">
+            <label>{{ "catalogue.mapItemLabel" | translate }}</label>
+
+            <div *ngIf="formData.itemId" class="mapped-item">
+              <span class="mapped-chip">
+                <code>{{ formData.mappedItemCode }}</code>
+                {{ formData.mappedItemDescription }}
+              </span>
+              <button type="button" class="btn btn-sm btn-secondary" (click)="clearMappedItem()">
+                {{ "catalogue.mapChange" | translate }}
+              </button>
+            </div>
+
+            <div *ngIf="!formData.itemId" class="item-search">
+              <div class="item-search-row">
+                <input
+                  class="form-control"
+                  [ngModel]="itemSearchTerm"
+                  (ngModelChange)="onItemSearchInput($event)"
+                  [placeholder]="'catalogue.mapSearchPlaceholder' | translate"
+                />
+                <button
+                  type="button"
+                  class="btn btn-sm btn-secondary"
+                  (click)="suggestItemMatches()"
+                  [disabled]="!formData.description.trim()"
+                >
+                  {{ "catalogue.mapSuggest" | translate }}
+                </button>
+              </div>
+              <div class="item-results" *ngIf="itemResults.length">
+                <button
+                  type="button"
+                  class="item-result"
+                  *ngFor="let it of itemResults"
+                  (click)="selectMappedItem(it)"
+                >
+                  <code>{{ it.itemCode }}</code>
+                  <span class="item-result-desc">{{ it.description }}</span>
+                  <span class="item-result-meta">{{ it.category }} · {{ it.baseUom }}</span>
+                </button>
+              </div>
+              <span
+                *ngIf="itemSearchTerm.trim() && !searchingItems && itemResults.length === 0"
+                class="field-hint"
+                >{{ "catalogue.mapNoResults" | translate }}</span
+              >
+              <span class="field-hint">{{ "catalogue.mapOptionalHint" | translate }}</span>
+            </div>
+          </div>
+
+          <!-- Rate: price, currency and tax class together on one row -->
+          <div class="form-row rate-row">
+            <div class="form-group">
+              <label>{{ "catalogue.priceInr" | translate }}</label>
+              <input
+                type="number"
+                class="form-control"
+                [(ngModel)]="formData.price"
+                min="0"
+                step="0.01"
+              />
+              <span *ngIf="formData.price <= 0" class="field-error"
+                >{{ "catalogue.priceValidation" | translate }}</span
+              >
+            </div>
+            <div class="form-group">
+              <label>{{ "catalogue.currency" | translate }}</label>
+              <select class="form-control" [(ngModel)]="formData.currency">
+                <option value="INR">INR</option>
+                <option value="AED">AED</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>{{ "catalogue.taxClass" | translate }}</label>
+              <select class="form-control" [(ngModel)]="formData.taxClass">
+                <option value="GST-5">GST 5%</option>
+                <option value="GST-12">GST 12%</option>
+                <option value="GST-18">GST 18%</option>
+                <option value="GST-0">GST 0%</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Validity: from and to on one row -->
+          <div class="form-row date-row">
+            <div class="form-group">
+              <label>{{ "catalogue.validFrom" | translate }}</label>
+              <input
+                type="date"
+                class="form-control"
+                [(ngModel)]="formData.validFrom"
+              />
+            </div>
+            <div class="form-group">
+              <label>{{ "catalogue.validTo" | translate }}</label>
+              <input
+                type="date"
+                class="form-control"
+                [(ngModel)]="formData.validTo"
+              />
+              <span
+                *ngIf="
+                  formData.validTo &&
+                  formData.validFrom &&
+                  formData.validTo < formData.validFrom
+                "
+                class="field-error"
+                >{{ "catalogue.validToValidation" | translate }}</span
+              >
+            </div>
+          </div>
+          <p class="form-note">
+            {{ "catalogue.formNote" | translate }}
+          </p>
+          <p *ngIf="saveError" class="field-error save-error" role="alert">
+            {{ "catalogue.saveError" | translate }} {{ saveError }}
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showAddDialog = false">
+            {{ "catalogue.cancel" | translate }}
+          </button>
+          <button
+            class="btn btn-primary"
+            (click)="saveLine()"
+            [disabled]="
+              !formData.itemCode ||
+              !isItemCodeValid ||
+              isItemCodeDuplicate ||
+              !formData.description ||
+              formData.description.length > maxDescriptionLength ||
+              isDescriptionDuplicate ||
+              formData.price <= 0 ||
+              saving
+            "
+          >
+            {{ (editingLine ? "catalogue.update" : "catalogue.addLine") | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk Excel Upload -->
+    <excel-upload-modal
+      *ngIf="showUploadModal"
+      titleKey="excelUpload.title"
+      [columns]="uploadColumns"
+      [validateFile]="validateExcelFile"
+      [parseFile]="parseExcelFile"
+      [downloadTemplateFn]="downloadExcelTemplate"
+      [buildErrorReportFn]="buildExcelErrorReport"
+      templateFilename="catalogue-upload-template.xlsx"
+      (cancelled)="showUploadModal = false"
+      (confirmed)="onExcelUploadConfirmed($event)"
+    ></excel-upload-modal>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.key ? (toast.key | translate: toast.params) : toast.text }}
+    </div>
+  

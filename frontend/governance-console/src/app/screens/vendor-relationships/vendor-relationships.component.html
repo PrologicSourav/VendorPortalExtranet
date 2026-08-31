@@ -1,0 +1,118 @@
+    <div class="page-header">
+      <h1>Vendor Relationships</h1>
+      <p class="page-subtitle">
+        Attach a vendor to a Chain (all its properties) or a specific Property.
+        A vendor is one global account — this screen never creates a second one;
+        it only adds where an existing (or newly created) vendor is allowed to
+        operate.
+      </p>
+    </div>
+
+    <div class="card search-card">
+      <div class="search-row">
+        <input
+          type="text"
+          class="form-control search-input"
+          placeholder="Search vendor by name or GSTIN..."
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange($event)"
+        />
+        <button class="btn btn-secondary" (click)="showCreateForm = !showCreateForm">
+          {{ showCreateForm ? "Cancel" : "+ New Vendor" }}
+        </button>
+      </div>
+
+      <div class="create-form" *ngIf="showCreateForm">
+        <input type="text" class="form-control" placeholder="Legal name" [(ngModel)]="newVendorName" />
+        <input type="text" class="form-control" placeholder="GSTIN (optional)" [(ngModel)]="newVendorGstin" />
+        <button class="btn btn-primary" [disabled]="!newVendorName || creating" (click)="createVendor()">
+          {{ creating ? "Creating…" : "Create & Select" }}
+        </button>
+      </div>
+
+      <div class="results" *ngIf="searchResults.length > 0 && !selectedVendor">
+        <div class="result-row" *ngFor="let v of searchResults" (click)="selectVendor(v)">
+          <span class="result-name">{{ v.legalName }}</span>
+          <span class="result-gstin">{{ v.gstin || "—" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" *ngIf="selectedVendor">
+      <div class="vendor-header">
+        <div>
+          <div class="vendor-name">{{ selectedVendor.legalName }}</div>
+          <div class="vendor-sub">{{ selectedVendor.gstin || "No GSTIN" }} · KYC: {{ selectedVendor.kycStatus }}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" (click)="selectedVendor = null; searchResults = []">
+          Change vendor
+        </button>
+      </div>
+
+      <h3>Current relationships</h3>
+      <div *ngIf="loadingRelationships" class="loading-state">Loading…</div>
+      <table class="data-table" *ngIf="!loadingRelationships">
+        <thead>
+          <tr>
+            <th>Scope</th>
+            <th>Chain</th>
+            <th>Property</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of relationships">
+            <td>{{ r.scopeType }}</td>
+            <td>{{ r.buyingEntityName }}</td>
+            <td>{{ r.propertyName || "(entire chain)" }}</td>
+            <td>
+              <span class="badge" [ngClass]="'badge-' + r.status.toLowerCase()">{{ r.status }}</span>
+            </td>
+            <td>
+              <button
+                class="btn btn-sm"
+                [ngClass]="r.status === 'Active' ? 'btn-danger' : 'btn-primary'"
+                (click)="toggleStatus(r)"
+              >
+                {{ r.status === "Active" ? "Revoke" : "Reactivate" }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="!loadingRelationships && relationships.length === 0" class="empty-state">
+        <div class="empty-title">No relationships yet</div>
+      </div>
+
+      <h3>Add relationship</h3>
+      <div class="add-form">
+        <select class="form-control" [(ngModel)]="newScope">
+          <option value="Chain">Entire Chain</option>
+          <option value="Property">Specific Property</option>
+        </select>
+        <select class="form-control" [(ngModel)]="newBuyingEntityId" (ngModelChange)="newPropertyId = null">
+          <option [ngValue]="null">Select chain…</option>
+          <option *ngFor="let be of buyingEntities" [ngValue]="be.id">{{ be.name }}</option>
+        </select>
+        <select
+          class="form-control"
+          *ngIf="newScope === 'Property'"
+          [(ngModel)]="newPropertyId"
+          [disabled]="!newBuyingEntityId"
+        >
+          <option [ngValue]="null">Select property…</option>
+          <option *ngFor="let p of propertiesFor(newBuyingEntityId)" [ngValue]="p.id">{{ p.name }}</option>
+        </select>
+        <button
+          class="btn btn-primary"
+          [disabled]="!canAdd() || adding"
+          (click)="addRelationship()"
+        >
+          {{ adding ? "Adding…" : "Add" }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">{{ toast.message }}</div>
+  

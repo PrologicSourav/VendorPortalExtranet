@@ -11,7 +11,7 @@ const RTL_LANGUAGES = ["ar"];
   selector: "app-root",
   standalone: true,
   imports: [RouterOutlet],
-  template: `<router-outlet />`,
+  templateUrl: "./app.component.html",
 })
 export class AppComponent implements OnInit {
   private translate = inject(TranslateService);

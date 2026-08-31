@@ -1,0 +1,57 @@
+    <div class="page-header">
+      <h1>{{ "notifications.title" | translate }}</h1>
+      <p class="page-subtitle">{{ "notifications.subtitle" | translate }}</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="toolbar">
+      <button class="btn btn-secondary" (click)="markAllRead()">
+        ✓ {{ "notifications.markAllRead" | translate }}
+      </button>
+      <div class="filter-group">
+        <select class="form-control" [(ngModel)]="typeFilter">
+          <option value="">{{ "notifications.filterAllTypes" | translate }}</option>
+          <option value="po">{{ "notifications.filterNewPo" | translate }}</option>
+          <option value="rejected">{{ "notifications.filterRejected" | translate }}</option>
+          <option value="payment">{{ "notifications.filterPayment" | translate }}</option>
+          <option value="catalogue">{{ "notifications.filterCatalogue" | translate }}</option>
+        </select>
+        <input
+          type="text"
+          class="form-control"
+          [placeholder]="'notifications.searchPlaceholder' | translate"
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="card">
+      <div *ngFor="let group of groupedNotifications" class="notif-group">
+        <div class="group-header">{{ group.label | translate }}</div>
+        <div
+          *ngFor="let n of group.items"
+          class="notif-item"
+          [class.unread]="n.unread"
+          (click)="onNotificationClick(n)"
+          role="button"
+        >
+          <span class="notif-icon" [ngClass]="'icon-' + n.type">{{
+            getIcon(n.type)
+          }}</span>
+          <div class="notif-body">
+            <div class="notif-title">{{ n.title | amountsToCurrency }}</div>
+            <div class="notif-detail">{{ n.detail | amountsToCurrency }}</div>
+          </div>
+          <span class="notif-time">{{ n.time }}</span>
+          <span *ngIf="n.unread" class="unread-dot"></span>
+        </div>
+      </div>
+
+      <div *ngIf="filteredNotifications.length === 0" class="empty-state">
+        <div class="empty-icon">🔔</div>
+        <div class="empty-title">{{ "notifications.emptyTitle" | translate }}</div>
+        <div class="empty-desc">{{ "notifications.emptyDesc" | translate }}</div>
+      </div>
+    </div>
+  

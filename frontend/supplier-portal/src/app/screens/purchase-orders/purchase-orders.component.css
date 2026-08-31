@@ -1,0 +1,259 @@
+.page-header {
+        margin-bottom: 20px;
+      }
+      .page-header h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--color-heading);
+      }
+      .page-subtitle {
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        margin-top: 4px;
+      }
+      .notice {
+        padding: 16px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .notice.error {
+        color: var(--color-error);
+      }
+      .filter-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .filter-chips {
+        display: flex;
+        gap: 6px;
+      }
+      .chip {
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 500;
+        border: 1px solid var(--color-border);
+        border-radius: 99px;
+        background: var(--color-surface);
+        color: var(--color-text);
+        cursor: pointer;
+        transition: all 0.15s;
+        &:hover {
+          border-color: var(--color-primary);
+        }
+        &.active {
+          background: var(--color-primary);
+          color: white;
+          border-color: var(--color-primary);
+        }
+      }
+      .search-input {
+        width: 240px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      .clickable {
+        cursor: pointer;
+      }
+      .top-items {
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+        color: var(--color-text-secondary);
+      }
+      .more-count {
+        color: var(--color-text-muted);
+      }
+      code {
+        background: var(--color-surface-alt);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+      }
+      .btn-sm {
+        padding: 4px 10px;
+        font-size: 12px;
+      }
+
+      .drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        /* Above the fixed topbar (z-index 200) so the drawer header — PO number,
+           status badge and close button — isn't clipped behind it. */
+        z-index: 300;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .drawer {
+        width: 700px;
+        max-width: 90vw;
+        background: var(--color-surface);
+        color: var(--color-text);
+        overflow-y: auto;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+      }
+      .drawer-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        background: var(--color-surface);
+        z-index: 1;
+        h2 {
+          font-size: 18px;
+          font-weight: 700;
+        }
+        p {
+          font-size: 13px;
+          color: var(--color-text-secondary);
+        }
+      }
+      /* Title block grows so the status badge + close button sit at the right. */
+      .drawer-header > div:first-child {
+        flex: 1;
+      }
+      .drawer-header .btn-sm {
+        font-size: 16px;
+        line-height: 1;
+      }
+      .drawer-body {
+        padding: 20px;
+      }
+      .po-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+        font-size: 13px;
+      }
+      .po-document {
+        margin-bottom: 24px;
+      }
+      .doc-filename {
+        color: var(--color-text-secondary);
+        font-weight: 400;
+      }
+      .tax-class {
+        color: var(--color-text-muted);
+        font-size: 11px;
+      }
+      .tax-total-row td {
+        font-weight: 600;
+        border-top: 2px solid var(--color-border);
+      }
+      .po-instructions {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .instruction-block h4 {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        margin-bottom: 4px;
+      }
+      .instruction-block p {
+        font-size: 13px;
+        white-space: pre-wrap;
+      }
+      h3 {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+      .action-zone {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--color-border);
+      }
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .inline-dialog {
+        margin-top: 16px;
+        padding: 16px;
+        background: var(--color-surface-alt);
+        border-radius: 8px;
+      }
+      .partial-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+      .inline-input {
+        width: 120px;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+
+      @media (max-width: 768px) {
+        .filter-bar {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+        }
+        .filter-chips {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          flex-wrap: nowrap;
+          padding-bottom: 4px;
+        }
+        .filter-chips::-webkit-scrollbar {
+          display: none;
+        }
+        .search-input {
+          width: 100% !important;
+        }
+        .drawer {
+          width: 100% !important;
+          max-width: 100vw !important;
+        }
+        .po-meta {
+          grid-template-columns: 1fr !important;
+          gap: 8px;
+        }
+        .action-buttons {
+          flex-wrap: wrap;
+        }
+        .partial-row {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .partial-row span {
+          flex: 1 1 40%;
+        }
+        .inline-input {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .chip {
+          padding: 4px 10px;
+          font-size: 11px;
+        }
+      }

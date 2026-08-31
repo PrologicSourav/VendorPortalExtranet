@@ -1,0 +1,304 @@
+    <div class="page-header">
+      <h1>{{ "purchaseOrders.title" | translate }}</h1>
+      <p class="page-subtitle">
+        {{ "purchaseOrders.subtitle" | translate }}
+      </p>
+    </div>
+
+    <!-- No vendor / loading / error notices -->
+    <div *ngIf="!hasVendor" class="card notice">
+      {{ "purchaseOrders.noVendorNotice" | translate }}
+    </div>
+    <div *ngIf="hasVendor && loading" class="card notice">
+      {{ "purchaseOrders.loading" | translate }}
+    </div>
+    <div *ngIf="hasVendor && loadError" class="card notice error">
+      {{ loadError }}
+      <button class="btn btn-sm" (click)="load()">
+        {{ "purchaseOrders.retry" | translate }}
+      </button>
+    </div>
+
+    <!-- Status Filter Chips -->
+    <div class="filter-bar" *ngIf="hasVendor && !loading && !loadError">
+      <div class="filter-chips">
+        <button
+          *ngFor="let f of filters"
+          class="chip"
+          [class.active]="statusFilter === f.value"
+          (click)="statusFilter = f.value"
+        >
+          {{ f.label | translate }}
+        </button>
+      </div>
+      <input
+        type="text"
+        class="form-control search-input"
+        [placeholder]="'purchaseOrders.searchPlaceholder' | translate"
+        [(ngModel)]="searchTerm"
+      />
+    </div>
+
+    <!-- PO Table -->
+    <div class="card" *ngIf="hasVendor && !loading && !loadError">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ "purchaseOrders.poNumber" | translate }}</th>
+              <th>{{ "purchaseOrders.topItems" | translate }}</th>
+              <th>{{ "purchaseOrders.buyingEntity" | translate }}</th>
+              <th>{{ "purchaseOrders.orderDate" | translate }}</th>
+              <th>{{ "purchaseOrders.requiredBy" | translate }}</th>
+              <th>{{ "purchaseOrders.lines" | translate }}</th>
+              <th>{{ "purchaseOrders.value" | translate }}</th>
+              <th>{{ "purchaseOrders.status" | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let po of filteredPOs"
+              (click)="openDetail(po)"
+              class="clickable"
+            >
+              <td>
+                <code>{{ po.poNumber }}</code>
+              </td>
+              <td class="top-items" [title]="po.topItemsSummary">
+                <span *ngIf="po.topItems.length; else noItems">
+                  {{ po.topItemsSummary }}
+                  <span *ngIf="po.lines > po.topItems.length" class="more-count">
+                    {{ "purchaseOrders.topItemsMore" | translate: { count: po.lines - po.topItems.length } }}
+                  </span>
+                </span>
+                <ng-template #noItems>—</ng-template>
+              </td>
+              <td>{{ po.property || po.entity }}</td>
+              <td>{{ po.orderDate | date: "mediumDate" }}</td>
+              <td>{{ po.requiredBy | date: "mediumDate" }}</td>
+              <td>{{ po.lines }}</td>
+              <td>{{ po.value | money }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadge(po.status)">{{
+                  getStatusKey(po.status) | translate
+                }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="filteredPOs.length === 0" class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">{{ "purchaseOrders.emptyTitle" | translate }}</div>
+      </div>
+    </div>
+
+    <!-- Detail Drawer -->
+    <div class="drawer-backdrop" *ngIf="selectedPO" (click)="selectedPO = null">
+      <div class="drawer" (click)="$event.stopPropagation()">
+        <div class="drawer-header">
+          <div>
+            <h2>{{ selectedPO.poNumber }}</h2>
+            <p>{{ selectedPO.entity }} · {{ selectedPO.property }}</p>
+          </div>
+          <span class="badge" [ngClass]="getStatusBadge(selectedPO.status)">{{
+            getStatusKey(selectedPO.status) | translate
+          }}</span>
+          <button class="btn btn-sm" (click)="selectedPO = null">✕</button>
+        </div>
+
+        <div class="drawer-body">
+          <div class="po-meta">
+            <div><strong>{{ "purchaseOrders.orderDate" | translate }}:</strong> {{ selectedPO.orderDate | date: "mediumDate" }}</div>
+            <div><strong>{{ "purchaseOrders.requiredBy" | translate }}:</strong> {{ selectedPO.requiredBy | date: "mediumDate" }}</div>
+            <div>
+              <strong>{{ "purchaseOrders.totalValue" | translate }}:</strong> {{ selectedPO.value | money }}
+            </div>
+          </div>
+
+          <div class="po-document" *ngIf="selectedPO.hasDocument">
+            <button
+              class="btn btn-secondary"
+              [disabled]="loadingDocument"
+              (click)="viewDocument(selectedPO)"
+            >
+              📄 {{ loadingDocument ? "Loading…" : "View PO Document" }}
+              <span class="doc-filename" *ngIf="selectedPO.documentFileName">
+                ({{ selectedPO.documentFileName }})
+              </span>
+            </button>
+          </div>
+
+          <h3>{{ "purchaseOrders.lineItems" | translate }}</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>{{ "purchaseOrders.item" | translate }}</th>
+                <th>{{ "purchaseOrders.qty" | translate }}</th>
+                <th>{{ "purchaseOrders.uom" | translate }}</th>
+                <th>{{ "purchaseOrders.unitPrice" | translate }}</th>
+                <th>{{ "purchaseOrders.tax" | translate }}</th>
+                <th>{{ "purchaseOrders.lineTotal" | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let line of selectedPO.lineItems">
+                <td>{{ line.item }}</td>
+                <td>{{ line.qty }}</td>
+                <td>{{ line.uom }}</td>
+                <td>{{ line.unitPrice | money }}</td>
+                <td>
+                  <span *ngIf="line.taxAmount; else onlyTaxClass">
+                    {{ line.taxAmount | money }}
+                    <span class="tax-class" *ngIf="line.taxClass">({{ line.taxClass }})</span>
+                  </span>
+                  <ng-template #onlyTaxClass>
+                    <span *ngIf="line.taxClass; else noTax">{{ line.taxClass }}</span>
+                    <ng-template #noTax>—</ng-template>
+                  </ng-template>
+                </td>
+                <td>{{ line.lineTotal | money }}</td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="selectedPO.taxTotal">
+              <tr class="tax-total-row">
+                <td colspan="4">{{ "purchaseOrders.taxTotal" | translate }}</td>
+                <td>{{ selectedPO.taxTotal | money }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div
+            class="po-instructions"
+            *ngIf="selectedPO.remarks || selectedPO.dispatchInstructions || selectedPO.packingInstructions"
+          >
+            <div class="instruction-block" *ngIf="selectedPO.remarks">
+              <h4>{{ "purchaseOrders.remarks" | translate }}</h4>
+              <p>{{ selectedPO.remarks }}</p>
+            </div>
+            <div class="instruction-block" *ngIf="selectedPO.dispatchInstructions">
+              <h4>{{ "purchaseOrders.dispatchInstructions" | translate }}</h4>
+              <p>{{ selectedPO.dispatchInstructions }}</p>
+            </div>
+            <div class="instruction-block" *ngIf="selectedPO.packingInstructions">
+              <h4>{{ "purchaseOrders.packingInstructions" | translate }}</h4>
+              <p>{{ selectedPO.packingInstructions }}</p>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div *ngIf="selectedPO.status === 'New'" class="action-zone">
+            <h3>{{ "purchaseOrders.actions" | translate }}</h3>
+            <div class="action-buttons">
+              <button class="btn btn-primary" (click)="acknowledgePo()">
+                {{ "purchaseOrders.acknowledgeInFull" | translate }}
+              </button>
+              <button
+                class="btn btn-secondary"
+                (click)="showPartialDialog = true"
+              >
+                {{ "purchaseOrders.partiallyAccept" | translate }}
+              </button>
+              <button
+                class="btn"
+                style="color: var(--color-error)"
+                (click)="showUnableDialog = true"
+              >
+                {{ "purchaseOrders.unableToSupply" | translate }}
+              </button>
+            </div>
+          </div>
+
+          <div
+            *ngIf="selectedPO.status === 'Acknowledged' || selectedPO.status === 'Delivered'"
+            class="action-zone"
+          >
+            <div class="action-buttons">
+              <button
+                *ngIf="selectedPO.status === 'Acknowledged'"
+                class="btn btn-primary"
+                routerLink="/purchase-orders/{{ selectedPO.id }}/delivery-note"
+              >
+                {{ "purchaseOrders.raiseDeliveryNote" | translate }}
+              </button>
+              <button
+                class="btn btn-secondary"
+                [routerLink]="['/invoices']"
+                [queryParams]="{ poId: selectedPO.id }"
+              >
+                {{ "purchaseOrders.attachInvoice" | translate }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Partial Accept Dialog -->
+          <div *ngIf="showPartialDialog" class="inline-dialog">
+            <h4>{{ "purchaseOrders.partialAcceptance" | translate }}</h4>
+            <div
+              *ngFor="let line of selectedPO.lineItems; let i = index"
+              class="partial-row"
+            >
+              <span>{{ line.item }}</span>
+              <span>{{ "purchaseOrders.ordered" | translate: { qty: line.qty } }}</span>
+              <input
+                type="number"
+                class="form-control inline-input"
+                [(ngModel)]="acceptedQtys[i]"
+                [max]="line.qty"
+              />
+              <input
+                class="form-control inline-input"
+                [placeholder]="'purchaseOrders.reasonIfShort' | translate"
+                [(ngModel)]="acceptReasons[i]"
+              />
+            </div>
+            <div class="action-buttons">
+              <button class="btn btn-primary" (click)="confirmPartial()">
+                {{ "purchaseOrders.confirm" | translate }}
+              </button>
+              <button
+                class="btn btn-secondary"
+                (click)="showPartialDialog = false"
+              >
+                {{ "purchaseOrders.cancel" | translate }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Unable to Supply Dialog -->
+          <div *ngIf="showUnableDialog" class="inline-dialog">
+            <h4>{{ "purchaseOrders.unableToSupply" | translate }}</h4>
+            <div class="form-group">
+              <label>{{ "purchaseOrders.reason" | translate }}</label>
+              <textarea
+                class="form-control"
+                [(ngModel)]="unableReason"
+                [placeholder]="'purchaseOrders.reasonPlaceholder' | translate"
+              ></textarea>
+            </div>
+            <div class="action-buttons">
+              <button
+                class="btn"
+                style="background: var(--color-error); color: white"
+                (click)="confirmUnable()"
+              >
+                {{ "purchaseOrders.confirm" | translate }}
+              </button>
+              <button
+                class="btn btn-secondary"
+                (click)="showUnableDialog = false"
+              >
+                {{ "purchaseOrders.cancel" | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toast -->
+        <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+          {{ toast.message | translate }}
+        </div>
+      </div>
+    </div>
+  

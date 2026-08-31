@@ -1,0 +1,114 @@
+    <div class="page-header">
+      <h1>Supplier Accounts</h1>
+      <p class="page-subtitle">
+        Manage user access for each supplier organization
+      </p>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search supplier..."
+        [(ngModel)]="searchTerm"
+        style="width: 300px"
+      />
+    </div>
+
+    <!-- Account List -->
+    <div
+      *ngFor="let account of filteredAccounts"
+      class="card"
+      style="margin-top: 12px"
+    >
+      <div class="card-header">
+        {{ account.supplier }}
+        <span class="badge badge-success" style="margin-left: 8px"
+          >{{ account.users.length }} users</span
+        >
+      </div>
+      <div class="card-body">
+        <div class="users-grid">
+          <div *ngFor="let user of account.users" class="user-row">
+            <div class="user-avatar">{{ user.name.charAt(0) }}</div>
+            <div class="user-info">
+              <div class="user-name">{{ user.name }}</div>
+              <div class="user-email">{{ user.email }}</div>
+            </div>
+            <div class="user-role">
+              <select
+                class="form-control"
+                [ngModel]="user.role"
+                (ngModelChange)="user.role = $event"
+                style="width: 150px; padding: 4px 8px; font-size: 12px"
+              >
+                <option value="Vendor Admin">Vendor Admin</option>
+                <option value="Vendor User">Vendor User</option>
+                <option value="Vendor Finance">Vendor Finance</option>
+              </select>
+            </div>
+            <div class="user-status">
+              <span
+                class="badge"
+                [ngClass]="
+                  user.status === 'Active' ? 'badge-success' : 'badge-muted'
+                "
+                >{{ user.status }}</span
+              >
+            </div>
+            <div class="user-actions">
+              <button class="btn btn-sm" (click)="toggleUserStatus(user)">
+                {{ user.status === "Active" ? "Disable" : "Enable" }}
+              </button>
+              <button
+                class="btn btn-sm"
+                style="color: var(--color-error)"
+                (click)="removeUser(account, user)"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add User -->
+        <div class="add-user-row">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Email"
+            [(ngModel)]="newUserEmail"
+            style="width: 220px"
+          />
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Name"
+            [(ngModel)]="newUserName"
+            style="width: 180px"
+          />
+          <select
+            class="form-control"
+            [(ngModel)]="newUserRole"
+            style="width: 150px"
+          >
+            <option value="Vendor User">Vendor User</option>
+            <option value="Vendor Admin">Vendor Admin</option>
+            <option value="Vendor Finance">Vendor Finance</option>
+          </select>
+          <button
+            class="btn btn-primary btn-sm"
+            (click)="addUser(account)"
+            [disabled]="!newUserEmail || !newUserName"
+          >
+            + Add
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.message }}
+    </div>
+  

@@ -7,69 +7,8 @@ import { GovApiService, VendorRequestQueueItem } from "../../services/gov-api.se
   selector: "app-vendor-requests",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `
-    <div class="page-header">
-      <h1>Vendor Access Requests</h1>
-      <p class="page-subtitle">
-        A vendor never gets access to a new Chain/Property just by asking —
-        approving here is what actually creates the relationship.
-      </p>
-    </div>
-
-    <div class="tabs">
-      <div class="tab" [class.active]="statusFilter === 'Pending'" (click)="switchTab('Pending')">Pending</div>
-      <div class="tab" [class.active]="statusFilter === 'Approved'" (click)="switchTab('Approved')">Approved</div>
-      <div class="tab" [class.active]="statusFilter === 'Rejected'" (click)="switchTab('Rejected')">Rejected</div>
-    </div>
-
-    <div *ngIf="loading" class="loading-state">Loading…</div>
-
-    <div class="card" *ngIf="!loading">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Vendor</th>
-            <th>Requested</th>
-            <th>Scope</th>
-            <th>Date</th>
-            <th *ngIf="statusFilter === 'Pending'"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let r of requests">
-            <td>{{ r.vendorName }}</td>
-            <td>{{ r.buyingEntityName }}{{ r.propertyName ? " / " + r.propertyName : " (entire chain)" }}</td>
-            <td>{{ r.requestType }}</td>
-            <td>{{ r.requestedDate | date: "mediumDate" }}</td>
-            <td *ngIf="statusFilter === 'Pending'" class="actions">
-              <button class="btn btn-sm btn-primary" [disabled]="busyId === r.id" (click)="approve(r)">
-                Approve
-              </button>
-              <button class="btn btn-sm btn-danger" [disabled]="busyId === r.id" (click)="reject(r)">
-                Reject
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div *ngIf="requests.length === 0" class="empty-state">
-        <div class="empty-title">Nothing here</div>
-      </div>
-    </div>
-
-    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">{{ toast.message }}</div>
-  `,
-  styles: [
-    `
-      .page-header { margin-bottom: 20px; }
-      .page-header h1 { font-size: 22px; font-weight: 700; color: var(--color-primary); }
-      .page-subtitle { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; max-width: 640px; }
-      .actions { display: flex; gap: 8px; }
-      .btn-sm { padding: 4px 10px; font-size: 12px; }
-      .loading-state { padding: 40px; text-align: center; color: var(--color-text-secondary); font-size: 13px; }
-      .empty-state { padding: 16px 4px; color: var(--color-text-muted); font-size: 13px; }
-    `,
-  ],
+  templateUrl: "./vendor-requests.component.html",
+  styleUrl: "./vendor-requests.component.css",
 })
 export class VendorRequestsComponent implements OnInit {
   private govApi = inject(GovApiService);

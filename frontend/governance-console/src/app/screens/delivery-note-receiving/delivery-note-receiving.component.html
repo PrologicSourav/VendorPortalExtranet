@@ -1,0 +1,77 @@
+    <div class="page-header">
+      <h1>Delivery Note Receiving</h1>
+      <p class="page-subtitle">
+        Confirm goods physically received against a supplier's delivery note.
+      </p>
+    </div>
+
+    <div class="tabs">
+      <div class="tab" [class.active]="tab === 'pending'" (click)="switchTab('pending')">
+        Pending Receipt
+        <span class="count-badge" *ngIf="tab === 'pending' && notes.length">{{ notes.length }}</span>
+      </div>
+      <div class="tab" [class.active]="tab === 'received'" (click)="switchTab('received')">
+        Received
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <input
+        type="text"
+        class="form-control search-input"
+        placeholder="Search by DN number, PO number, or supplier..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </div>
+
+    <div *ngIf="loading" class="loading-state">Loading delivery notes…</div>
+    <div *ngIf="loadError" class="load-error" role="alert">
+      Failed to load delivery notes. Please try again.
+    </div>
+
+    <div class="card" *ngIf="!loading && !loadError">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>DN Number</th>
+            <th>PO Number</th>
+            <th>Supplier</th>
+            <th>Expected Delivery</th>
+            <th>Lines</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let dn of notes">
+            <td><code>{{ dn.deliveryNoteNumber }}</code></td>
+            <td><code>{{ dn.poNumber }}</code></td>
+            <td>{{ dn.vendorName }}</td>
+            <td>{{ dn.expectedDeliveryDate | date: "mediumDate" }}</td>
+            <td>{{ dn.lineCount }}</td>
+            <td><span class="badge" [ngClass]="getStatusBadge(dn.status)">{{ dn.status }}</span></td>
+            <td>
+              <button
+                *ngIf="dn.status === 'Submitted'"
+                class="btn btn-sm btn-primary"
+                [disabled]="receivingId === dn.id"
+                (click)="markReceived(dn)"
+              >
+                {{ receivingId === dn.id ? "Confirming…" : "Mark Received" }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="notes.length === 0" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div class="empty-title">No delivery notes found</div>
+      </div>
+    </div>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.message }}
+    </div>
+  

@@ -1,0 +1,106 @@
+    <div class="page-header">
+      <h1>{{ "team.title" | translate }}</h1>
+      <p class="page-subtitle">{{ "team.subtitle" | translate }}</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header-row">
+        <h3>{{ "team.members" | translate }}</h3>
+        <button class="btn btn-primary btn-sm" *ngIf="isAdmin" (click)="showInvite = !showInvite">
+          {{ showInvite ? ("team.cancel" | translate) : ("team.invite" | translate) }}
+        </button>
+      </div>
+
+      <div class="invite-form" *ngIf="showInvite">
+        <input type="text" class="form-control" [placeholder]="'team.name' | translate" [(ngModel)]="newName" />
+        <input type="email" class="form-control" [placeholder]="'team.email' | translate" [(ngModel)]="newEmail" />
+        <select class="form-control" [(ngModel)]="newRole">
+          <option value="SupplierOrders">{{ "team.roleOrders" | translate }}</option>
+          <option value="SupplierCatalogue">{{ "team.roleCatalogue" | translate }}</option>
+          <option value="SupplierFinance">{{ "team.roleFinance" | translate }}</option>
+          <option value="SupplierAdmin">{{ "team.roleAdmin" | translate }}</option>
+        </select>
+        <input type="password" class="form-control" [placeholder]="'team.tempPassword' | translate" [(ngModel)]="newPassword" />
+        <button class="btn btn-primary" [disabled]="!canInvite() || inviting" (click)="invite()">
+          {{ inviting ? ("team.inviting" | translate) : ("team.addMember" | translate) }}
+        </button>
+      </div>
+      <p *ngIf="inviteError" class="field-error" role="alert">{{ inviteError }}</p>
+
+      <table class="data-table" *ngIf="users.length > 0">
+        <thead>
+          <tr>
+            <th>{{ "team.colName" | translate }}</th>
+            <th>{{ "team.colEmail" | translate }}</th>
+            <th>{{ "team.colRole" | translate }}</th>
+            <th>{{ "team.colStatus" | translate }}</th>
+            <th *ngIf="isAdmin"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of users" [class.selected]="selectedUser?.id === u.id" (click)="selectUser(u)">
+            <td>{{ u.displayName }}</td>
+            <td>{{ u.email }}</td>
+            <td>
+              <select
+                *ngIf="isAdmin; else roleText"
+                class="form-control role-select"
+                [ngModel]="u.role"
+                (ngModelChange)="changeRole(u, $event)"
+                (click)="$event.stopPropagation()"
+              >
+                <option value="SupplierOrders">{{ "team.roleOrders" | translate }}</option>
+                <option value="SupplierCatalogue">{{ "team.roleCatalogue" | translate }}</option>
+                <option value="SupplierFinance">{{ "team.roleFinance" | translate }}</option>
+                <option value="SupplierAdmin">{{ "team.roleAdmin" | translate }}</option>
+              </select>
+              <ng-template #roleText>{{ u.role }}</ng-template>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="u.isActive ? 'badge-active' : 'badge-inactive'">
+                {{ u.isActive ? ("team.active" | translate) : ("team.disabled" | translate) }}
+              </span>
+            </td>
+            <td *ngIf="isAdmin">
+              <button
+                class="btn btn-sm"
+                [ngClass]="u.isActive ? 'btn-danger' : 'btn-primary'"
+                (click)="toggleStatus(u); $event.stopPropagation()"
+              >
+                {{ u.isActive ? ("team.disable" | translate) : ("team.enable" | translate) }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" *ngIf="selectedUser && isAdmin">
+      <h3>{{ "team.accessFor" | translate }} {{ selectedUser.displayName }}</h3>
+      <p class="hint">{{ "team.accessHint" | translate }}</p>
+
+      <div *ngIf="loadingAccess" class="loading-state">{{ "access.loading" | translate }}</div>
+      <div *ngIf="!loadingAccess">
+        <label class="check-row unrestricted-row">
+          <input type="checkbox" [checked]="unrestricted" (change)="setUnrestricted($event)" />
+          {{ "team.unrestricted" | translate }}
+        </label>
+
+        <div class="rel-checklist" *ngIf="!unrestricted">
+          <label class="check-row" *ngFor="let r of relationships">
+            <input
+              type="checkbox"
+              [checked]="grantedIds.has(r.id)"
+              (change)="toggleGrant(r.id, $event)"
+            />
+            {{ r.buyingEntityName }}<span *ngIf="r.propertyName"> — {{ r.propertyName }}</span>
+            <span *ngIf="!r.propertyName" class="chain-badge">{{ "access.entireChain" | translate }}</span>
+          </label>
+        </div>
+
+        <button class="btn btn-primary" [disabled]="savingAccess" (click)="saveAccess()">
+          {{ savingAccess ? ("team.saving" | translate) : ("team.saveAccess" | translate) }}
+        </button>
+      </div>
+    </div>
+  

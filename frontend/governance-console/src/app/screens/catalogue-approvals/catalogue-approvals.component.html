@@ -1,0 +1,146 @@
+    <div class="page-header">
+      <h1>Catalogue Approvals</h1>
+      <p class="page-subtitle">
+        Review and approve supplier catalogue submissions for the property
+      </p>
+    </div>
+
+    <div class="tabs">
+      <div
+        class="tab"
+        [class.active]="tab === 'pending'"
+        (click)="switchTab('pending')"
+      >
+        Pending
+        <span class="count-badge" *ngIf="tab === 'pending' && catalogues.length"
+          >{{ catalogues.length }}</span
+        >
+      </div>
+      <div
+        class="tab"
+        [class.active]="tab === 'approved'"
+        (click)="switchTab('approved')"
+      >
+        Approved
+      </div>
+      <div
+        class="tab"
+        [class.active]="tab === 'rejected'"
+        (click)="switchTab('rejected')"
+      >
+        Rejected
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">Loading catalogues…</div>
+    <div *ngIf="loadError" class="load-error" role="alert">
+      Failed to load catalogues. Please try again.
+    </div>
+
+    <div
+      *ngFor="let cat of catalogues"
+      class="card"
+      style="margin-top: 16px"
+    >
+      <div class="card-header">
+        {{ cat.supplierName }} — {{ cat.lineCount }} items
+        <span
+          class="badge"
+          [ngClass]="getStatusBadge(cat.status)"
+          style="margin-left: 8px"
+          >{{ cat.status }}</span
+        >
+        <span class="badge badge-muted" style="margin-left: 4px"
+          >{{ cat.versionLabel }}</span
+        >
+      </div>
+      <div class="card-body">
+        <div class="catalogue-meta">
+          <span>Submitted: {{ cat.submittedDate ? (cat.submittedDate | date: "mediumDate") : "—" }}</span>
+        </div>
+
+        <table class="data-table" style="margin-top: 12px">
+          <thead>
+            <tr>
+              <th>Item Code</th>
+              <th>Description</th>
+              <th>Price</th>
+              <th>Contract Price</th>
+              <th>Deviation</th>
+              <th>Web Prol'IFIC Item</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let line of cat.lines">
+              <td>
+                <code>{{ line.itemCode }}</code>
+              </td>
+              <td>{{ line.description }}</td>
+              <td>{{ line.currency }} {{ line.price | number: "1.2-2" }}</td>
+              <td>
+                {{
+                  line.contractPrice != null
+                    ? line.currency + " " + (line.contractPrice | number: "1.2-2")
+                    : "—"
+                }}
+              </td>
+              <td>
+                <span
+                  *ngIf="line.deviationPercent != null; else noDeviation"
+                  [class.deviation-high]="line.deviationPercent > 5"
+                  [class.deviation-ok]="line.deviationPercent <= 5"
+                >
+                  {{ line.deviationPercent > 0 ? "+" : "" }}{{ line.deviationPercent | number: "1.0-2" }}%
+                </span>
+                <ng-template #noDeviation>—</ng-template>
+              </td>
+              <td>
+                <span
+                  *ngIf="line.mappedItemCode; else notMapped"
+                  class="badge badge-success"
+                  [title]="line.mappedItemDescription || ''"
+                >
+                  {{ line.mappedItemCode }}
+                </span>
+                <ng-template #notMapped>
+                  <span class="badge badge-muted">Unmapped</span>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="cat.status === 'Submitted'" class="catalogue-actions">
+          <button
+            class="btn btn-primary"
+            [disabled]="actingId === cat.id"
+            (click)="approve(cat)"
+          >
+            ✅ Approve All
+          </button>
+          <button
+            class="btn btn-secondary"
+            [disabled]="actingId === cat.id"
+            (click)="reject(cat)"
+          >
+            ❌ Reject
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      *ngIf="!loading && !loadError && catalogues.length === 0"
+      class="card"
+      style="margin-top: 16px"
+    >
+      <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">No catalogues to review</div>
+      </div>
+    </div>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.message }}
+    </div>
+  

@@ -1,0 +1,372 @@
+    <div class="page-header">
+      <h1>
+        {{ (profileOnly ? "nav.companyProfile" : "account.title") | translate }}
+      </h1>
+      <p class="page-subtitle" *ngIf="!profileOnly">
+        {{ "account.subtitle" | translate }}
+      </p>
+    </div>
+
+    <!-- KPI Cards (account view only) -->
+    <div class="kpi-grid" *ngIf="!profileOnly">
+      <div class="kpi-card">
+        <div class="kpi-label">{{ "account.totalOutstanding" | translate }}</div>
+        <div class="kpi-value">{{ totalOutstanding | money }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">{{ "account.overdueAmount" | translate }}</div>
+        <div class="kpi-value" style="color: var(--color-error)">
+          {{ overdueAmount | money }}
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">{{ "account.paidLast30Days" | translate }}</div>
+        <div class="kpi-value" style="color: var(--color-success)">
+          {{ paidLast30Days | money }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs (hidden in Company Profile view) -->
+    <div class="tabs" *ngIf="!profileOnly">
+      <div
+        class="tab"
+        [class.active]="activeTab === 'invoices'"
+        (click)="activeTab = 'invoices'"
+      >
+        {{ "account.tabOutstandingInvoices" | translate }}
+      </div>
+      <div
+        class="tab"
+        [class.active]="activeTab === 'payments'"
+        (click)="activeTab = 'payments'"
+      >
+        {{ "account.tabPayments" | translate }}
+      </div>
+      <div
+        class="tab"
+        [class.active]="activeTab === 'statement'"
+        (click)="activeTab = 'statement'"
+      >
+        {{ "account.tabStatement" | translate }}
+      </div>
+    </div>
+
+    <!-- Company Profile -->
+    <div
+      *ngIf="activeTab === 'profile'"
+      class="card"
+      style="border-top: none; border-radius: 0 0 8px 8px"
+    >
+      <div class="card-body">
+        <div *ngIf="profileLoading" class="profile-state">
+          {{ "account.profileLoading" | translate }}
+        </div>
+        <div *ngIf="profileError" class="profile-error" role="alert">
+          {{ "account.profileError" | translate }}
+        </div>
+
+        <ng-container *ngIf="!profileLoading && vendor">
+          <div class="profile-header">
+            <h3>{{ "account.companyProfile" | translate }}</h3>
+            <button
+              *ngIf="!editing"
+              class="btn btn-secondary"
+              (click)="startEdit()"
+            >
+              ✏️ {{ "account.edit" | translate }}
+            </button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>{{ "account.legalName" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.legalName" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.tradingName" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.tradingName" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.contactEmail" | translate }}</label>
+              <input type="email" class="form-control" [(ngModel)]="form.contactEmail" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.contactPhone" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.contactPhone" [disabled]="!editing" />
+            </div>
+            <div class="form-group full">
+              <label>{{ "account.address" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.address" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.city" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.city" [disabled]="!editing" />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.state" | translate }}</label>
+              <input class="form-control" [(ngModel)]="form.state" [disabled]="!editing" />
+            </div>
+            <!-- Read-only regulatory identifiers -->
+            <div class="form-group">
+              <label>{{ "account.gstin" | translate }}</label>
+              <input class="form-control" [value]="vendor.gstin || '—'" disabled />
+            </div>
+            <div class="form-group">
+              <label>{{ "account.pan" | translate }}</label>
+              <input class="form-control" [value]="vendor.pan || '—'" disabled />
+            </div>
+          </div>
+          <p class="profile-note">{{ "account.profileNote" | translate }}</p>
+
+          <div *ngIf="editing" class="profile-actions">
+            <button class="btn btn-secondary" (click)="cancelEdit()" [disabled]="saving">
+              {{ "account.cancel" | translate }}
+            </button>
+            <button
+              class="btn btn-primary"
+              (click)="saveProfile()"
+              [disabled]="saving || !form.legalName || !form.contactEmail"
+            >
+              {{ "account.save" | translate }}
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Outstanding Invoices -->
+    <div
+      *ngIf="activeTab === 'invoices'"
+      class="card"
+      style="border-top: none; border-radius: 0 0 8px 8px"
+    >
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ "account.invoiceNo" | translate }}</th>
+              <th>{{ "account.date" | translate }}</th>
+              <th>{{ "account.dueDate" | translate }}</th>
+              <th>{{ "account.amount" | translate }}</th>
+              <th>{{ "account.status" | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let inv of invoices" class="clickable" (click)="openInvoice(inv)">
+              <td>
+                <code>{{ inv.number }}</code>
+              </td>
+              <td>{{ inv.date | date: "mediumDate" }}</td>
+              <td>{{ inv.dueDate ? (inv.dueDate | date: "mediumDate") : "—" }}</td>
+              <td>{{ inv.amount | money }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadge(inv.status)">{{
+                  getStatusKey(inv.status) | translate
+                }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="invoicesLoading" class="loading-state">
+        {{ "account.invoicesLoading" | translate }}
+      </div>
+      <div *ngIf="!invoicesLoading && invoices.length === 0" class="empty-state">
+        <div class="empty-icon">📄</div>
+        <div class="empty-title">{{ "account.noInvoices" | translate }}</div>
+      </div>
+    </div>
+
+    <!-- Invoice Detail Drawer -->
+    <div class="drawer-backdrop" *ngIf="selectedInvoice" (click)="selectedInvoice = null">
+      <div class="drawer" (click)="$event.stopPropagation()">
+        <div class="drawer-header">
+          <div>
+            <h2>{{ selectedInvoice.invoiceNumber }}</h2>
+            <p *ngIf="selectedInvoice.poNumber">{{ "account.againstPo" | translate: { poNumber: selectedInvoice.poNumber } }}</p>
+          </div>
+          <span class="badge" [ngClass]="getStatusBadge(selectedInvoice.status)">{{
+            getStatusKey(selectedInvoice.status) | translate
+          }}</span>
+          <button class="btn btn-sm" (click)="selectedInvoice = null">✕</button>
+        </div>
+
+        <div class="drawer-body" *ngIf="!invoiceDetailLoading; else detailLoading">
+          <div class="po-meta">
+            <div><strong>{{ "account.date" | translate }}:</strong> {{ selectedInvoice.invoiceDate | date: "mediumDate" }}</div>
+            <div><strong>{{ "account.subTotal" | translate }}:</strong> {{ selectedInvoice.subTotal | money }}</div>
+            <div><strong>{{ "account.tax" | translate }}:</strong> {{ selectedInvoice.taxAmount | money }}</div>
+            <div><strong>{{ "account.amount" | translate }}:</strong> {{ selectedInvoice.totalAmount | money }}</div>
+            <div>
+              <strong>{{ "account.matchStatus" | translate }}:</strong>
+              <span class="badge" [ngClass]="selectedInvoice.matchStatus === 'Matched' ? 'badge-success' : 'badge-error'">
+                {{ selectedInvoice.matchStatus }}
+              </span>
+            </div>
+          </div>
+          <p *ngIf="selectedInvoice.mismatchReasons" class="field-warning">
+            ⚠ {{ selectedInvoice.mismatchReasons }}
+          </p>
+
+          <h3>{{ "account.lineItems" | translate }}</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>{{ "account.item" | translate }}</th>
+                <th>{{ "account.invoicedQty" | translate }}</th>
+                <th>{{ "account.invoicedPrice" | translate }}</th>
+                <th>{{ "account.expectedQty" | translate }}</th>
+                <th>{{ "account.expectedPrice" | translate }}</th>
+                <th>{{ "account.lineTotal" | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let line of selectedInvoice.lines">
+                <td>{{ line.itemDescription }}</td>
+                <td [class.field-warning]="line.invoicedQty !== line.expectedQty">{{ line.invoicedQty }}</td>
+                <td [class.field-warning]="line.invoicedUnitPrice !== line.expectedUnitPrice">{{ line.invoicedUnitPrice | money }}</td>
+                <td>{{ line.expectedQty }}</td>
+                <td>{{ line.expectedUnitPrice | money }}</td>
+                <td>{{ line.lineTotal | money }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>{{ "account.adjustments" | translate }}</h3>
+          <table class="data-table" *ngIf="selectedInvoice.payments?.length; else noAdjustments">
+            <thead>
+              <tr>
+                <th>{{ "account.reference" | translate }}</th>
+                <th>{{ "account.amount" | translate }}</th>
+                <th>{{ "account.status" | translate }}</th>
+                <th>{{ "account.scheduledDate" | translate }}</th>
+                <th>{{ "account.paidDate" | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of selectedInvoice.payments">
+                <td><code>{{ p.paymentReference }}</code></td>
+                <td>{{ p.amount | money }}</td>
+                <td>
+                  <span class="badge" [ngClass]="p.status === 'Paid' ? 'badge-success' : (p.status === 'Cancelled' ? 'badge-error' : 'badge-warning')">
+                    {{ p.status }}
+                  </span>
+                </td>
+                <td>{{ p.scheduledDate ? (p.scheduledDate | date: "mediumDate") : "—" }}</td>
+                <td>{{ p.paidDate ? (p.paidDate | date: "mediumDate") : "—" }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <ng-template #noAdjustments>
+            <p class="empty-inline">{{ "account.noAdjustments" | translate }}</p>
+          </ng-template>
+        </div>
+        <ng-template #detailLoading>
+          <div class="loading-state">{{ "account.invoicesLoading" | translate }}</div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Payments -->
+    <div
+      *ngIf="activeTab === 'payments'"
+      class="card"
+      style="border-top: none; border-radius: 0 0 8px 8px"
+    >
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ "account.reference" | translate }}</th>
+              <th>{{ "account.invoiceNo" | translate }}</th>
+              <th>{{ "account.date" | translate }}</th>
+              <th>{{ "account.amount" | translate }}</th>
+              <th>{{ "account.status" | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of payments">
+              <td>
+                <code>{{ p.reference }}</code>
+              </td>
+              <td>
+                <a
+                  *ngIf="p.invoiceId; else noInvoiceLink"
+                  class="invoice-link"
+                  (click)="openInvoiceById(p.invoiceId)"
+                  >{{ p.invoiceNumber || p.invoiceId }}</a
+                >
+                <ng-template #noInvoiceLink>—</ng-template>
+              </td>
+              <td>{{ p.date | date: "mediumDate" }}</td>
+              <td>{{ p.amount | money }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [ngClass]="getStatusBadge(p.status)"
+                  >{{ getStatusKey(p.status) | translate }}</span
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="paymentsLoading" class="loading-state">
+        {{ "account.invoicesLoading" | translate }}
+      </div>
+      <div *ngIf="!paymentsLoading && payments.length === 0" class="empty-state">
+        <div class="empty-icon">💳</div>
+        <div class="empty-title">{{ "account.noPayments" | translate }}</div>
+      </div>
+    </div>
+
+    <!-- Statement -->
+    <div
+      *ngIf="activeTab === 'statement'"
+      class="card"
+      style="border-top: none; border-radius: 0 0 8px 8px"
+    >
+      <div class="card-body">
+        <div class="statement-header">
+          <div>
+            {{ "account.openingBalance" | translate }}:
+            <strong>{{ openingBalance | money }}</strong>
+          </div>
+          <button class="btn btn-secondary" (click)="downloadStatement()">
+            📥 {{ "account.downloadPdf" | translate }}
+          </button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ "account.date" | translate }}</th>
+              <th>{{ "account.description" | translate }}</th>
+              <th>{{ "account.debit" | translate }}</th>
+              <th>{{ "account.credit" | translate }}</th>
+              <th>{{ "account.balance" | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of statement">
+              <td>{{ s.date }}</td>
+              <td>{{ s.description }}</td>
+              <td>{{ s.debit ? (s.debit | money) : "-" }}</td>
+              <td>{{ s.credit ? (s.credit | money) : "-" }}</td>
+              <td>
+                <strong>{{ s.balance | money }}</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="statement-footer">
+          {{ "account.closingBalance" | translate }}:
+          <strong>{{ closingBalance | money }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.key | translate }}
+    </div>
+  

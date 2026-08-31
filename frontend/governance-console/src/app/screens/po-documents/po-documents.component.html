@@ -1,0 +1,83 @@
+    <div class="page-header">
+      <h1>Purchase Order Documents</h1>
+      <p class="page-subtitle">
+        Upload the printed PO (the PDF the property produced) so the supplier can
+        see the exact document in their portal.
+      </p>
+    </div>
+
+    <div class="search-bar">
+      <input
+        type="text"
+        class="form-control search-input"
+        placeholder="Search by PO number or supplier..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </div>
+
+    <div *ngIf="loading" class="loading-state">Loading purchase orders…</div>
+    <div *ngIf="loadError" class="load-error" role="alert">
+      Failed to load purchase orders. Please try again.
+    </div>
+
+    <div class="card" *ngIf="!loading && !loadError">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>PO Number</th>
+            <th>Supplier</th>
+            <th>Property</th>
+            <th>Order Date</th>
+            <th>Value</th>
+            <th>Status</th>
+            <th>Document</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let po of purchaseOrders">
+            <td><code>{{ po.poNumber }}</code></td>
+            <td>{{ po.vendorName }}</td>
+            <td>{{ po.propertyName || "—" }}</td>
+            <td>{{ po.orderDate | date: "mediumDate" }}</td>
+            <td>{{ po.transactionCurrencyCode }} {{ po.totalValue | number: "1.2-2" }}</td>
+            <td><span class="badge badge-muted">{{ po.status }}</span></td>
+            <td>
+              <span *ngIf="po.hasPrintedDocument; else noDoc" class="badge badge-success">
+                {{ po.printedDocumentFileName }}
+              </span>
+              <ng-template #noDoc>
+                <span class="badge badge-warning">Not uploaded</span>
+              </ng-template>
+            </td>
+            <td>
+              <input
+                type="file"
+                accept="application/pdf"
+                #fileInput
+                style="display:none"
+                (change)="onFileSelected(po, fileInput.files)"
+              />
+              <button
+                class="btn btn-sm btn-secondary"
+                [disabled]="uploadingId === po.id"
+                (click)="fileInput.click()"
+              >
+                {{ uploadingId === po.id ? "Uploading…" : (po.hasPrintedDocument ? "Replace" : "Upload PDF") }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="purchaseOrders.length === 0" class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">No purchase orders found</div>
+      </div>
+    </div>
+
+    <div *ngIf="toast" class="toast" [ngClass]="'toast-' + toast.type">
+      {{ toast.message }}
+    </div>
+  

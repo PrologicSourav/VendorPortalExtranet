@@ -1,0 +1,105 @@
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="logo">Web Prol'IFIC</span>
+        <span class="divider">|</span>
+        <span class="portal-name">Governance Console</span>
+      </div>
+      <div class="topbar-right">
+        <span class="entity-label">Prologic First</span>
+        <div class="user-menu">
+          <span class="user-avatar">SG</span>
+          <span class="user-name">Sachin Gupta</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="shell">
+      <nav class="sidebar">
+        <div class="nav-section-title">Supplier Management</div>
+        <a routerLink="/kyc-review" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🔒</span> KYC Review
+        </a>
+        <a
+          routerLink="/kyc-change-approvals"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">🔄</span> KYC Change Approvals
+        </a>
+        <a
+          routerLink="/supplier-accounts"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">👥</span> Supplier Accounts
+        </a>
+
+        <div class="nav-section-title">Deduplication</div>
+        <a
+          routerLink="/vendor-dedup"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">🏢</span> Vendor Dedup
+        </a>
+        <a routerLink="/item-dedup" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📦</span> Item Dedup
+        </a>
+
+        <div class="nav-section-title">Workflows</div>
+        <a
+          routerLink="/supplier-submissions"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">📝</span> Supplier Submissions
+        </a>
+        <a
+          routerLink="/catalogue-approvals"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">✅</span> Catalogue Approvals
+        </a>
+        <a
+          routerLink="/po-documents"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">📄</span> PO Documents
+        </a>
+        <a
+          routerLink="/delivery-note-receiving"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">📦</span> Delivery Note Receiving
+        </a>
+        <a
+          routerLink="/wish-mapping"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">🔗</span> Web Prol'IFIC Mapping
+        </a>
+        <a
+          routerLink="/vendor-relationships"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">🏷️</span> Vendor Relationships
+        </a>
+        <a
+          routerLink="/vendor-requests"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon">📥</span> Vendor Access Requests
+        </a>
+      </nav>
+
+      <main class="main-content">
+        <router-outlet />
+      </main>
+    </div>
+  

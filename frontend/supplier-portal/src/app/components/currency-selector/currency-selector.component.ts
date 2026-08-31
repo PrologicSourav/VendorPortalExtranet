@@ -11,30 +11,8 @@ const FALLBACK: CurrencyInfo[] = [
   selector: "currency-selector",
   standalone: true,
   imports: [],
-  template: `
-    <div class="currency-selector">
-      <select [value]="selectedCurrency()" (change)="onChange($event)">
-        @for (cur of options(); track cur.code) {
-          <option [value]="cur.code" [title]="cur.name">{{ cur.code }}</option>
-        }
-      </select>
-    </div>
-  `,
-  styles: [
-    `
-      .currency-selector {
-        display: flex;
-        align-items: center;
-      }
-      select {
-        padding: 6px 10px;
-        border-radius: 4px;
-        border: 1px solid var(--color-border, #ccc);
-        background: var(--color-surface, #fff);
-        color: var(--color-text, inherit);
-      }
-    `,
-  ],
+  templateUrl: "./currency-selector.component.html",
+  styleUrl: "./currency-selector.component.css",
 })
 export class CurrencySelectorComponent {
   private currencyService = inject(CurrencyService);
