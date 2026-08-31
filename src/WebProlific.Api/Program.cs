@@ -234,6 +234,61 @@ catch (Exception ex)
     logger.LogError(ex, "VendorRelationship backfill failed");
 }
 
+// ─── Deactivate duplicate WISH-synced Properties (one-time cleanup) ───
+// An earlier version of WishBuyingEntitySyncService didn't record a
+// newly-created Property back into its own lookup before the next row, so a
+// WishPropertyId that WISH's vo_property table itself repeats (it does) got a
+// second Property row created every time instead of being matched/updated.
+// Deactivating rather than deleting: nothing needs a hard-delete here, and a
+// duplicate a VendorRelationship/PurchaseOrder already points at must keep
+// resolving correctly rather than break a foreign key.
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var wishSynced = await db.Properties
+        .Where(p => p.WishPropertyId != null && p.IsActive)
+        .ToListAsync();
+
+    var duplicateGroups = wishSynced
+        .GroupBy(p => p.WishPropertyId!)
+        .Where(g => g.Count() > 1)
+        .ToList();
+
+    var deactivated = 0;
+    foreach (var group in duplicateGroups)
+    {
+        // Keep the row anything already references, if one is referenced;
+        // otherwise keep the earliest-created row and deactivate the rest.
+        var referencedIds = await db.VendorRelationships
+            .Where(r => r.PropertyId != null && group.Select(p => p.Id).Contains(r.PropertyId!.Value))
+            .Select(r => r.PropertyId!.Value)
+            .Union(db.PurchaseOrders
+                .Where(po => po.PropertyId != null && group.Select(p => p.Id).Contains(po.PropertyId!.Value))
+                .Select(po => po.PropertyId!.Value))
+            .ToListAsync();
+
+        var keep = group.FirstOrDefault(p => referencedIds.Contains(p.Id)) ?? group.First();
+        foreach (var dup in group.Where(p => p.Id != keep.Id))
+        {
+            dup.IsActive = false;
+            deactivated++;
+        }
+    }
+
+    if (deactivated > 0)
+    {
+        await db.SaveChangesAsync();
+        var log = app.Services.GetRequiredService<ILogger<Program>>();
+        log.LogInformation("Deactivated {Count} duplicate WISH-synced Property row(s)", deactivated);
+    }
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Duplicate Property cleanup failed");
+}
+
 // ─── Middleware ──────────────────────────────────────────────
 app.UseHttpsRedirection();
 app.UseCors("AllowAngular");

@@ -4,6 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { TranslatePipe } from "@ngx-translate/core";
 import { ApiService } from "../../services/api.service";
 import { AuthService } from "../../services/auth.service";
+import { PropertyContextService } from "../../services/property-context.service";
 
 @Component({
   selector: "app-access-requests",
@@ -102,6 +103,7 @@ import { AuthService } from "../../services/auth.service";
 export class AccessRequestsComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private propertyCtx = inject(PropertyContextService);
 
   relationships: any[] = [];
   requests: any[] = [];
@@ -117,6 +119,11 @@ export class AccessRequestsComponent implements OnInit {
   ngOnInit(): void {
     const vendorId = this.auth.user()?.vendorId;
     if (!vendorId) return;
+
+    // A relationship could have just been approved in a governance-console
+    // session with no way to push into this tab — always refetch here rather
+    // than trusting whatever the topbar switcher cached at login.
+    this.propertyCtx.loadForVendor(vendorId, true);
 
     this.loadingRelationships = true;
     this.api.getVendorRelationships(vendorId).subscribe({

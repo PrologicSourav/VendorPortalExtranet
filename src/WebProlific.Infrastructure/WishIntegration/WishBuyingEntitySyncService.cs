@@ -118,6 +118,11 @@ public class WishBuyingEntitySyncService
                     IsActive = true,
                 };
                 _db.Properties.Add(created);
+                // WISH's own vo_property table has repeat rows for the same
+                // property_id — without recording this one immediately, a repeat
+                // later in the same run wouldn't find it in propertyByWishId and
+                // would create a second duplicate Property instead of updating it.
+                propertyByWishId[wishProperty.PropertyId] = created;
                 summary.PropertiesCreated++;
             }
         }

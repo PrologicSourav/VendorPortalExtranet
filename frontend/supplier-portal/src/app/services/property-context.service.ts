@@ -30,9 +30,15 @@ export class PropertyContextService {
 
   constructor(private api: ApiService) {}
 
-  /** Loads (once per vendor) the properties this vendor has purchase orders for. */
-  loadForVendor(vendorId: string): void {
-    if (this.loadedForVendorId === vendorId) return;
+  /**
+   * Loads the properties this vendor currently has access to. Cached per vendor
+   * for the rest of the session — pass forceRefresh when the vendor's access may
+   * have just changed (e.g. right after they view their own request/relationship
+   * status), since a relationship approved in a separate governance-console
+   * session has no way to push into an already-open supplier-portal tab.
+   */
+  loadForVendor(vendorId: string, forceRefresh = false): void {
+    if (!forceRefresh && this.loadedForVendorId === vendorId) return;
     this.loadedForVendorId = vendorId;
     this.api.getVendorProperties(vendorId).subscribe({
       next: (properties: PropertyOption[]) => {
