@@ -31,7 +31,8 @@
 
   <div *ngIf="loading" class="loading-state">Loading…</div>
 
-  <div class="card" *ngIf="!loading">
+  <div class="card table-card" *ngIf="!loading">
+    <div class="table-scroll">
     <table class="data-table">
       <thead>
         <tr>
@@ -118,6 +119,7 @@
         </ng-container>
       </tbody>
     </table>
+    </div>
     <div *ngIf="rows.length === 0" class="empty-state">
       <div class="empty-icon">✅</div>
       <div class="empty-title">Nothing unmapped</div>
