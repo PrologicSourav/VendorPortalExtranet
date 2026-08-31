@@ -191,6 +191,10 @@ export class ApiService {
     return this.http.put(`${API}/vendorusers/${userId}/status`, { isActive });
   }
 
+  setVendorUserRole(userId: string, role: string): Observable<any> {
+    return this.http.put(`${API}/vendorusers/${userId}/role`, { role });
+  }
+
   getVendorUserAccess(userId: string): Observable<any> {
     return this.http.get(`${API}/vendorusers/${userId}/access`);
   }

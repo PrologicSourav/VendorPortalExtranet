@@ -122,6 +122,28 @@ public class VendorUsersController : ControllerBase
         return Ok(new { user.Id, user.IsActive });
     }
 
+    public class SetRoleRequest { public string Role { get; set; } = string.Empty; }
+
+    [HttpPut("{userId:guid}/role")]
+    public async Task<IActionResult> SetRole(Guid userId, [FromBody] SetRoleRequest request)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user is null || user.VendorId is null) return NotFound();
+        if (!User.CanManageVendorTeam(user.VendorId.Value)) return Forbid();
+
+        if (!Enum.TryParse<UserRole>(request.Role, true, out var role) || !role.ToString().StartsWith("Supplier"))
+            return BadRequest(new { error = "Role must be a supplier-side role." });
+
+        var previousRole = user.Role;
+        user.Role = role;
+        await _db.SaveChangesAsync();
+
+        await _auditLog.LogAsync("VendorUserRoleChanged", user.VendorId, User.GetUserId(),
+            $"UserId={userId}, From={previousRole}, To={role}");
+
+        return Ok(new { user.Id, Role = user.Role.ToString() });
+    }
+
     [HttpGet("{userId:guid}/access")]
     public async Task<IActionResult> GetAccess(Guid userId)
     {

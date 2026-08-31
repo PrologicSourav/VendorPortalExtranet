@@ -53,7 +53,21 @@ import { AuthService } from "../../services/auth.service";
           <tr *ngFor="let u of users" [class.selected]="selectedUser?.id === u.id" (click)="selectUser(u)">
             <td>{{ u.displayName }}</td>
             <td>{{ u.email }}</td>
-            <td>{{ u.role }}</td>
+            <td>
+              <select
+                *ngIf="isAdmin; else roleText"
+                class="form-control role-select"
+                [ngModel]="u.role"
+                (ngModelChange)="changeRole(u, $event)"
+                (click)="$event.stopPropagation()"
+              >
+                <option value="SupplierOrders">{{ "team.roleOrders" | translate }}</option>
+                <option value="SupplierCatalogue">{{ "team.roleCatalogue" | translate }}</option>
+                <option value="SupplierFinance">{{ "team.roleFinance" | translate }}</option>
+                <option value="SupplierAdmin">{{ "team.roleAdmin" | translate }}</option>
+              </select>
+              <ng-template #roleText>{{ u.role }}</ng-template>
+            </td>
             <td>
               <span class="badge" [ngClass]="u.isActive ? 'badge-active' : 'badge-inactive'">
                 {{ u.isActive ? ("team.active" | translate) : ("team.disabled" | translate) }}
@@ -118,6 +132,7 @@ import { AuthService } from "../../services/auth.service";
       .badge-active { background: var(--color-success-soft-bg, #e6f7ee); color: var(--color-success, #1a7f4e); }
       .badge-inactive { background: var(--color-error-soft-bg, #fde8e8); color: var(--color-error); }
       .btn-sm { padding: 4px 10px; font-size: 12px; }
+      .role-select { width: 140px; padding: 4px 8px; font-size: 12px; }
       .field-error { color: var(--color-error); font-size: 12px; margin: 8px 0; }
       .hint { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 12px; }
       .loading-state { padding: 8px 0; color: var(--color-text-secondary); font-size: 13px; }
@@ -203,6 +218,14 @@ export class TeamComponent implements OnInit {
   toggleStatus(u: any): void {
     this.api.setVendorUserStatus(u.id, !u.isActive).subscribe({
       next: () => (u.isActive = !u.isActive),
+    });
+  }
+
+  changeRole(u: any, newRole: string): void {
+    const previous = u.role;
+    u.role = newRole;
+    this.api.setVendorUserRole(u.id, newRole).subscribe({
+      error: () => (u.role = previous),
     });
   }
 
