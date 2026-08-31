@@ -255,20 +255,28 @@ try
         .Where(g => g.Count() > 1)
         .ToList();
 
+    // Two bulk queries up front instead of one round-trip per duplicate group —
+    // this ran against a remote, occasionally-slow WISH SQL Server, and a
+    // per-group query (hundreds of them, sequential) risked the container's
+    // startup never finishing in time.
+    var referencedPropertyIds = (await db.VendorRelationships
+        .Where(r => r.PropertyId != null)
+        .Select(r => r.PropertyId!.Value)
+        .Distinct()
+        .ToListAsync())
+        .Concat(await db.PurchaseOrders
+            .Where(po => po.PropertyId != null)
+            .Select(po => po.PropertyId!.Value)
+            .Distinct()
+            .ToListAsync())
+        .ToHashSet();
+
     var deactivated = 0;
     foreach (var group in duplicateGroups)
     {
         // Keep the row anything already references, if one is referenced;
         // otherwise keep the earliest-created row and deactivate the rest.
-        var referencedIds = await db.VendorRelationships
-            .Where(r => r.PropertyId != null && group.Select(p => p.Id).Contains(r.PropertyId!.Value))
-            .Select(r => r.PropertyId!.Value)
-            .Union(db.PurchaseOrders
-                .Where(po => po.PropertyId != null && group.Select(p => p.Id).Contains(po.PropertyId!.Value))
-                .Select(po => po.PropertyId!.Value))
-            .ToListAsync();
-
-        var keep = group.FirstOrDefault(p => referencedIds.Contains(p.Id)) ?? group.First();
+        var keep = group.FirstOrDefault(p => referencedPropertyIds.Contains(p.Id)) ?? group.First();
         foreach (var dup in group.Where(p => p.Id != keep.Id))
         {
             dup.IsActive = false;
