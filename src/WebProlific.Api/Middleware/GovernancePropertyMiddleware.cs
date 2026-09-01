@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WebProlific.Infrastructure.Data;
@@ -37,10 +38,14 @@ public class GovernancePropertyMiddleware
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var property = db.Properties.FirstOrDefault(p => p.WishPropertyId == wishPropertyId.Trim());
+            var property = await db.Properties.FirstOrDefaultAsync(p => p.WishPropertyId == wishPropertyId.Trim());
             if (property is not null)
             {
                 context.Items["GovernancePropertyId"] = property.Id;
+                // The raw WISH id too — lets a controller push a property filter
+                // down into a WISH-side SQL query instead of pulling everything
+                // over the network and filtering in memory (see GetUnmapped).
+                context.Items["GovernanceWishPropertyId"] = property.WishPropertyId;
             }
             else
             {

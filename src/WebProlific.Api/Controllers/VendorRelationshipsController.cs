@@ -53,7 +53,11 @@ public class VendorRelationshipsController : ControllerBase
         if (!_wishReader.IsConfigured)
             return Ok(new { configured = false, items = Array.Empty<object>() });
 
-        var wishVendors = await _wishReader.GetAllVendorsAsync();
+        // Pushed into the SQL query itself when scoped — OPM1.vendors is large
+        // enough (tens of thousands of rows) that pulling all of it over the
+        // network just to filter in memory took over a minute in practice.
+        var scopedWishPropertyId = HttpContext.GetGovernanceWishPropertyId();
+        var wishVendors = await _wishReader.GetAllVendorsAsync(scopedWishPropertyId);
 
         var alreadyMapped = (await _db.VendorRelationships
                 .Where(r => r.ExternalVendorId != null && r.ExternalVendorId != "")

@@ -62,8 +62,14 @@ public class WishPurchaseOrderReader
     /// to find ones with no VendorRelationship.ExternalVendorId pointing at them
     /// yet, for the governance "Unmapped Vendors" screen. Not filtered by activity
     /// — a vendor with no recent POs is still a real WISH record worth mapping
-    /// deliberately, not silently hidden.</summary>
-    public async Task<List<WishVendor>> GetAllVendorsAsync()
+    /// deliberately, not silently hidden.
+    ///
+    /// Pass wishPropertyId to push the filter into the SQL query itself — a
+    /// property-scoped governance session only needs a tiny slice of this table,
+    /// and OPM1.vendors is large enough (tens of thousands of rows) that pulling
+    /// all of it over the network just to filter in memory took over a minute in
+    /// practice.</summary>
+    public async Task<List<WishVendor>> GetAllVendorsAsync(string? wishPropertyId = null)
     {
         var result = new List<WishVendor>();
         if (!IsConfigured) return result;
@@ -76,7 +82,10 @@ public class WishPurchaseOrderReader
             cmd.CommandText = @"
                 SELECT vendor_id, vendor_name, property_id, gst_reg_no, pan_number
                 FROM OPM1.vendors WITH (NOLOCK)
-                WHERE ISNULL(vendor_id, '') <> ''";
+                WHERE ISNULL(vendor_id, '') <> ''" +
+                (string.IsNullOrWhiteSpace(wishPropertyId) ? "" : " AND property_id = @propertyId");
+            if (!string.IsNullOrWhiteSpace(wishPropertyId))
+                cmd.Parameters.AddWithValue("@propertyId", wishPropertyId.Trim());
 
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
