@@ -68,6 +68,9 @@
         display: flex;
         height: calc(100vh - 56px);
       }
+      .shell.embedded {
+        height: 100vh;
+      }
 
       .sidebar {
         width: 240px;

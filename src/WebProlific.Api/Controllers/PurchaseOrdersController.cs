@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
@@ -57,11 +58,13 @@ public class PurchaseOrdersController : ControllerBase
             {
                 po.Id,
                 po.PoNumber,
+                po.WishPoNumber,
                 po.VendorId,
                 po.BuyingEntityId,
                 EntityName = po.BuyingEntity?.Name,
                 po.PropertyId,
                 PropertyName = po.Property?.Name,
+                WishPropertyId = po.Property?.WishPropertyId,
                 po.OrderDate,
                 po.RequiredByDate,
                 LineCount = po.Lines?.Count ?? 0,
@@ -103,6 +106,7 @@ public class PurchaseOrdersController : ControllerBase
         {
             po.Id,
             po.PoNumber,
+            po.WishPoNumber,
             VendorName = po.Vendor?.LegalName,
             PropertyName = po.Property?.Name,
             po.OrderDate,
@@ -146,6 +150,7 @@ public class PurchaseOrdersController : ControllerBase
         {
             po.Id,
             po.PoNumber,
+            po.WishPoNumber,
             po.VendorId,
             po.BuyingEntityId,
             EntityName = po.BuyingEntity?.Name,
@@ -223,12 +228,26 @@ public class PurchaseOrdersController : ControllerBase
 
     private const long MaxDocumentBytes = 15 * 1024 * 1024;
 
+    /// <summary>The next integer PO number, one past whatever's highest so far —
+    /// WISH-synced and portal-created POs share this one visible numbering space
+    /// so every PO a vendor sees is a plain integer, not just WISH-sourced ones.</summary>
+    private async Task<long> GetNextPoNumberAsync()
+    {
+        var existing = await _db.PurchaseOrders
+            .Where(p => p.WishPoNumber != null)
+            .Select(p => p.WishPoNumber!)
+            .ToListAsync();
+        var max = existing.Select(n => long.TryParse(n, out var v) ? v : 0).DefaultIfEmpty(0).Max();
+        return max + 1;
+    }
+
     [HttpPost]
     [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> Create([FromBody] PurchaseOrder po)
     {
         po.Id = Guid.NewGuid();
         po.PoNumber = $"PO-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
+        po.WishPoNumber = (await GetNextPoNumberAsync()).ToString();
         po.CreatedAt = DateTime.UtcNow;
         po.UpdatedAt = DateTime.UtcNow;
         var created = await _poRepo.CreateAsync(po);

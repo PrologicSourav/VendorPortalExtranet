@@ -55,6 +55,7 @@
       "outstandingAmount": "ยอดค้างชำระ",
       "outstandingAmountSub": "ทุกนิติบุคคล",
       "nextScheduledPayment": "การชำระเงินตามกำหนดครั้งถัดไป",
+      "noPaymentScheduled": "ไม่มีการชำระเงินตามกำหนด",
       "cataloguesPendingApproval": "แคตตาล็อกที่รอการอนุมัติ",
       "cataloguesPendingApprovalSub": "รอการอนุมัติจากผู้ซื้อ"
     },

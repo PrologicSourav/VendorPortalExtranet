@@ -174,8 +174,10 @@ export class ApiService {
   }
 
   // Payments
-  getPayments(vendorId: string): Observable<any> {
-    return this.http.get(`${API}/payments/vendor/${vendorId}`);
+  getPayments(vendorId: string, status?: string): Observable<any> {
+    const params: any = {};
+    if (status) params.status = status;
+    return this.http.get(`${API}/payments/vendor/${vendorId}`, { params });
   }
 
   // Team (a vendor's own users + per-user chain/property access)

@@ -140,6 +140,7 @@ public class WishPoSyncService
             {
                 Id = Guid.NewGuid(),
                 PoNumber = $"WISH-{header.PoNumber}-{header.AmdNumber}",
+                WishPoNumber = header.PoNumber.ToString(),
                 VendorId = vendor.Id,
                 BuyingEntityId = buyingEntityId.Value,
                 PropertyId = property?.Id,

@@ -55,6 +55,7 @@
       "outstandingAmount": "المبلغ المستحق",
       "outstandingAmountSub": "عبر جميع الكيانات",
       "nextScheduledPayment": "الدفعة المجدولة القادمة",
+      "noPaymentScheduled": "لا توجد دفعة مجدولة",
       "cataloguesPendingApproval": "الفهارس بانتظار الموافقة",
       "cataloguesPendingApprovalSub": "بانتظار موافقة المشتري"
     },

@@ -1,4 +1,4 @@
-    <header class="topbar">
+    <header class="topbar" *ngIf="!isEmbedded">
       <div class="topbar-left">
         <span class="logo">Web Prol'IFIC</span>
         <span class="divider">|</span>
@@ -16,7 +16,7 @@
       </div>
     </header>
 
-    <div class="shell">
+    <div class="shell" [class.embedded]="isEmbedded">
       <nav class="sidebar">
         <div class="nav-section-title">Supplier Management</div>
         <a routerLink="/kyc-review" routerLinkActive="active" class="nav-item">

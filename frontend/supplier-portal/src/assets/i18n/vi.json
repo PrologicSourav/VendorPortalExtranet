@@ -55,6 +55,7 @@
       "outstandingAmount": "Số tiền còn nợ",
       "outstandingAmountSub": "Trên tất cả các thực thể",
       "nextScheduledPayment": "Khoản thanh toán tiếp theo",
+      "noPaymentScheduled": "Không có khoản thanh toán nào được lên lịch",
       "cataloguesPendingApproval": "Danh mục chờ phê duyệt",
       "cataloguesPendingApprovalSub": "Đang chờ bên mua phê duyệt"
     },

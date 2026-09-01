@@ -60,7 +60,7 @@ export class PoDocumentsComponent implements OnInit {
     this.govApi.uploadPoDocument(po.id, file).subscribe({
       next: () => {
         this.uploadingId = null;
-        this.showToast("success", `Document uploaded for ${po.poNumber}.`);
+        this.showToast("success", `Document uploaded for ${po.wishPoNumber ?? po.poNumber}.`);
         this.load();
       },
       error: (err) => {

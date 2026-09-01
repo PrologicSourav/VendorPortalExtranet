@@ -1,10 +1,14 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using WebProlific.Api.Services;
 using WebProlific.Core.Entities;
 using WebProlific.Infrastructure.Data;
+using WebProlific.Infrastructure.WishIntegration;
 
 namespace WebProlific.Api.Controllers;
 
@@ -15,12 +19,16 @@ public class AuthController : ControllerBase
     private readonly AppDbContext _db;
     private readonly ITokenService _tokenService;
     private readonly ILogger<AuthController> _logger;
+    private readonly IConfiguration _config;
+    private readonly WishUserValidator _wishUserValidator;
 
-    public AuthController(AppDbContext db, ITokenService tokenService, ILogger<AuthController> logger)
+    public AuthController(AppDbContext db, ITokenService tokenService, ILogger<AuthController> logger, IConfiguration config, WishUserValidator wishUserValidator)
     {
         _db = db;
         _tokenService = tokenService;
         _logger = logger;
+        _config = config;
+        _wishUserValidator = wishUserValidator;
     }
 
     /// <summary>
@@ -76,6 +84,99 @@ public class AuthController : ControllerBase
                 isInternal = user.IsInternal
             }
         });
+    }
+
+    /// <summary>
+    /// Server-to-server handoff for WISH's "launch Governance Console" menu
+    /// item: given a WISH-authenticated staff member's identity (read from
+    /// WISHSESSION — never trust client-supplied claims about who this is),
+    /// mints a governance JWT for their Vendor Portal internal account.
+    ///
+    /// Two independent checks gate this, both required:
+    ///  1. The shared secret (Wish:GovernanceHandoffSecret) proves the caller
+    ///     is WISH's own server, not an arbitrary client.
+    ///  2. A live lookup against WISH's own tables (menudb.OPM1.vo_user /
+    ///     vo_user_templates, via WishUserValidator) proves this specific
+    ///     user_id is currently active in WISH and their assigned template
+    ///     actually has an AIGOVC/INV114 grant — not just that the WISH menu
+    ///     happened to show the item client-side.
+    ///
+    /// Auto-provisions an internal Vendor Portal account (IsInternal=true) the
+    /// first time a given email passes both checks, so KYC/catalogue/etc.
+    /// approvals still have a real User.Id to attribute to. If that account
+    /// already exists but has been explicitly deactivated on the Vendor
+    /// Portal side, that still blocks — deactivation is the one override an
+    /// admin can apply after the fact, on top of WISH's own validation.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("governance-handoff")]
+    public async Task<IActionResult> GovernanceHandoff(
+        [FromBody] GovernanceHandoffRequest request,
+        [FromHeader(Name = "X-Wish-Shared-Secret")] string? sharedSecret)
+    {
+        var expectedSecret = _config["Wish:GovernanceHandoffSecret"];
+        if (string.IsNullOrWhiteSpace(expectedSecret))
+        {
+            _logger.LogError("Governance handoff attempted but Wish:GovernanceHandoffSecret is not configured.");
+            return StatusCode(503, new { error = "Governance handoff is not configured on this environment." });
+        }
+
+        if (string.IsNullOrWhiteSpace(sharedSecret) ||
+            !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(sharedSecret), Encoding.UTF8.GetBytes(expectedSecret)))
+        {
+            _logger.LogWarning("Governance handoff rejected: invalid shared secret.");
+            return Unauthorized(new { error = "Invalid shared secret." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return BadRequest(new { error = "Email is required." });
+        if (string.IsNullOrWhiteSpace(request.UserId))
+            return BadRequest(new { error = "UserId is required." });
+
+        var wishCheck = await _wishUserValidator.ValidateAsync(request.UserId, request.PropertyId, request.ChainId);
+        if (!wishCheck.IsValid)
+        {
+            _logger.LogWarning("Governance handoff rejected by WISH validation for {UserId}: {Reason}", request.UserId, wishCheck.Reason);
+            return Unauthorized(new { error = wishCheck.Reason ?? "WISH account validation failed." });
+        }
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        if (user is not null && !user.IsActive)
+        {
+            _logger.LogWarning("Governance handoff rejected: {Email} is deactivated.", request.Email);
+            return Unauthorized(new { error = "This Vendor Portal account has been deactivated." });
+        }
+
+        if (user is null)
+        {
+            user = new AppUser
+            {
+                Id = Guid.NewGuid(),
+                Email = request.Email,
+                DisplayName = string.IsNullOrWhiteSpace(request.DisplayName) ? request.Email : request.DisplayName,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()),
+                Role = UserRole.InternalAdmin,
+                IsInternal = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                LanguageCode = "en",
+                PreferredCurrencyCode = "INR"
+            };
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+            _logger.LogInformation("Governance handoff auto-provisioned internal account for {Email} ({UserId})", user.Email, user.Id);
+        }
+        else if (!user.IsInternal)
+        {
+            // This email already belongs to a supplier-side account — do not silently
+            // promote it to internal access. Treat as a conflict, not an auto-grant.
+            _logger.LogWarning("Governance handoff rejected: {Email} belongs to an existing supplier account.", request.Email);
+            return Conflict(new { error = "This email is already registered as a supplier account. Ask an admin to resolve this before using Governance Console." });
+        }
+
+        var token = _tokenService.GenerateToken(user);
+        _logger.LogInformation("Governance handoff token minted for {Email} ({UserId})", user.Email, user.Id);
+        return Ok(new { token, displayName = user.DisplayName, id = user.Id });
     }
 
     /// <summary>
@@ -286,3 +387,11 @@ public class OtpRequest { public string Otp { get; set; } = string.Empty; }
 public class ForgotPasswordRequest { public string Email { get; set; } = string.Empty; }
 public class ChangePasswordRequest { public string CurrentPassword { get; set; } = string.Empty; public string NewPassword { get; set; } = string.Empty; }
 public class RegisterRequest { public string Email { get; set; } = string.Empty; public string Password { get; set; } = string.Empty; public string CompanyName { get; set; } = string.Empty; public string? DisplayName { get; set; } public string? Gstin { get; set; } }
+public class GovernanceHandoffRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string? DisplayName { get; set; }
+    public string UserId { get; set; } = string.Empty;
+    public string? PropertyId { get; set; }
+    public string? ChainId { get; set; }
+}

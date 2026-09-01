@@ -59,6 +59,7 @@ builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishPurcha
 builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishPoSyncService>();
 builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishBuyingEntityReader>();
 builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishBuyingEntitySyncService>();
+builder.Services.AddScoped<WebProlific.Infrastructure.WishIntegration.WishUserValidator>();
 builder.Services.AddHostedService<WishSyncBackgroundService>();
 
 // ─── JWT Auth ───────────────────────────────────────────────

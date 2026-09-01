@@ -47,8 +47,11 @@ public class VendorRelationshipRepository : IVendorRelationshipRepository
         var directPropertyIds = relationships.Where(r => r.PropertyId != null).Select(r => r.PropertyId!.Value).ToList();
         var chainWideEntityIds = relationships.Where(r => r.PropertyId == null).Select(r => r.BuyingEntityId).ToList();
 
+        // EF.Constant forces these lists to inline as literal SQL values instead of
+        // EF Core 8's default OPENJSON-based Contains() translation, which SQL Server
+        // 2008 R2 (local dev engine) doesn't support — "Incorrect syntax near 'WITH'".
         return await _db.Properties
-            .Where(p => p.IsActive && (directPropertyIds.Contains(p.Id) || chainWideEntityIds.Contains(p.BuyingEntityId)))
+            .Where(p => p.IsActive && (EF.Constant(directPropertyIds).Contains(p.Id) || EF.Constant(chainWideEntityIds).Contains(p.BuyingEntityId)))
             .OrderBy(p => p.Name)
             .ToListAsync();
     }

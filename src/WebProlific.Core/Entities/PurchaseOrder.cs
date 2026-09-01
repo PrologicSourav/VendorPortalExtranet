@@ -25,6 +25,13 @@ public class PurchaseOrder
     public string? SourceSystem { get; set; }
     public string? SourcePoNumber { get; set; }
 
+    // The integer PO number shown to users — the raw WISH po_number (e.g. "3642")
+    // for POs synced from Web Prol'IFIC, or a portal-assigned sequential number
+    // (see PurchaseOrdersController.GetNextPoNumberAsync) for POs created directly
+    // in the Vendor Portal. PoNumber above is a separate synthetic value kept for
+    // internal uniqueness/re-sync matching only — never shown to a user.
+    public string? WishPoNumber { get; set; }
+
     // The printed PO document (PDF) as produced by the hotel/property — uploaded by
     // internal staff via the governance console. Only lightweight metadata lives on
     // this row; the file bytes live in the related PurchaseOrderDocument row so that

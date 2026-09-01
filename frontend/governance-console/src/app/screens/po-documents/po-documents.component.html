@@ -38,7 +38,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let po of purchaseOrders">
-            <td><code>{{ po.poNumber }}</code></td>
+            <td><code>{{ po.wishPoNumber || po.poNumber }}</code></td>
             <td>{{ po.vendorName }}</td>
             <td>{{ po.propertyName || "—" }}</td>
             <td>{{ po.orderDate | date: "mediumDate" }}</td>

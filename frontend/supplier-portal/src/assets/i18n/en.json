@@ -55,6 +55,7 @@
       "outstandingAmount": "Outstanding Amount",
       "outstandingAmountSub": "Across all entities",
       "nextScheduledPayment": "Next Scheduled Payment",
+      "noPaymentScheduled": "No payment scheduled",
       "cataloguesPendingApproval": "Catalogues Pending Approval",
       "cataloguesPendingApprovalSub": "Awaiting buyer approval"
     },

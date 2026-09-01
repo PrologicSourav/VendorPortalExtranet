@@ -9,23 +9,23 @@
     <div class="kpi-grid">
       <div class="kpi-card" style="border-left: 4px solid var(--color-primary)">
         <div class="kpi-label">{{ "dashboard.kpi.poToAcknowledge" | translate }}</div>
-        <div class="kpi-value">{{ data.poToAcknowledge }}</div>
+        <div class="kpi-value">{{ poToAcknowledgeCount ?? "—" }}</div>
         <div class="kpi-sub">{{ "dashboard.kpi.poToAcknowledgeSub" | translate }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">{{ "dashboard.kpi.invoicesInProgress" | translate }}</div>
-        <div class="kpi-value">{{ data.invoicesInProgress }}</div>
+        <div class="kpi-value">{{ invoicesInProgressCount ?? "—" }}</div>
         <div class="kpi-sub">{{ "dashboard.kpi.invoicesInProgressSub" | translate }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">{{ "dashboard.kpi.outstandingAmount" | translate }}</div>
-        <div class="kpi-value">{{ data.outstandingAmount | money }}</div>
+        <div class="kpi-value">{{ outstandingAmount === null ? "—" : (outstandingAmount | money) }}</div>
         <div class="kpi-sub">{{ "dashboard.kpi.outstandingAmountSub" | translate }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">{{ "dashboard.kpi.nextScheduledPayment" | translate }}</div>
-        <div class="kpi-value">{{ data.nextPayment.amount | money }}</div>
-        <div class="kpi-sub">{{ data.nextPayment.date }}</div>
+        <div class="kpi-value">{{ nextScheduledPayment ? (nextScheduledPayment.amount | money) : "—" }}</div>
+        <div class="kpi-sub">{{ nextScheduledPayment ? (nextScheduledPayment.date | date: "mediumDate") : ("dashboard.kpi.noPaymentScheduled" | translate) }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">{{ "dashboard.kpi.cataloguesPendingApproval" | translate }}</div>
@@ -41,10 +41,10 @@
         <div class="card-body">
           <div *ngFor="let po of pendingPOs" class="action-item">
             <div class="action-info">
+              <span class="po-property">{{ po.propertyId }}</span>
               <span class="po-number">{{ po.number }}</span>
-              <span class="po-property">{{ po.property }}</span>
+              <span class="po-date">{{ po.date | date: "mediumDate" }}</span>
               <span class="po-value">{{ po.value | money }}</span>
-              <span class="po-date">{{ po.date }}</span>
             </div>
             <button
               class="btn btn-primary"

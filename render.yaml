@@ -28,6 +28,12 @@ services:
         # tunnel to the on-prem network) — the sync background service no-ops safely
         # when this isn't configured. Set manually in the Render dashboard; never
         # commit the real value here.
+      - key: Wish__GovernanceHandoffSecret
+        sync: false # Shared secret WISH's server-side code presents (X-Wish-Shared-Secret
+        # header) to POST /api/auth/governance-handoff when launching the Governance
+        # Console menu item. Set manually in the Render dashboard AND in WISH's own
+        # Web.config appSettings — never commit the real value here. Leave unset to
+        # disable the handoff endpoint entirely (it 503s until this is set).
 
   - type: web
     runtime: static

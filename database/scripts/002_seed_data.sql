@@ -78,8 +78,8 @@ GO
 
 -- ─── Notifications ─────────────────────────────────────────────────
 INSERT INTO Notifications (Id, UserId, Type, Title, Detail, IsRead, CreatedAt) VALUES
-('CD000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003', 0, 'New Purchase Order', 'PO-20250701-001 from Sofitel Delhi - 84,000', 0, GETUTCDATE()),
-('CD000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003', 2, 'Payment Released', 'Payment of 49,500 for PO-20250702-002 is scheduled', 0, DATEADD(HOUR, -2, GETUTCDATE())),
+('CD000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003', 0, 'New Purchase Order', 'PO 4044 from Sofitel Delhi - 84,000', 0, GETUTCDATE()),
+('CD000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003', 2, 'Payment Released', 'Payment of 49,500 for PO 4045 is scheduled', 0, DATEADD(HOUR, -2, GETUTCDATE())),
 ('CD000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000003', 1, 'Invoice Rejected', 'Invoice INV-003 rejected: unit price exceeds PO by 15/kg', 1, DATEADD(DAY, -1, GETUTCDATE())),
 ('CD000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000003', 3, 'Catalogue Approved', 'Your catalogue v1 for Accor - North India has been approved', 1, DATEADD(DAY, -3, GETUTCDATE()));
 

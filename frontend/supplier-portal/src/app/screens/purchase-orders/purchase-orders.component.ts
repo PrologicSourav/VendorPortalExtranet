@@ -87,7 +87,7 @@ export class PurchaseOrdersComponent implements OnInit {
     }));
     return {
       id: p.id,
-      poNumber: p.poNumber,
+      poNumber: p.wishPoNumber ?? p.poNumber,
       entity: p.entityName ?? "—",
       property: p.propertyName ?? "",
       orderDate: p.orderDate,
