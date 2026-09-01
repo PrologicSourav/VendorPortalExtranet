@@ -30,7 +30,12 @@ public class CataloguesController : ControllerBase
     [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> GetForReview([FromQuery] string? status)
     {
-        var catalogues = await _catRepo.GetByStatusAsync(status);
+        // Narrows to a single chain when this governance session was launched
+        // scoped to one property (see GovernancePropertyMiddleware) — Catalogue
+        // is chain-scoped, not property-scoped, so this matches the chain the
+        // scoped property belongs to.
+        var buyingEntityId = HttpContext.GetGovernanceBuyingEntityId();
+        var catalogues = await _catRepo.GetByStatusAsync(status, buyingEntityId);
         var result = catalogues.Select(c => new CatalogueReviewDto
         {
             Id = c.Id,

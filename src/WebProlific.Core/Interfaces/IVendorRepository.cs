@@ -18,8 +18,11 @@ public interface ICatalogueRepository
     Task<Catalogue?> GetByIdAsync(Guid id);
     Task<IEnumerable<Catalogue>> GetByVendorAsync(Guid vendorId, string? status);
     /// <summary>All vendors' catalogues at a given status (or every status when null),
-    /// including the owning vendor and lines. Used by the governance review queue.</summary>
-    Task<IEnumerable<Catalogue>> GetByStatusAsync(string? status);
+    /// including the owning vendor and lines. Used by the governance review queue.
+    /// Pass buyingEntityId to narrow to a single chain (a governance session
+    /// launched scoped to one property) — Catalogue is chain-scoped, not
+    /// property-scoped, so this matches on the chain the property belongs to.</summary>
+    Task<IEnumerable<Catalogue>> GetByStatusAsync(string? status, Guid? buyingEntityId = null);
     Task<Catalogue> CreateAsync(Catalogue catalogue);
     Task<Catalogue> UpdateAsync(Catalogue catalogue);
     Task<IEnumerable<CatalogueLine>> AddLinesAsync(Guid catalogueId, IEnumerable<CatalogueLine> lines);
@@ -82,8 +85,15 @@ public interface IInvoiceRepository
 
 public interface IKycRepository
 {
-    Task<IEnumerable<Vendor>> GetKycQueueAsync(string? status, string? search, int page, int pageSize);
-    Task<int> GetKycQueueCountAsync(string? status, string? search);
+    /// <summary>Pass propertyId/buyingEntityId to narrow to vendors relevant to a
+    /// single property (a governance session launched scoped to one) — Vendor
+    /// itself has no property link (KYC verifies the vendor's legal identity
+    /// once, globally), so "relevant" means having a VendorRelationship or
+    /// VendorRequest that touches that property or its chain. A vendor with no
+    /// relationship/request at all (e.g. a brand-new self-registration nobody
+    /// has linked anywhere yet) only shows up in the unscoped/global queue.</summary>
+    Task<IEnumerable<Vendor>> GetKycQueueAsync(string? status, string? search, int page, int pageSize, Guid? propertyId = null, Guid? buyingEntityId = null);
+    Task<int> GetKycQueueCountAsync(string? status, string? search, Guid? propertyId = null, Guid? buyingEntityId = null);
     Task<IEnumerable<VendorDocument>> GetDocumentsAsync(Guid vendorId);
     Task<VendorDocument> AddDocumentAsync(VendorDocument document);
 }

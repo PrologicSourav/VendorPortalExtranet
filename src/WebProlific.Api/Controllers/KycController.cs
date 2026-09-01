@@ -23,8 +23,12 @@ public class KycController : ControllerBase
     [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> GetQueue([FromQuery] string? status, [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var vendors = await _kycRepo.GetKycQueueAsync(status, search, page, pageSize);
-        var total = await _kycRepo.GetKycQueueCountAsync(status, search);
+        // Narrows to vendors relevant to a single property when this governance
+        // session was launched scoped to one (see GovernancePropertyMiddleware).
+        var propertyId = HttpContext.GetGovernancePropertyId();
+        var buyingEntityId = HttpContext.GetGovernanceBuyingEntityId();
+        var vendors = await _kycRepo.GetKycQueueAsync(status, search, page, pageSize, propertyId, buyingEntityId);
+        var total = await _kycRepo.GetKycQueueCountAsync(status, search, propertyId, buyingEntityId);
         return Ok(new { items = vendors, total, page, pageSize });
     }
 

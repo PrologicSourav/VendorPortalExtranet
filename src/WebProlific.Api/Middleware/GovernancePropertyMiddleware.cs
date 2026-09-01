@@ -42,6 +42,11 @@ public class GovernancePropertyMiddleware
             if (property is not null)
             {
                 context.Items["GovernancePropertyId"] = property.Id;
+                // The chain too — screens whose primary record is only chain
+                // -scoped (Catalogue) or has no direct property link at all and
+                // needs to match a chain-wide relationship/request (KYC) both
+                // need this, not just the property id itself.
+                context.Items["GovernanceBuyingEntityId"] = property.BuyingEntityId;
                 // The raw WISH id too — lets a controller push a property filter
                 // down into a WISH-side SQL query instead of pulling everything
                 // over the network and filtering in memory (see GetUnmapped).

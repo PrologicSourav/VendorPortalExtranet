@@ -33,7 +33,7 @@ public class CatalogueRepository : ICatalogueRepository
         return await query.OrderByDescending(c => c.CreatedAt).ToListAsync();
     }
 
-    public async Task<IEnumerable<Catalogue>> GetByStatusAsync(string? status)
+    public async Task<IEnumerable<Catalogue>> GetByStatusAsync(string? status, Guid? buyingEntityId = null)
     {
         var query = _db.Catalogues
             .Include(c => c.Vendor)
@@ -43,6 +43,8 @@ public class CatalogueRepository : ICatalogueRepository
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<CatalogueStatus>(status, true, out var catStatus))
             query = query.Where(c => c.Status == catStatus);
+        if (buyingEntityId.HasValue)
+            query = query.Where(c => c.BuyingEntityId == buyingEntityId.Value);
 
         // Most recently submitted first (fall back to creation time for anything unsubmitted).
         return await query.OrderByDescending(c => c.SubmittedDate ?? c.CreatedAt).ToListAsync();

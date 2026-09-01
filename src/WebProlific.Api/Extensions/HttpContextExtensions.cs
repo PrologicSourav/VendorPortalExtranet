@@ -15,4 +15,10 @@ public static class HttpContextExtensions
     /// everything over the network and filtering in memory.</summary>
     public static string? GetGovernanceWishPropertyId(this HttpContext context) =>
         context.Items["GovernanceWishPropertyId"] as string;
+
+    /// <summary>The BuyingEntity (chain) the scoped property belongs to — for
+    /// screens whose primary record is only chain-scoped (Catalogue), or that
+    /// need to also match a chain-wide relationship/request (KYC).</summary>
+    public static Guid? GetGovernanceBuyingEntityId(this HttpContext context) =>
+        context.Items["GovernanceBuyingEntityId"] as Guid?;
 }
