@@ -310,6 +310,9 @@ app.UseAuthorization();
 // ─── Localization Middleware ──────────────────────────────
 app.UseMiddleware<LocalizationMiddleware>();
 
+// ─── Governance property-scope context ─────────────────────
+app.UseMiddleware<GovernancePropertyMiddleware>();
+
 app.MapControllers();
 
 app.Run();

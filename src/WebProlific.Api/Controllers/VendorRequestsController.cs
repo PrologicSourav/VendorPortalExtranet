@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebProlific.Api.Extensions;
 using WebProlific.Core.Entities;
 using WebProlific.Core.Interfaces;
+using WebProlific.Infrastructure.Data;
 
 namespace WebProlific.Api.Controllers;
 
@@ -18,10 +20,13 @@ public class VendorRequestsController : ControllerBase
     private readonly IVendorRequestRepository _requestRepo;
     private readonly IVendorRelationshipRepository _relationshipRepo;
     private readonly IAuditLogRepository _auditLog;
+    private readonly AppDbContext _db;
 
     public VendorRequestsController(
-        IVendorRequestRepository requestRepo, IVendorRelationshipRepository relationshipRepo, IAuditLogRepository auditLog)
+        IVendorRequestRepository requestRepo, IVendorRelationshipRepository relationshipRepo, IAuditLogRepository auditLog,
+        AppDbContext db)
     {
+        _db = db;
         _requestRepo = requestRepo;
         _relationshipRepo = relationshipRepo;
         _auditLog = auditLog;
@@ -90,6 +95,25 @@ public class VendorRequestsController : ControllerBase
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<VendorRequestStatus>(status, true, out var s)) parsed = s;
 
         var requests = await _requestRepo.GetQueueAsync(parsed);
+
+        // Narrow to a single property when this governance session was launched
+        // scoped to one (see GovernancePropertyMiddleware): a property approver
+        // sees requests aimed directly at their property, plus chain-wide
+        // requests that would grant access to it too — never requests for an
+        // unrelated property/chain.
+        var scopedPropertyId = HttpContext.GetGovernancePropertyId();
+        if (scopedPropertyId.HasValue)
+        {
+            var scopedBuyingEntityId = await _db.Properties
+                .Where(p => p.Id == scopedPropertyId.Value)
+                .Select(p => (Guid?)p.BuyingEntityId)
+                .FirstOrDefaultAsync();
+
+            requests = requests.Where(r =>
+                r.RequestedPropertyId == scopedPropertyId.Value ||
+                (r.RequestType == VendorRelationshipScope.Chain && r.RequestedBuyingEntityId == scopedBuyingEntityId));
+        }
+
         return Ok(requests.Select(r => new
         {
             r.Id,

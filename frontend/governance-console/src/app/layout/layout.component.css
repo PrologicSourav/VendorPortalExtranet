@@ -10,6 +10,15 @@
         top: 0;
         z-index: 100;
       }
+      .property-scope-badge {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
       .topbar-left {
         display: flex;
         align-items: center;

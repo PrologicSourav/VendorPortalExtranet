@@ -94,8 +94,11 @@ public class PurchaseOrdersController : ControllerBase
     [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> Search([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var pos = await _poRepo.SearchAsync(search, page, pageSize);
-        var total = await _poRepo.SearchCountAsync(search);
+        // Narrows to a single property when this governance session was launched
+        // scoped to one (see GovernancePropertyMiddleware) — null/unscoped by default.
+        var propertyId = HttpContext.GetGovernancePropertyId();
+        var pos = await _poRepo.SearchAsync(search, page, pageSize, propertyId);
+        var total = await _poRepo.SearchCountAsync(search, propertyId);
         var items = pos.Select(po => new
         {
             po.Id,

@@ -28,8 +28,9 @@ public class DeliveryNotesController : ControllerBase
     [Authorize(Policy = "InternalOnly")]
     public async Task<IActionResult> Search([FromQuery] string? status, [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var notes = await _dnRepo.SearchAsync(status, search, page, pageSize);
-        var total = await _dnRepo.SearchCountAsync(status, search);
+        var propertyId = HttpContext.GetGovernancePropertyId();
+        var notes = await _dnRepo.SearchAsync(status, search, page, pageSize, propertyId);
+        var total = await _dnRepo.SearchCountAsync(status, search, propertyId);
         var items = notes.Select(dn => new
         {
             dn.Id,

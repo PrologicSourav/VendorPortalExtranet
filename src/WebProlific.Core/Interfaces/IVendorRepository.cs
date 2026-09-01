@@ -37,9 +37,11 @@ public interface IPurchaseOrderRepository
     Task<IEnumerable<PurchaseOrder>> GetByVendorAsync(Guid vendorId, string? status, Guid? propertyId, int page, int pageSize);
     Task<int> GetVendorPoCountAsync(Guid vendorId, string? status, Guid? propertyId);
     /// <summary>Cross-vendor PO search (by PO number or vendor name) for internal
-    /// staff — used by the governance console's document-upload lookup.</summary>
-    Task<IEnumerable<PurchaseOrder>> SearchAsync(string? search, int page, int pageSize);
-    Task<int> SearchCountAsync(string? search);
+    /// staff — used by the governance console's document-upload lookup. Pass
+    /// propertyId to narrow to a single property (a governance session launched
+    /// scoped to one property/hotel) — null searches every property, as today.</summary>
+    Task<IEnumerable<PurchaseOrder>> SearchAsync(string? search, int page, int pageSize, Guid? propertyId = null);
+    Task<int> SearchCountAsync(string? search, Guid? propertyId = null);
     Task<PurchaseOrder> CreateAsync(PurchaseOrder po);
     Task<PurchaseOrder> UpdateAsync(PurchaseOrder po);
     /// <summary>Distinct properties this vendor has at least one purchase order for —
@@ -61,9 +63,12 @@ public interface IDeliveryNoteRepository
     Task<DeliveryNote> CreateAsync(DeliveryNote dn);
     Task<DeliveryNote> UpdateAsync(DeliveryNote dn);
     /// <summary>Cross-vendor lookup (by status and/or DN/PO number or vendor name)
-    /// for internal staff — used by the governance console's receiving queue.</summary>
-    Task<IEnumerable<DeliveryNote>> SearchAsync(string? status, string? search, int page, int pageSize);
-    Task<int> SearchCountAsync(string? status, string? search);
+    /// for internal staff — used by the governance console's receiving queue.
+    /// Pass propertyId to narrow to a single property (a governance session
+    /// launched scoped to one property/hotel) — null searches every property,
+    /// as today.</summary>
+    Task<IEnumerable<DeliveryNote>> SearchAsync(string? status, string? search, int page, int pageSize, Guid? propertyId = null);
+    Task<int> SearchCountAsync(string? status, string? search, Guid? propertyId = null);
 }
 
 public interface IInvoiceRepository

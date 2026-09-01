@@ -59,7 +59,7 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
         return await query.CountAsync();
     }
 
-    public async Task<IEnumerable<PurchaseOrder>> SearchAsync(string? search, int page, int pageSize)
+    public async Task<IEnumerable<PurchaseOrder>> SearchAsync(string? search, int page, int pageSize, Guid? propertyId = null)
     {
         var query = _db.PurchaseOrders
             .Include(po => po.Vendor)
@@ -68,17 +68,21 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
 
         if (!string.IsNullOrEmpty(search))
             query = query.Where(po => po.PoNumber.Contains(search) || po.Vendor.LegalName.Contains(search));
+        if (propertyId.HasValue)
+            query = query.Where(po => po.PropertyId == propertyId.Value);
 
         var ordered = query.OrderByDescending(po => po.CreatedAt);
         IQueryable<PurchaseOrder> paged = page > 1 ? ordered.Skip((page - 1) * pageSize) : ordered;
         return await paged.Take(pageSize).ToListAsync();
     }
 
-    public async Task<int> SearchCountAsync(string? search)
+    public async Task<int> SearchCountAsync(string? search, Guid? propertyId = null)
     {
         var query = _db.PurchaseOrders.AsQueryable();
         if (!string.IsNullOrEmpty(search))
             query = query.Where(po => po.PoNumber.Contains(search) || po.Vendor.LegalName.Contains(search));
+        if (propertyId.HasValue)
+            query = query.Where(po => po.PropertyId == propertyId.Value);
         return await query.CountAsync();
     }
 

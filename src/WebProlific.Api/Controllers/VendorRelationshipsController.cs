@@ -86,6 +86,17 @@ public class VendorRelationshipsController : ControllerBase
                 v.VendorId.Contains(s, StringComparison.OrdinalIgnoreCase));
         }
 
+        // Narrow to a single property when this governance session was launched
+        // scoped to one (see GovernancePropertyMiddleware) — unresolvable/unsynced
+        // rows never match a specific property, so they're excluded too, not just
+        // ones that resolve to a different property.
+        var scopedPropertyId = HttpContext.GetGovernancePropertyId();
+        if (scopedPropertyId.HasValue)
+        {
+            unmapped = unmapped.Where(v =>
+                propertyByWishId.TryGetValue(v.PropertyId, out var p) && p.Id == scopedPropertyId.Value);
+        }
+
         var unmappedList = unmapped.OrderBy(v => v.VendorName).ToList();
         var result = unmappedList
             .Take(500) // capped so a huge unsynced WISH vendor table can't return an unbounded payload — totalCount below tells the UI when more exist so it's never a silent truncation

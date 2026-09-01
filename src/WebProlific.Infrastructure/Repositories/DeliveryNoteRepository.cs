@@ -41,9 +41,9 @@ public class DeliveryNoteRepository : IDeliveryNoteRepository
         return dn;
     }
 
-    public async Task<IEnumerable<DeliveryNote>> SearchAsync(string? status, string? search, int page, int pageSize)
+    public async Task<IEnumerable<DeliveryNote>> SearchAsync(string? status, string? search, int page, int pageSize, Guid? propertyId = null)
     {
-        var query = BuildSearchQuery(status, search)
+        var query = BuildSearchQuery(status, search, propertyId)
             .Include(dn => dn.Lines)
             .Include(dn => dn.PurchaseOrder)
             .Include(dn => dn.Vendor);
@@ -53,10 +53,10 @@ public class DeliveryNoteRepository : IDeliveryNoteRepository
         return await paged.Take(pageSize).ToListAsync();
     }
 
-    public async Task<int> SearchCountAsync(string? status, string? search) =>
-        await BuildSearchQuery(status, search).CountAsync();
+    public async Task<int> SearchCountAsync(string? status, string? search, Guid? propertyId = null) =>
+        await BuildSearchQuery(status, search, propertyId).CountAsync();
 
-    private IQueryable<DeliveryNote> BuildSearchQuery(string? status, string? search)
+    private IQueryable<DeliveryNote> BuildSearchQuery(string? status, string? search, Guid? propertyId = null)
     {
         var query = _db.DeliveryNotes.AsQueryable();
 
@@ -68,6 +68,10 @@ public class DeliveryNoteRepository : IDeliveryNoteRepository
                 dn.DeliveryNoteNumber.Contains(search) ||
                 dn.PurchaseOrder.PoNumber.Contains(search) ||
                 dn.Vendor.LegalName.Contains(search));
+
+        // DeliveryNote has no PropertyId of its own — derived from its PO.
+        if (propertyId.HasValue)
+            query = query.Where(dn => dn.PurchaseOrder.PropertyId == propertyId.Value);
 
         return query;
     }

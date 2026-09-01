@@ -5,6 +5,9 @@
         <span class="portal-name">Governance Console</span>
       </div>
       <div class="topbar-right">
+        <span class="property-scope-badge" *ngIf="auth.propertyId" [title]="'Scoped to property ' + auth.propertyId + ' — every screen only shows this property\'s data'">
+          🏨 {{ auth.propertyId }}
+        </span>
         <span class="entity-label">Prologic First</span>
         <div class="user-menu">
           <span class="user-avatar">SG</span>
